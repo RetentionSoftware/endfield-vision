@@ -1,0 +1,157 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+}
+
+.filters {
+  margin-bottom: 0;
+}
+
+/* --- Ячейки таблицы --- */
+.title {
+  font-weight: var(--ev-fw-medium);
+  line-height: var(--ev-lh-tight);
+}
+
+.twoLine {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.twoLine > span:last-child {
+  font-size: var(--ev-fs-xs);
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.overdue {
+  color: var(--ev-danger);
+  font-weight: var(--ev-fw-medium);
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 110px;
+}
+
+.progress > :first-child {
+  flex: 1 1 auto;
+}
+
+.progress > span {
+  min-width: 34px;
+  text-align: right;
+  font-size: var(--ev-fs-xs);
+}
+
+/* --- Форма --- */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--ev-space-5);
+}
+
+.dueRow {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  gap: var(--ev-space-5);
+}
+
+@media (max-width: 600px) {
+  .dueRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Шторка задачи --- */
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+}
+
+.description {
+  margin: 0;
+  color: var(--ev-text-secondary);
+  font-size: var(--ev-fs-sm);
+  line-height: var(--ev-lh);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+  padding: var(--ev-space-5);
+  border-radius: var(--ev-radius-lg);
+  background: var(--ev-surface-nested);
+}
+
+.blockTitle {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--ev-space-2);
+  font-size: var(--ev-fs-sm);
+  font-weight: var(--ev-fw-semibold);
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-3);
+}
+
+.stepDone {
+  color: var(--ev-text-muted);
+  text-decoration: line-through;
+}
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+}
+
+.comment {
+  display: flex;
+  gap: var(--ev-space-3);
+  min-width: 0;
+}
+
+.commentBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-1);
+  min-width: 0;
+  font-size: var(--ev-fs-sm);
+  line-height: 1.4;
+}
+
+.commentHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ev-space-3);
+  font-size: var(--ev-fs-xs);
+}
+
+.commentWho {
+  font-size: var(--ev-fs-sm);
+  font-weight: var(--ev-fw-medium);
+}
+
+.commentActions {
+  display: flex;
+  justify-content: flex-end;
+}

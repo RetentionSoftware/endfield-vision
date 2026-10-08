@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { TeamScreen } from '@/components/screens/team/TeamScreen'
 
 export const metadata: Metadata = { title: 'Команда' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="team" />
+  return <TeamScreen />
 }

@@ -1,0 +1,119 @@
+/* Экраны входа: без каркаса консоли, карточка по центру. */
+.auth {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ev-space-6);
+  min-height: 100dvh;
+  padding: var(--ev-space-8) var(--ev-space-6);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ev-bg);
+}
+
+/* Мягкое свечение акцента за карточкой. */
+.auth::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -20vh;
+  left: 50%;
+  width: min(900px, 140vw);
+  height: 60vh;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(var(--ev-accent-rgb), 0.16), transparent);
+  pointer-events: none;
+}
+
+.card {
+  width: min(420px, 100%);
+  padding: var(--ev-space-9) var(--ev-space-8) var(--ev-space-8);
+  background: var(--ev-surface-1);
+  border-radius: var(--ev-radius-xl);
+  box-shadow: var(--ev-shadow);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ev-space-4);
+  margin-bottom: var(--ev-space-8);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--ev-fs-xl);
+  font-weight: var(--ev-fw-semibold);
+  letter-spacing: -0.015em;
+}
+
+.subtitle {
+  margin-top: var(--ev-space-1);
+  font-size: var(--ev-fs-sm);
+  color: var(--ev-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-3);
+  margin-top: var(--ev-space-2);
+}
+
+/* Кнопка-ссылка «Забыли пароль?». */
+.linkBtn {
+  padding: 0;
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-accent-text);
+  border-radius: var(--ev-radius-xs);
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--ev-focus-ring);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--ev-space-3);
+  margin-top: var(--ev-space-6);
+  padding: var(--ev-space-4) var(--ev-space-5);
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-surface-nested);
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-secondary);
+}
+
+.foot {
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .auth {
+    justify-content: flex-start;
+    padding: var(--ev-space-9) var(--ev-space-4) var(--ev-space-6);
+  }
+
+  .card {
+    padding: var(--ev-space-8) var(--ev-space-6) var(--ev-space-6);
+  }
+}

@@ -1,0 +1,194 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+  min-width: 0;
+}
+
+/* --- Панель инструментов --- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ev-space-3);
+}
+
+.search {
+  flex: 1 1 240px;
+  max-width: 320px;
+}
+
+.viewToggle {
+  display: inline-flex;
+  gap: var(--ev-space-1);
+}
+
+@media (max-width: 720px) {
+  .search {
+    max-width: none;
+    flex-basis: 100%;
+  }
+}
+
+/* --- Сотрудник в таблице --- */
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 0;
+}
+
+.whoText {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.whoText > span:last-child {
+  font-size: var(--ev-fs-xs);
+}
+
+.whoName {
+  font-weight: var(--ev-fw-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  font-size: var(--ev-fs-xs);
+  line-height: 1.35;
+}
+
+.load {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 100px;
+}
+
+.load > :first-child {
+  flex: 1 1 auto;
+}
+
+.load > span {
+  min-width: 34px;
+  text-align: right;
+  font-size: var(--ev-fs-xs);
+}
+
+/* --- Карточки сотрудников --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  gap: var(--ev-space-5);
+}
+
+.gridEmpty {
+  padding: var(--ev-space-6);
+  border-radius: var(--ev-radius-lg);
+  background: var(--ev-surface-1);
+  box-shadow: var(--ev-shadow-card);
+}
+
+.personCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+  padding: var(--ev-space-5);
+  border-radius: var(--ev-radius-lg);
+  background: var(--ev-surface-1);
+  box-shadow: var(--ev-shadow-card);
+  min-width: 0;
+}
+
+.personCard[data-muted] {
+  opacity: 0.6;
+}
+
+.personHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ev-space-4);
+  min-width: 0;
+}
+
+.personName {
+  font-size: var(--ev-fs-md);
+  font-weight: var(--ev-fw-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-2);
+  min-width: 0;
+}
+
+.personFoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-3);
+  margin-top: auto;
+  padding-top: var(--ev-space-3);
+  border-top: 1px solid var(--ev-border-soft);
+}
+
+/* --- Приглашения --- */
+.invites {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+}
+
+.invite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-3);
+  padding: var(--ev-space-4);
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-surface-nested);
+  min-width: 0;
+}
+
+.inviteHead {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 0;
+}
+
+.inviteMeta {
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-muted);
+}
+
+.inviteActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ev-space-2);
+}
+
+/* --- Формы --- */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--ev-space-5);
+}

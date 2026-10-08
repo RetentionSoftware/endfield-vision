@@ -1,0 +1,508 @@
+/*
+ * Витрина ENDFIELD Vision. Только токены библиотеки (--ev-*), без литералов цвета.
+ * Стили вне слоёв: сильнее стилей кита, поэтому здесь - только раскладка витрины.
+ */
+
+/* --- Раскладка разделов --- */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--ev-space-6);
+  min-width: 0;
+}
+
+.gridWide {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+}
+
+.span {
+  grid-column: 1 / -1;
+}
+
+/* Колонки контролов внутри карточки. */
+.cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--ev-space-5) var(--ev-space-7);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 0;
+}
+
+.subhead {
+  margin-bottom: var(--ev-space-3);
+  font-size: var(--ev-fs-2xs);
+  font-weight: var(--ev-fw-semibold);
+  letter-spacing: var(--ev-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ev-text-muted);
+}
+
+.text {
+  color: var(--ev-text-secondary);
+  font-size: var(--ev-fs-sm);
+  line-height: var(--ev-lh);
+}
+
+.text code,
+.inlineCode {
+  padding: 1px 5px;
+  border-radius: var(--ev-radius-xs);
+  background: var(--ev-surface-nested);
+  color: var(--ev-text);
+  font-size: 0.88em;
+}
+
+/* --- Блок кода --- */
+.code {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-surface-nested);
+  overflow: hidden;
+}
+
+.codeHead {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-height: 36px;
+  padding: var(--ev-space-1) var(--ev-space-2) var(--ev-space-1) var(--ev-space-5);
+  border-bottom: 1px solid var(--ev-border-soft);
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-muted);
+}
+
+.codeHead > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.code pre {
+  margin: 0;
+  padding: var(--ev-space-5);
+  overflow-x: auto;
+  font-size: var(--ev-fs-xs);
+  line-height: 1.65;
+  color: var(--ev-text);
+  tab-size: 2;
+}
+
+.code pre code {
+  font-size: inherit;
+}
+
+/* --- Обзор --- */
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+  padding: var(--ev-space-9) var(--ev-space-8);
+  border-radius: var(--ev-radius-xl);
+  background:
+    radial-gradient(120% 140% at 100% 0%, var(--ev-accent-soft), transparent 55%),
+    var(--ev-surface-1);
+  box-shadow: var(--ev-shadow-card);
+  overflow: hidden;
+}
+
+.heroKicker {
+  font-family: var(--ev-font-mono);
+  font-size: var(--ev-fs-xs);
+  letter-spacing: var(--ev-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ev-accent-text);
+}
+
+.heroTitle {
+  max-width: 760px;
+  font-size: var(--ev-fs-3xl);
+  font-weight: var(--ev-fw-bold);
+  line-height: var(--ev-lh-tight);
+}
+
+.heroText {
+  max-width: 720px;
+  color: var(--ev-text-secondary);
+  font-size: var(--ev-fs-md);
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: var(--ev-space-8) var(--ev-space-6);
+  }
+
+  .heroTitle {
+    font-size: var(--ev-fs-2xl);
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: var(--ev-space-2) var(--ev-space-5);
+  counter-increment: step;
+}
+
+.step::before {
+  content: counter(step);
+  grid-row: span 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ev-radius-pill);
+  background: var(--ev-accent-soft);
+  color: var(--ev-accent-text);
+  font-size: var(--ev-fs-xs);
+  font-weight: var(--ev-fw-semibold);
+}
+
+.stepTitle {
+  font-weight: var(--ev-fw-semibold);
+}
+
+.principle {
+  display: flex;
+  gap: var(--ev-space-5);
+  min-width: 0;
+}
+
+.principleIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ev-radius);
+  background: var(--ev-accent-soft);
+  color: var(--ev-accent-text);
+}
+
+.principleBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-1);
+  min-width: 0;
+}
+
+.principleTitle {
+  font-weight: var(--ev-fw-semibold);
+}
+
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-3);
+  height: 100%;
+}
+
+.linkCard > :last-child {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* --- Токены --- */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  gap: var(--ev-space-5) var(--ev-space-3);
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-1);
+  min-width: 0;
+  font-size: var(--ev-fs-xs);
+}
+
+.swatchChip {
+  height: 52px;
+  margin-bottom: var(--ev-space-1);
+  border-radius: var(--ev-radius);
+  border: 1px solid var(--ev-border);
+}
+
+.swatchName {
+  color: var(--ev-text);
+  overflow-wrap: anywhere;
+}
+
+.tokenValue {
+  min-height: 1.5em;
+  color: var(--ev-text-muted);
+  font-family: var(--ev-font-mono);
+  font-size: var(--ev-fs-2xs);
+  overflow-wrap: anywhere;
+}
+
+.typeRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--ev-space-1) var(--ev-space-5);
+  min-width: 0;
+}
+
+.typeRow > code {
+  flex: 0 0 120px;
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-muted);
+}
+
+.typeRow > span {
+  min-width: 0;
+}
+
+.space {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-4);
+  font-size: var(--ev-fs-xs);
+}
+
+.space > code {
+  flex: 0 0 96px;
+  color: var(--ev-text-secondary);
+}
+
+.space > span:last-child {
+  color: var(--ev-text-muted);
+}
+
+.spaceBar {
+  height: 10px;
+  border-radius: var(--ev-radius-xs);
+  background: var(--ev-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--ev-accent-edge);
+}
+
+.shapes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--ev-space-6);
+}
+
+.shape {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ev-space-3);
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-secondary);
+  text-align: center;
+}
+
+.shapeBox {
+  width: 72px;
+  height: 72px;
+  background: var(--ev-surface-3);
+}
+
+.shadowBox {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-surface-1);
+}
+
+/* Тени видны только на фоне страницы: подложка под образцами. */
+.shadowStage {
+  padding: var(--ev-space-8) var(--ev-space-6);
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-bg);
+}
+
+.motionTrack {
+  position: relative;
+  height: 28px;
+  border-radius: var(--ev-radius-pill);
+  background: var(--ev-surface-nested);
+}
+
+.motionDot {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ev-radius-pill);
+  background: var(--ev-accent);
+  transition-property: left;
+}
+
+.motionTrack[data-on] .motionDot {
+  left: calc(100% - 24px);
+}
+
+/* --- Тема --- */
+.accentDot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--ev-radius-pill);
+  box-shadow: inset 0 0 0 1px var(--ev-border-soft);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+}
+
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.layer {
+  display: grid;
+  grid-template-columns: 28px minmax(140px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ev-space-4);
+  padding: var(--ev-space-3) var(--ev-space-4);
+  border-radius: var(--ev-radius);
+  background: var(--ev-surface-nested);
+  font-size: var(--ev-fs-sm);
+}
+
+.layer > :first-child {
+  color: var(--ev-text-muted);
+  text-align: right;
+}
+
+.layer > :last-child {
+  color: var(--ev-text-secondary);
+}
+
+@media (max-width: 720px) {
+  .layer {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .layer > :last-child {
+    grid-column: 2;
+  }
+}
+
+/* --- Каркас: миниатюра AppShell --- */
+.mini {
+  display: flex;
+  height: 380px;
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius-lg);
+  background: var(--ev-bg);
+  overflow: hidden;
+}
+
+.miniSidebar {
+  flex: 0 0 220px;
+  background: var(--ev-surface-1);
+  border-right: 1px solid var(--ev-border);
+  overflow: hidden;
+}
+
+.miniMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.miniTopbar {
+  flex: 0 0 auto;
+  height: var(--ev-topbar-h);
+  border-bottom: 1px solid var(--ev-border);
+}
+
+.miniContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--ev-space-6);
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .miniSidebar {
+    display: none;
+  }
+}
+
+.miniBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  font-weight: var(--ev-fw-semibold);
+  font-size: var(--ev-fs-sm);
+}
+
+.miniMark {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--ev-radius-sm);
+  background: var(--ev-accent-strong);
+}
+
+.parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--ev-space-5);
+}
+
+/* --- Утилиты --- */
+.demoBox {
+  padding: var(--ev-space-3) var(--ev-space-4);
+  border-radius: var(--ev-radius-sm);
+  background: var(--ev-surface-nested);
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-secondary);
+}
+
+.truncateBox {
+  width: min(100%, 240px);
+}
+
+.resizable {
+  min-width: 160px;
+  max-width: 100%;
+  padding: var(--ev-space-5);
+  border: 1px dashed var(--ev-border-strong);
+  border-radius: var(--ev-radius);
+  resize: horizontal;
+  overflow: auto;
+  font-size: var(--ev-fs-sm);
+}

@@ -1,0 +1,135 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+}
+
+/* --- Бюджеты --- */
+.budgets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+}
+
+.budgetLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ev-space-2);
+}
+
+/* --- Структура расходов --- */
+.structure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+}
+
+.structureItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--ev-space-3);
+  font-size: var(--ev-fs-sm);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--ev-radius-pill);
+}
+
+.structureLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.structureValue {
+  min-width: 86px;
+  text-align: right;
+  font-weight: var(--ev-fw-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Таблица счетов --- */
+.search {
+  width: min(280px, 100%);
+}
+
+.twoLine {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.twoLine > span:last-child:not(:first-child) {
+  font-size: var(--ev-fs-xs);
+}
+
+.counterparty {
+  display: block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overdue {
+  color: var(--ev-danger);
+}
+
+/* --- Карточка счёта --- */
+.drawerSum {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ev-space-2);
+}
+
+.drawerAmount {
+  font-size: var(--ev-fs-2xl);
+  font-weight: var(--ev-fw-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.drawerTotals,
+.formTotal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-2);
+  padding: var(--ev-space-4) var(--ev-space-5);
+  border-radius: var(--ev-radius-md);
+  background: var(--ev-surface-nested);
+  font-size: var(--ev-fs-sm);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ev-space-4);
+}
+
+.totalRow[data-total] {
+  margin-top: var(--ev-space-1);
+  padding-top: var(--ev-space-3);
+  border-top: 1px solid var(--ev-border-soft);
+  font-size: var(--ev-fs-md);
+  font-weight: var(--ev-fw-semibold);
+}
+
+/* --- Форма нового счёта --- */
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--ev-space-4);
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

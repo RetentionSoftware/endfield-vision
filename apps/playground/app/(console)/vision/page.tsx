@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { VisionScreen } from '@/components/vision/VisionScreen'
 
 export const metadata: Metadata = { title: 'ENDFIELD Vision' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="vision" />
+  return <VisionScreen />
 }

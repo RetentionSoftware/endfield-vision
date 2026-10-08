@@ -469,6 +469,8 @@ function ModalEntry({
   setBusy: (id: string, b: boolean) => void
 }) {
   const { opts, busy, id } = entry
+  // Кнопка, нажатая последней: спиннер занятости - на ней, а не на кнопке с autoFocus.
+  const [pressed, setPressed] = useState<number | null>(null)
   const ctx: ModalButtonContext<unknown> = {
     close: (r) => close(id, r),
     setBusy: (b) => setBusy(id, b),
@@ -481,9 +483,10 @@ function ModalEntry({
           variant={b.variant ?? 'ghost'}
           icon={b.icon}
           disabled={b.disabled || busy}
-          loading={busy && b.autoFocus === true}
+          loading={busy && (pressed === null ? b.autoFocus === true : pressed === i)}
           data-autofocus={b.autoFocus ? '' : undefined}
           onClick={() => {
+            setPressed(i)
             const shouldClose = b.closeOnClick ?? !b.onClick
             if (b.onClick) void b.onClick(ctx)
             if (shouldClose) ctx.close(b.result)

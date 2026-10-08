@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { FinanceScreen } from '@/components/screens/finance/FinanceScreen'
 
 export const metadata: Metadata = { title: 'Финансы' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="finance" />
+  return <FinanceScreen />
 }

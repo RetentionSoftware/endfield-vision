@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { InboxScreen } from '@/components/screens/inbox/InboxScreen'
 
 export const metadata: Metadata = { title: 'Входящие' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="inbox" />
+  return <InboxScreen />
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { SettingsScreen } from '@/components/screens/settings/SettingsScreen'
 
 export const metadata: Metadata = { title: 'Настройки' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="settings" />
+  return <SettingsScreen />
 }

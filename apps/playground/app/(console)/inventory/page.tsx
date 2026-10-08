@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import { SectionPlaceholder } from '@/components/screens/SectionPlaceholder'
+import { InventoryScreen } from '@/components/screens/inventory/InventoryScreen'
 
 export const metadata: Metadata = { title: 'Склад' }
 
 export default function Page() {
-  return <SectionPlaceholder sectionKey="inventory" />
+  return <InventoryScreen />
 }

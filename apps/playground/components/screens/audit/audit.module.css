@@ -1,0 +1,98 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-5);
+}
+
+.filters {
+  margin-bottom: 0;
+}
+
+/* --- Ячейки таблицы --- */
+.actor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ev-space-3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.object {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  min-width: 0;
+  max-width: 420px;
+}
+
+.object > span:last-child {
+  font-size: var(--ev-fs-xs);
+}
+
+.ipExternal {
+  color: var(--ev-warning);
+}
+
+/* --- Шторка события --- */
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-6);
+}
+
+.idRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ev-space-3);
+  font-size: var(--ev-fs-sm);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ev-space-4);
+  padding: var(--ev-space-5);
+  border-radius: var(--ev-radius-lg);
+  background: var(--ev-surface-nested);
+}
+
+.blockTitle {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--ev-space-2);
+  font-size: var(--ev-fs-sm);
+  font-weight: var(--ev-fw-semibold);
+}
+
+.block :global(.ev-table-wrap) {
+  background: transparent;
+}
+
+.field {
+  font-weight: var(--ev-fw-medium);
+}
+
+/* Значения диффа: удалённое - на фоне ошибки, добавленное - на фоне успеха. */
+.removed,
+.added {
+  display: inline;
+  padding: 1px var(--ev-space-2);
+  border-radius: var(--ev-radius-xs);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  line-height: 1.6;
+}
+
+.removed {
+  background: var(--ev-danger-soft);
+  color: var(--ev-text);
+  text-decoration: line-through;
+  text-decoration-color: var(--ev-danger);
+}
+
+.added {
+  background: var(--ev-success-soft);
+  color: var(--ev-text);
+}
