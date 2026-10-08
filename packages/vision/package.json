@@ -2,7 +2,15 @@
   "name": "endfield-vision",
   "version": "0.1.0",
   "description": "Endfield Vision - design system for React / Next.js: tokens, dark and light themes, accent presets, accessible components without third-party UI dependencies",
-  "keywords": ["react", "nextjs", "design-system", "ui", "components", "dark-theme", "css-variables"],
+  "keywords": [
+    "react",
+    "nextjs",
+    "design-system",
+    "ui",
+    "components",
+    "dark-theme",
+    "css-variables"
+  ],
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -10,7 +18,9 @@
     "directory": "packages/vision"
   },
   "type": "module",
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,12 +31,18 @@
     "./accents.css": "./dist/styles/accents.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "src", "!src/**/__tests__"],
+  "files": [
+    "dist",
+    "src",
+    "!src/**/__tests__"
+  ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "check:dist": "node scripts/check-dist.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "npm run build"
   },
   "peerDependencies": {
     "react": "^19.0.0",
