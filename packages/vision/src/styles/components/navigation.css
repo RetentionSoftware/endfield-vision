@@ -1,0 +1,791 @@
+@layer ev.components {
+  /* --- Палитра команд --- */
+  /* Окно прижато к верху: при вводе список меняет высоту, а поле остаётся на месте. */
+  .ev-modal-backdrop.ev-cmdk-backdrop {
+    align-items: flex-start;
+    padding: 15vh var(--ev-space-6) var(--ev-space-6);
+  }
+
+  .ev-cmdk {
+    display: flex;
+    flex-direction: column;
+    width: min(640px, 100%);
+    max-height: min(560px, 75dvh);
+    margin: 0 auto;
+    background: var(--ev-surface-1);
+    border-radius: var(--ev-radius-lg);
+    box-shadow: var(--ev-shadow-modal);
+    outline: none;
+    overflow: hidden;
+    animation: ev-modal-in var(--ev-dur) var(--ev-ease-out);
+  }
+
+  .ev-cmdk-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    flex: 0 0 auto;
+    padding: 0 var(--ev-space-3) 0 var(--ev-space-5);
+    border-bottom: 1px solid var(--ev-border);
+  }
+
+  .ev-cmdk-search-icon {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ev-text);
+    font-size: var(--ev-fs-md);
+    outline: none;
+  }
+
+  /* Фокус виден по каретке и самому окну: кольцо вокруг поля без рамки лишнее. */
+  .ev-cmdk-input:focus-visible {
+    box-shadow: none;
+  }
+
+  .ev-cmdk-input::placeholder {
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--ev-radius-sm);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-close:hover {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-cmdk-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--ev-space-2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ev-cmdk-list:empty {
+    display: none;
+  }
+
+  .ev-cmdk-group + .ev-cmdk-group {
+    margin-top: var(--ev-space-2);
+  }
+
+  .ev-cmdk-group-label {
+    padding: var(--ev-space-2) var(--ev-space-3) var(--ev-space-1);
+    font-size: var(--ev-fs-2xs);
+    font-weight: var(--ev-fw-semibold);
+    letter-spacing: var(--ev-tracking-caps);
+    text-transform: uppercase;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    min-height: 40px;
+    padding: var(--ev-space-2) var(--ev-space-3);
+    border-radius: var(--ev-radius-sm);
+    font-size: var(--ev-fs-sm);
+    cursor: pointer;
+    scroll-margin: var(--ev-space-2) 0;
+  }
+
+  .ev-cmdk-item[data-active] {
+    background: var(--ev-active);
+  }
+
+  .ev-cmdk-item[aria-disabled='true'] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .ev-cmdk-item-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-item[data-active] .ev-cmdk-item-icon {
+    color: var(--ev-accent-text);
+  }
+
+  .ev-cmdk-item-icon > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .ev-cmdk-item-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-cmdk-item-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    flex: 0 0 auto;
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-empty {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-sm);
+    text-align: center;
+  }
+
+  .ev-cmdk-empty:not(:empty) {
+    padding: var(--ev-space-9) var(--ev-space-5);
+  }
+
+  .ev-cmdk-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ev-space-4);
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: var(--ev-space-2) var(--ev-space-5);
+    border-top: 1px solid var(--ev-border);
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-cmdk-foot-left {
+    min-width: 0;
+  }
+
+  .ev-cmdk-hints {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-5);
+    margin-left: auto;
+  }
+
+  .ev-cmdk-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    white-space: nowrap;
+  }
+
+  .ev-cmdk-hint .ev-kbd:last-of-type {
+    margin-right: var(--ev-space-1);
+  }
+
+  @media (max-width: 600px) {
+    .ev-modal-backdrop.ev-cmdk-backdrop {
+      align-items: flex-start;
+      padding: var(--ev-space-4);
+    }
+
+    .ev-cmdk {
+      max-height: calc(100dvh - 32px);
+    }
+
+    /* Сенсорный экран: клавиатурных подсказок нет. */
+    .ev-cmdk-hints {
+      display: none;
+    }
+
+    .ev-cmdk-foot:has(.ev-cmdk-foot-left:empty) {
+      display: none;
+    }
+  }
+
+  /* --- Шаги --- */
+  .ev-steps {
+    --ev-step-mark: 28px;
+    --ev-step-line: 2px;
+    display: flex;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ev-step {
+    --ev-step-line-color: var(--ev-border-strong);
+    position: relative;
+    display: flex;
+    min-width: 0;
+  }
+
+  .ev-step[data-status='complete'] {
+    --ev-step-line-color: var(--ev-success);
+  }
+
+  /* Линия после выполненного шага окрашена, только если следующий шаг тоже пройден или текущий. */
+  .ev-step[data-status='complete']:is([data-next-status='upcoming'], [data-next-status='error']) {
+    --ev-step-line-color: var(--ev-border-strong);
+  }
+
+  .ev-step-main {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-3);
+    min-width: 0;
+    padding: 0;
+    border-radius: var(--ev-radius-sm);
+    color: inherit;
+    text-align: left;
+  }
+
+  button.ev-step-main {
+    cursor: pointer;
+  }
+
+  button.ev-step-main:hover .ev-step-title {
+    color: var(--ev-accent-text);
+  }
+
+  .ev-step-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ev-step-mark);
+    height: var(--ev-step-mark);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--ev-border-strong);
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-semibold);
+    transition:
+      background-color var(--ev-dur) var(--ev-ease),
+      box-shadow var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-step[data-status='current'] .ev-step-marker {
+    background: var(--ev-accent);
+    box-shadow: none;
+    color: var(--ev-text-on-accent);
+  }
+
+  .ev-step[data-status='complete'] .ev-step-marker {
+    background: var(--ev-success-soft);
+    box-shadow: none;
+    color: var(--ev-success);
+  }
+
+  .ev-step[data-status='error'] .ev-step-marker {
+    background: var(--ev-danger-soft);
+    box-shadow: none;
+    color: var(--ev-danger);
+  }
+
+  .ev-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    /* Первая строка - по центру маркера. */
+    padding-top: calc((var(--ev-step-mark) - 1.45em) / 2);
+    line-height: 1.45;
+  }
+
+  .ev-step-title {
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+    color: var(--ev-text);
+    overflow-wrap: anywhere;
+    transition: color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-step[data-status='upcoming'] .ev-step-title {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-step[data-status='error'] .ev-step-title {
+    color: var(--ev-danger);
+  }
+
+  .ev-step-optional {
+    font-size: var(--ev-fs-2xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-step-desc {
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  /* Горизонтальные: шаг - маркер с подписью, линия тянется до следующего шага. */
+  .ev-steps[data-orientation='horizontal'] {
+    align-items: flex-start;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-steps[data-orientation='horizontal'] .ev-step {
+    flex: 1 1 0;
+    align-items: flex-start;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-steps[data-orientation='horizontal'] .ev-step:last-child {
+    flex: 0 1 auto;
+  }
+
+  .ev-steps[data-orientation='horizontal'] .ev-step-main {
+    flex: 0 1 auto;
+    max-width: 220px;
+  }
+
+  .ev-steps[data-orientation='horizontal'] .ev-step:not(:last-child)::after {
+    content: '';
+    flex: 1 1 var(--ev-space-6);
+    min-width: var(--ev-space-6);
+    height: var(--ev-step-line);
+    margin-top: calc(var(--ev-step-mark) / 2 - var(--ev-step-line) / 2);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-step-line-color);
+    transition: background-color var(--ev-dur) var(--ev-ease);
+  }
+
+  /* Вертикальные: линия под маркером до следующего шага. */
+  .ev-steps[data-orientation='vertical'] {
+    flex-direction: column;
+  }
+
+  .ev-steps[data-orientation='vertical'] .ev-step {
+    padding-bottom: var(--ev-space-6);
+  }
+
+  .ev-steps[data-orientation='vertical'] .ev-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .ev-steps[data-orientation='vertical'] .ev-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(var(--ev-step-mark) / 2 - var(--ev-step-line) / 2);
+    top: calc(var(--ev-step-mark) + var(--ev-space-2));
+    bottom: var(--ev-space-2);
+    width: var(--ev-step-line);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-step-line-color);
+  }
+
+  /* Компактная строка на узком экране. */
+  .ev-steps[data-orientation='compact'] {
+    flex-direction: column;
+    gap: var(--ev-space-1);
+  }
+
+  .ev-steps-compact-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ev-space-3);
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-steps-compact-title {
+    font-size: var(--ev-fs-md);
+    font-weight: var(--ev-fw-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .ev-steps-compact-title[data-status='error'] {
+    color: var(--ev-danger);
+  }
+
+  .ev-steps-bar {
+    display: flex;
+    gap: var(--ev-space-1);
+    margin-top: var(--ev-space-2);
+  }
+
+  .ev-steps-bar-seg {
+    flex: 1 1 0;
+    height: 4px;
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-border-strong);
+  }
+
+  .ev-steps-bar-seg[data-status='complete'] {
+    background: var(--ev-success);
+  }
+
+  .ev-steps-bar-seg[data-status='current'] {
+    background: var(--ev-accent);
+  }
+
+  .ev-steps-bar-seg[data-status='error'] {
+    background: var(--ev-danger);
+  }
+
+  /* --- Раскрытие по высоте: grid-template-rows 0fr -> 1fr --- */
+  .ev-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows var(--ev-dur) var(--ev-ease),
+      visibility 0s linear var(--ev-dur);
+  }
+
+  .ev-collapse[data-open] {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition:
+      grid-template-rows var(--ev-dur) var(--ev-ease),
+      visibility 0s;
+  }
+
+  .ev-collapse-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* --- Аккордеон --- */
+  .ev-accordion-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    min-width: 0;
+  }
+
+  .ev-accordion-toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ev-accordion {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ev-accordion-heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  .ev-accordion-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    width: 100%;
+    min-height: 48px;
+    padding: var(--ev-space-3) var(--ev-space-5);
+    border-radius: inherit;
+    color: var(--ev-text);
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-accordion-trigger:hover:not(:disabled) {
+    background: var(--ev-hover);
+  }
+
+  .ev-accordion-trigger:disabled {
+    color: var(--ev-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .ev-accordion-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-accordion-icon > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .ev-accordion-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-accordion-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    flex: 0 0 auto;
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-regular);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-accordion-chevron {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    transition: transform var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-accordion-item[data-open] .ev-accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  .ev-accordion-content {
+    padding: 0 var(--ev-space-5) var(--ev-space-5);
+    font-size: var(--ev-fs-sm);
+    color: var(--ev-text-secondary);
+    line-height: 1.55;
+  }
+
+  /* separated: каждая секция - отдельный блок на поверхности, без рамки. */
+  .ev-accordion[data-variant='separated'] {
+    gap: var(--ev-space-2);
+  }
+
+  .ev-accordion[data-variant='separated'] .ev-accordion-item {
+    background: var(--ev-surface-1);
+    border-radius: var(--ev-radius-md);
+    box-shadow: var(--ev-shadow-card);
+  }
+
+  .ev-accordion[data-variant='separated'] .ev-accordion-heading {
+    border-radius: var(--ev-radius-md);
+  }
+
+  .ev-accordion[data-variant='separated'] .ev-accordion-item[data-open] .ev-accordion-heading {
+    border-radius: var(--ev-radius-md) var(--ev-radius-md) 0 0;
+  }
+
+  /* Внутри карточки, панели, окна или шторки - вложенная поверхность. */
+  :is(.ev-card, .ev-panel, .ev-modal, .ev-drawer) .ev-accordion[data-variant='separated'] .ev-accordion-item {
+    background: var(--ev-surface-nested);
+    box-shadow: none;
+  }
+
+  /* flush: список с разделителями, без фона. */
+  .ev-accordion[data-variant='flush'] .ev-accordion-item + .ev-accordion-item {
+    border-top: 1px solid var(--ev-border);
+  }
+
+  .ev-accordion[data-variant='flush'] .ev-accordion-trigger {
+    padding-left: var(--ev-space-2);
+    padding-right: var(--ev-space-2);
+    border-radius: var(--ev-radius-sm);
+  }
+
+  .ev-accordion[data-variant='flush'] .ev-accordion-content {
+    padding: 0 var(--ev-space-2) var(--ev-space-5);
+  }
+
+  /* --- Одиночный раскрывающийся блок --- */
+  .ev-disclosure {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .ev-disclosure > .ev-collapse {
+    align-self: stretch;
+  }
+
+  .ev-disclosure-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-height: 32px;
+    padding: var(--ev-space-1) var(--ev-space-2) var(--ev-space-1) var(--ev-space-1);
+    margin-left: calc(-1 * var(--ev-space-1));
+    border-radius: var(--ev-radius-sm);
+    color: var(--ev-text);
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .ev-disclosure-trigger:hover:not(:disabled) {
+    background: var(--ev-hover);
+  }
+
+  .ev-disclosure-trigger:disabled {
+    color: var(--ev-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .ev-disclosure-chevron {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    transform: rotate(-90deg);
+    transition: transform var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-disclosure[data-open] .ev-disclosure-chevron {
+    transform: none;
+  }
+
+  .ev-disclosure-content {
+    padding: var(--ev-space-2) 0 0 calc(16px + var(--ev-space-2));
+    font-size: var(--ev-fs-sm);
+    color: var(--ev-text-secondary);
+    line-height: 1.55;
+  }
+
+  /* --- Дерево --- */
+  .ev-tree {
+    --ev-tree-indent: 20px;
+    --ev-tree-toggle: 20px;
+    --ev-tree-pad: var(--ev-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-tree-group {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Направляющая: от шеврона родителя вниз вдоль его потомков. */
+  .ev-tree[data-guides] .ev-tree-group::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: var(--ev-space-1);
+    left: calc(var(--ev-tree-pad) + (var(--ev-tree-level) - 1) * var(--ev-tree-indent) + var(--ev-tree-toggle) / 2);
+    width: 1px;
+    background: var(--ev-border);
+    pointer-events: none;
+  }
+
+  .ev-tree-item {
+    outline: none;
+  }
+
+  .ev-tree-item:focus-visible {
+    box-shadow: none;
+  }
+
+  .ev-tree-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-height: 32px;
+    padding: var(--ev-space-1) var(--ev-space-3) var(--ev-space-1)
+      calc(var(--ev-tree-pad) + (var(--ev-tree-level) - 1) * var(--ev-tree-indent));
+    border-radius: var(--ev-radius-sm);
+    color: var(--ev-text);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-tree-row:hover {
+    background: var(--ev-hover);
+  }
+
+  .ev-tree-item:focus-visible > .ev-tree-row {
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  .ev-tree[data-selectable='single'] .ev-tree-row[data-selected] {
+    background: var(--ev-accent-soft);
+    color: var(--ev-accent-text);
+  }
+
+  .ev-tree-row[data-disabled] {
+    color: var(--ev-text-disabled);
+    cursor: default;
+  }
+
+  .ev-tree[data-selectable='none'] .ev-tree-row[data-disabled],
+  .ev-tree-row[data-disabled]:hover {
+    background: transparent;
+  }
+
+  .ev-tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ev-tree-toggle);
+    height: var(--ev-tree-toggle);
+    border-radius: var(--ev-radius-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-tree-toggle > svg {
+    transition: transform var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-tree-toggle[data-open] > svg {
+    transform: rotate(90deg);
+  }
+
+  .ev-tree-toggle:hover:has(svg) {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-tree-check {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .ev-tree-check .ev-check-box {
+    margin-top: 0;
+  }
+
+  .ev-tree-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-tree-row[data-selected] .ev-tree-icon {
+    color: inherit;
+  }
+
+  .ev-tree-icon > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .ev-tree-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-tree-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    flex: 0 0 auto;
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+}

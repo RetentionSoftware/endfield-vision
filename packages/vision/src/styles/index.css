@@ -14,4 +14,8 @@
 @import './components/display.css';
 @import './components/data.css';
 @import './components/chart.css';
+@import './components/navigation.css';
+@import './components/input-extras.css';
+@import './components/chart-extras.css';
+@import './components/content.css';
 @import './shell.css';

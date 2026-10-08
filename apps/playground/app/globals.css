@@ -97,50 +97,6 @@
   }
 }
 
-.pg-command-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: min(420px, 60dvh);
-  overflow-y: auto;
-}
-
-.pg-command-item {
-  display: flex;
-  align-items: center;
-  gap: var(--ev-space-4);
-  width: 100%;
-  height: 40px;
-  padding: 0 var(--ev-space-4);
-  border-radius: var(--ev-radius);
-  color: var(--ev-text-secondary);
-  text-align: left;
-}
-
-.pg-command-item[data-active] {
-  background: var(--ev-accent-soft);
-  color: var(--ev-text);
-}
-
-.pg-command-item svg {
-  flex: 0 0 auto;
-}
-
-.pg-command-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-weight: var(--ev-fw-medium);
-}
-
-.pg-command-group {
-  font-size: var(--ev-fs-xs);
-  color: var(--ev-text-muted);
-}
-
-.pg-command-enter {
-  color: var(--ev-accent-text);
-}
-
 /* --- Шапка: учётная запись --- */
 .pg-account-btn {
   display: inline-flex;

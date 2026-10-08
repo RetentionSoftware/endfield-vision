@@ -217,3 +217,30 @@ export {
   type AppShellProps,
   type SidebarItemProps,
 } from './components/AppShell'
+
+// --- Контент и обратная связь
+export { Banner, type BannerProps, type BannerTone } from './components/Banner'
+export { CodeBlock, InlineCode, tokenizeCode, type CodeBlockProps, type CodeToken, type CodeTokenType, type InlineCodeProps } from './components/CodeBlock'
+export { ExpandableText, type ExpandableTextProps } from './components/ExpandableText'
+export { Highlight, highlightRanges, type HighlightOptions, type HighlightProps, type HighlightRange } from './components/Highlight'
+export { RelativeTime, type RelativeTimeProps } from './components/RelativeTime'
+export { formatRelativeTime, type DateInput } from './lib/relative-time'
+
+// --- Визуализация
+export { DonutChart, annularSectorPath, paddedSectorPath, polarPoint, donutArcs, groupSlices, type DonutChartProps, type DonutArc } from './components/charts/DonutChart'
+export { Heatmap, HeatmapMatrix, heatLevel, HEAT_LEVELS, isoWeekday, buildCalendarGrid, resolveCalendarRange, type HeatmapProps, type HeatmapMatrixProps, type HeatmapDay, type CalendarGrid, type CalendarMonthLabel, type CalendarRange } from './components/charts/Heatmap'
+export { Gauge, gaugeBands, gaugeFraction, gaugeTone, type GaugeProps, type GaugeThreshold, type GaugeBand } from './components/charts/Gauge'
+export { RingProgress, ringSegments, type RingProgressProps, type RingSection, type RingSegment } from './components/RingProgress'
+
+// --- Навигация и структура
+export { CommandPalette, commandMatches, filterCommands, groupCommands, isCommandHotkey, nextEnabledCommand, type CommandGroup, type CommandItem, type CommandPaletteProps } from './components/CommandPalette'
+export { focusStepIndex, resolveStepStatuses, Steps, type StepItem, type StepsProps, type StepStatus } from './components/Steps'
+export { Accordion, Disclosure, expandableIds, toggleAccordionValue, type AccordionItem, type AccordionProps, type DisclosureProps } from './components/Accordion'
+export { checkedIds, checkedLeafSet, flattenVisibleTree, indexTree, toggleTreeCheck, treeCheckState, TreeView, type FlatTreeNode, type TreeCheckState, type TreeNode, type TreeSelectionMode, type TreeViewProps } from './components/TreeView'
+
+// --- Ввод
+export { Slider, type SliderProps, type SliderMark, type SliderRange } from './components/Slider'
+export { Chip, ChipGroup, type ChipProps, type ChipGroupProps } from './components/Chip'
+export { TagInput, type TagInputProps } from './components/TagInput'
+export { OtpInput, type OtpInputProps, type OtpMode } from './components/OtpInput'
+export { InlineEdit, type InlineEditProps } from './components/InlineEdit'

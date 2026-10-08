@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useId, type ReactNode } from 'react'
+import { createContext, useContext, useId, useState, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
+import { useIsoLayoutEffect } from '../lib/hooks'
 
 /*
  * Поле формы: подпись + контрол + подсказка/ошибка. Контролы кита читают
@@ -11,6 +12,8 @@ import { cx } from '../lib/cx'
 
 interface FieldContextValue {
   id: string
+  /** id подписи поля: группам контролов (диапазон, ячейки кода) - для aria-labelledby. */
+  labelId?: string
   describedBy?: string
   invalid: boolean
   required: boolean
@@ -43,6 +46,28 @@ export function useFieldProps(props: {
   }
 }
 
+/**
+ * id подписи для aria-labelledby групп контролов. Внутри Field - из контекста
+ * (подпись рендерится с id). Вне Field - поиск <label for={controlId}> после
+ * монтирования; подписи без id он назначается.
+ */
+export function useFieldLabelId(controlId: string | undefined, enabled = true): string | undefined {
+  const ctx = useFieldContext()
+  const fromField = ctx?.labelId && ctx.id === controlId ? ctx.labelId : undefined
+  const [found, setFound] = useState<string | undefined>(undefined)
+  useIsoLayoutEffect(() => {
+    if (!enabled || !controlId || fromField) return
+    const label = document.querySelector<HTMLLabelElement>(`label[for="${CSS.escape(controlId)}"]`)
+    if (!label) {
+      setFound(undefined)
+      return
+    }
+    if (!label.id) label.id = `${controlId}-label`
+    setFound(label.id)
+  }, [controlId, enabled, fromField])
+  return enabled ? (fromField ?? found) : undefined
+}
+
 export interface FieldProps {
   label?: ReactNode
   /** Подсказка под полем. Ошибка её заменяет. */
@@ -61,17 +86,18 @@ export interface FieldProps {
 export function Field({ label, hint, error, required = false, disabled = false, id, labelAside, className, children }: FieldProps) {
   const auto = useId()
   const controlId = id ?? `f${auto}`
+  const labelId = controlId + '-label'
   const hintId = `${controlId}-hint`
   const errorId = `${controlId}-error`
   const hasError = Boolean(error)
   const describedBy = hasError ? errorId : hint ? hintId : undefined
   return (
-    <FieldContext.Provider value={{ id: controlId, describedBy, invalid: hasError, required, disabled }}>
+    <FieldContext.Provider value={{ id: controlId, labelId: label ? labelId : undefined, describedBy, invalid: hasError, required, disabled }}>
       <div className={cx('ev-field', className)} data-invalid={hasError || undefined} data-disabled={disabled || undefined}>
         {label || labelAside ? (
           <div className="ev-field-head">
             {label ? (
-              <label className="ev-field-label" htmlFor={controlId}>
+              <label id={labelId} className="ev-field-label" htmlFor={controlId}>
                 {label}
                 {required ? (
                   <span className="ev-field-required" aria-hidden="true">

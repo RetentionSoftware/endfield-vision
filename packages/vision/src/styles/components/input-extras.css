@@ -1,0 +1,563 @@
+@layer ev.components {
+  /* --- Ползунок: одно значение или диапазон --- */
+  .ev-slider {
+    --ev-slider-thumb: 16px;
+    --ev-slider-track: 4px;
+    --ev-slider-hit: calc(var(--ev-slider-thumb) + 12px);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-5);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ev-slider[data-size='sm'] {
+    --ev-slider-thumb: 12px;
+    --ev-slider-track: 3px;
+  }
+
+  .ev-slider[data-disabled] {
+    opacity: 0.5;
+  }
+
+  .ev-slider-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-slider-control {
+    position: relative;
+    height: var(--ev-slider-hit);
+    cursor: pointer;
+    /* Горизонтальный жест - перетаскивание, вертикальный - прокрутка страницы. */
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ev-slider[data-disabled] .ev-slider-control {
+    cursor: not-allowed;
+  }
+
+  /* Дорожка и бегунки отступают на полбегунка: у края бегунок не вылезает за поле. */
+  .ev-slider-track {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--ev-slider-thumb) / 2);
+    right: calc(var(--ev-slider-thumb) / 2);
+    height: var(--ev-slider-track);
+    margin-top: calc(var(--ev-slider-track) / -2);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-tint-3);
+  }
+
+  .ev-slider-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: var(--ev-accent-strong);
+  }
+
+  .ev-slider[data-invalid] .ev-slider-fill {
+    background: var(--ev-danger);
+  }
+
+  .ev-slider-rail {
+    position: absolute;
+    inset: 0 calc(var(--ev-slider-thumb) / 2);
+  }
+
+  .ev-slider-tick {
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin: -2px 0 0 -2px;
+    border-radius: 50%;
+    background: var(--ev-text-muted);
+    pointer-events: none;
+  }
+
+  .ev-slider-tick[data-active] {
+    background: var(--ev-text-on-accent);
+    opacity: 0.8;
+  }
+
+  .ev-slider-thumb {
+    position: absolute;
+    top: 50%;
+    width: var(--ev-slider-thumb);
+    height: var(--ev-slider-thumb);
+    margin: calc(var(--ev-slider-thumb) / -2) 0 0 calc(var(--ev-slider-thumb) / -2);
+    border: 2px solid var(--ev-accent-strong);
+    border-radius: 50%;
+    background: var(--ev-text-on-accent);
+    box-shadow: var(--ev-shadow-sm);
+    transition: box-shadow var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-slider[data-invalid] .ev-slider-thumb {
+    border-color: var(--ev-danger);
+  }
+
+  .ev-slider:not([data-disabled]) .ev-slider-control:hover .ev-slider-thumb,
+  .ev-slider-thumb[data-active] {
+    box-shadow:
+      var(--ev-shadow-sm),
+      0 0 0 5px var(--ev-accent-soft);
+  }
+
+  .ev-slider-thumb:has(.ev-slider-input:focus-visible) {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-slider-bubble {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    padding: 3px var(--ev-space-2);
+    border-radius: var(--ev-radius-sm);
+    background: var(--ev-surface-tooltip);
+    box-shadow: var(--ev-shadow);
+    color: var(--ev-text);
+    font-size: var(--ev-fs-xs);
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 2px);
+    transition:
+      opacity var(--ev-dur-fast) var(--ev-ease),
+      transform var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  :root[data-theme='light'] .ev-slider-bubble {
+    color: var(--ev-text-on-solid);
+  }
+
+  .ev-slider-thumb:hover .ev-slider-bubble,
+  .ev-slider-thumb[data-active] .ev-slider-bubble,
+  .ev-slider-thumb:has(.ev-slider-input:focus-visible) .ev-slider-bubble {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .ev-slider-marks {
+    position: relative;
+    height: 16px;
+    margin: 0 calc(var(--ev-slider-thumb) / 2);
+    font-size: var(--ev-fs-2xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-slider-mark {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  .ev-slider-mark[data-edge='start'] {
+    transform: translateX(calc(var(--ev-slider-thumb) / -2));
+  }
+
+  .ev-slider-mark[data-edge='end'] {
+    transform: translateX(calc(-100% + var(--ev-slider-thumb) / 2));
+  }
+
+  .ev-slider-value {
+    flex: 0 0 auto;
+    min-width: 4ch;
+    line-height: var(--ev-slider-hit);
+    font-size: var(--ev-fs-sm);
+    color: var(--ev-text-secondary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* --- Чип: метка, фильтр, удаляемое значение --- */
+  .ev-chip {
+    --ev-chip-h: 24px;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    height: var(--ev-chip-h);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-tone-soft);
+    color: var(--ev-tone);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    line-height: 1;
+    vertical-align: middle;
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      color var(--ev-dur-fast) var(--ev-ease),
+      box-shadow var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-chip[data-tone='neutral'] {
+    color: var(--ev-text);
+  }
+
+  .ev-chip[data-size='sm'] {
+    --ev-chip-h: 20px;
+    font-size: var(--ev-fs-2xs);
+  }
+
+  .ev-chip-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    height: 100%;
+    padding: 0 var(--ev-space-4);
+    border-radius: inherit;
+    color: inherit;
+    font: inherit;
+  }
+
+  .ev-chip[data-size='sm'] .ev-chip-main {
+    padding: 0 var(--ev-space-3);
+  }
+
+  .ev-chip[data-removable] .ev-chip-main {
+    padding-right: 3px;
+  }
+
+  .ev-chip-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .ev-chip-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: calc(var(--ev-chip-h) - 6px);
+    height: calc(var(--ev-chip-h) - 6px);
+    margin-right: 3px;
+    border-radius: 50%;
+    color: inherit;
+    opacity: 0.7;
+    transition:
+      opacity var(--ev-dur-fast) var(--ev-ease),
+      background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-chip-remove:hover:not(:disabled) {
+    opacity: 1;
+    background: var(--ev-hover);
+  }
+
+  .ev-chip-remove:focus-visible {
+    opacity: 1;
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  /* Фильтр: невыбранный - контур, выбранный - мягкая заливка тона. */
+  .ev-chip[data-toggle] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--ev-border-strong);
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-chip[data-toggle]:not([data-disabled]):hover {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-chip[data-toggle][data-selected] {
+    background: var(--ev-tone-soft);
+    box-shadow: inset 0 0 0 1px var(--ev-tone-edge);
+    color: var(--ev-tone);
+  }
+
+  .ev-chip[data-disabled] {
+    opacity: 0.5;
+  }
+
+  .ev-chip[data-disabled] button {
+    cursor: not-allowed;
+  }
+
+  /* Последняя метка TagInput, которую удалит следующий Backspace. */
+  .ev-chip[data-pending] {
+    background: var(--ev-danger-soft);
+    box-shadow: inset 0 0 0 1px var(--ev-danger-edge);
+    color: var(--ev-danger);
+  }
+
+  .ev-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  /* --- Поле меток: чипы и ввод в рамке поля --- */
+  .ev-tag-input-root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ev-tag-input {
+    --ev-tag-chip-h: 24px;
+    --ev-tag-pad: calc((var(--ev-input-h) - 2px - var(--ev-tag-chip-h)) / 2);
+    flex-wrap: wrap;
+    gap: 4px;
+    height: auto;
+    min-height: var(--ev-input-h);
+    padding: var(--ev-tag-pad);
+    cursor: text;
+  }
+
+  .ev-tag-input[data-size='sm'] {
+    --ev-tag-chip-h: 20px;
+  }
+
+  .ev-tag-input[data-disabled] {
+    cursor: not-allowed;
+  }
+
+  .ev-tag-input .ev-tag-input-el {
+    flex: 1 1 80px;
+    min-width: 80px;
+    height: var(--ev-tag-chip-h);
+    padding: 0 0 0 calc(var(--ev-space-4) - var(--ev-tag-pad));
+  }
+
+  .ev-tag-input .ev-chip ~ .ev-tag-input-el {
+    padding-left: var(--ev-space-2);
+  }
+
+  .ev-tag-input-message {
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-tag-input-message:not(:empty) {
+    margin-top: var(--ev-space-2);
+  }
+
+  .ev-tag-input-message[data-error] {
+    color: var(--ev-danger);
+  }
+
+  /* --- Одноразовый код: ячейка на символ --- */
+  .ev-otp {
+    --ev-otp-size: var(--ev-control-h-lg);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .ev-otp[data-size='sm'] {
+    --ev-otp-size: var(--ev-control-h);
+  }
+
+  .ev-otp[data-size='lg'] {
+    --ev-otp-size: calc(var(--ev-control-h-lg) + 8px);
+  }
+
+  .ev-otp-box {
+    flex: 0 1 auto;
+    width: calc(var(--ev-otp-size) - 4px);
+    min-width: 28px;
+    height: var(--ev-otp-size);
+    padding: 0;
+    background: var(--ev-surface-input);
+    border: 1px solid var(--ev-border-control);
+    border-radius: var(--ev-radius);
+    caret-color: var(--ev-accent);
+    color: var(--ev-text);
+    font-size: var(--ev-fs-lg);
+    font-weight: var(--ev-fw-semibold);
+    text-align: center;
+    transition:
+      border-color var(--ev-dur-fast) var(--ev-ease),
+      box-shadow var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-otp[data-size='sm'] .ev-otp-box {
+    font-size: var(--ev-fs-md);
+    border-radius: var(--ev-radius-sm);
+  }
+
+  .ev-otp-box:hover:not(:disabled) {
+    border-color: var(--ev-border-hover);
+  }
+
+  .ev-otp-box:focus,
+  .ev-otp-box:focus-visible {
+    outline: none;
+    border-color: var(--ev-accent);
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  .ev-otp[data-invalid] .ev-otp-box {
+    border-color: var(--ev-danger);
+  }
+
+  .ev-otp[data-invalid] .ev-otp-box:focus {
+    box-shadow: 0 0 0 2px var(--ev-danger-soft);
+  }
+
+  .ev-otp-box:disabled {
+    opacity: 0.55;
+    background: var(--ev-tint-1);
+    border-color: var(--ev-border-strong);
+    cursor: not-allowed;
+  }
+
+  .ev-otp-sep {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--ev-border-strong);
+  }
+
+  /* --- Правка на месте: геометрия просмотра совпадает с полем, текст не прыгает --- */
+  .ev-inline-edit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-1);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ev-inline-edit-display {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    width: 100%;
+    min-width: 0;
+    min-height: var(--ev-control-h);
+    padding: 0 var(--ev-space-4);
+    border: 1px solid transparent;
+    border-radius: var(--ev-radius);
+    color: var(--ev-text);
+    text-align: left;
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      border-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-inline-edit[data-size='sm'] .ev-inline-edit-display {
+    min-height: var(--ev-control-h-sm);
+    font-size: var(--ev-fs-sm);
+    border-radius: var(--ev-radius-sm);
+  }
+
+  .ev-inline-edit[data-multiline] .ev-inline-edit-display {
+    align-items: flex-start;
+    padding: var(--ev-space-3) var(--ev-space-4);
+    line-height: var(--ev-lh);
+  }
+
+  .ev-inline-edit-display:hover:not(:disabled) {
+    background: var(--ev-hover);
+    border-color: var(--ev-border);
+  }
+
+  .ev-inline-edit-display:focus-visible {
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  .ev-inline-edit-display:disabled {
+    cursor: not-allowed;
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-inline-edit-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-inline-edit[data-multiline] .ev-inline-edit-value {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-inline-edit-empty {
+    color: var(--ev-text-muted);
+  }
+
+  .ev-inline-edit-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    opacity: 0;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-inline-edit[data-multiline] .ev-inline-edit-icon {
+    margin-top: 4px;
+  }
+
+  .ev-inline-edit-display:hover .ev-inline-edit-icon,
+  .ev-inline-edit-display:focus-visible .ev-inline-edit-icon {
+    opacity: 1;
+  }
+
+  .ev-inline-edit-display:disabled .ev-inline-edit-icon {
+    display: none;
+  }
+
+  /* Без наведения (сенсорный экран) карандаш виден всегда. */
+  @media (hover: none) {
+    .ev-inline-edit-icon {
+      opacity: 0.7;
+    }
+  }
+
+  .ev-inline-edit-editor {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-inline-edit[data-multiline] .ev-inline-edit-editor {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ev-inline-edit-editor > .ev-input,
+  .ev-inline-edit-editor > .ev-textarea-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-inline-edit-actions {
+    display: inline-flex;
+    justify-content: flex-end;
+    gap: var(--ev-space-1);
+    flex: 0 0 auto;
+  }
+
+  .ev-inline-edit-error {
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-danger);
+  }
+}

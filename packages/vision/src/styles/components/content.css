@@ -1,0 +1,313 @@
+@layer ev.components {
+  /* --- Баннер: тонированная полоса с кромкой тона, сильнее Callout --- */
+  .ev-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-4);
+    min-width: 0;
+    padding: var(--ev-space-3) var(--ev-space-4) var(--ev-space-3) var(--ev-space-5);
+    border: 1px solid var(--ev-tone-edge);
+    border-radius: var(--ev-radius-md);
+    /* Мягкий тон поверх непрозрачного фона: прилипший баннер не просвечивает. */
+    background: linear-gradient(var(--ev-tone-soft), var(--ev-tone-soft)), var(--ev-banner-surface, var(--ev-bg));
+    box-shadow: inset 3px 0 0 var(--ev-tone);
+    color: var(--ev-text);
+  }
+
+  .ev-banner[data-sticky] {
+    position: sticky;
+    top: var(--ev-banner-top, 0px);
+    z-index: var(--ev-z-sticky);
+  }
+
+  /* Иконка, текст и кнопки первой строки выровнены по высоте маленькой кнопки. */
+  .ev-banner-icon {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: var(--ev-control-h-sm);
+    color: var(--ev-tone);
+  }
+
+  .ev-banner-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    align-content: center;
+    gap: 2px var(--ev-space-3);
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--ev-control-h-sm);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-banner-title {
+    font-weight: var(--ev-fw-semibold);
+  }
+
+  .ev-banner-text {
+    min-width: 0;
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ev-space-2);
+    flex: 0 0 auto;
+  }
+
+  .ev-banner-close {
+    flex: 0 0 auto;
+    margin-right: calc(var(--ev-space-1) * -1);
+  }
+
+  @media (max-width: 600px) {
+    .ev-banner {
+      flex-wrap: wrap;
+      padding-left: var(--ev-space-4);
+    }
+
+    .ev-banner-body {
+      flex-basis: 0;
+    }
+
+    /* Кнопки - отдельной строкой под текстом, вровень с текстом. */
+    .ev-banner-actions {
+      order: 3;
+      width: 100%;
+      padding-left: calc(18px + var(--ev-space-4));
+    }
+
+    .ev-banner:not(:has(> .ev-banner-icon)) .ev-banner-actions {
+      padding-left: 0;
+    }
+  }
+
+  /* --- Код внутри текста --- */
+  .ev-inline-code {
+    padding: 1px 5px;
+    border-radius: var(--ev-radius-xs);
+    background: var(--ev-surface-nested);
+    color: var(--ev-text);
+    font-family: var(--ev-font-mono);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+
+  /* --- Блок кода --- */
+  .ev-codeblock {
+    --ev-code-lh: 1.6;
+    --ev-code-bg: var(--ev-surface-nested);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-code-bg);
+    overflow: hidden;
+  }
+
+  .ev-codeblock-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    min-height: 36px;
+    padding: var(--ev-space-1) var(--ev-space-2) var(--ev-space-1) var(--ev-space-4);
+    border-bottom: 1px solid var(--ev-border-soft);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-codeblock-title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ev-text-secondary);
+    font-family: var(--ev-font-mono);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-codeblock-lang {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    font-family: var(--ev-font-mono);
+    letter-spacing: var(--ev-tracking-caps);
+    text-transform: uppercase;
+  }
+
+  .ev-codeblock-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    margin-left: auto;
+  }
+
+  .ev-codeblock-pre {
+    position: relative;
+    margin: 0;
+    padding: var(--ev-space-3) 0;
+    overflow: auto;
+    font-family: var(--ev-font-mono);
+    font-size: var(--ev-fs-sm);
+    line-height: var(--ev-code-lh);
+    tab-size: 2;
+    white-space: pre;
+  }
+
+  /* Блок обрезает углы (overflow: hidden) - кольцо фокуса внутри. */
+  .ev-codeblock-pre:focus-visible {
+    outline: none;
+    box-shadow: inset var(--ev-focus-ring-inset);
+  }
+
+  .ev-codeblock-code {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    font: inherit;
+  }
+
+  .ev-codeblock-line {
+    display: flex;
+    padding: 0 var(--ev-space-4);
+  }
+
+  .ev-codeblock-line[data-highlighted] {
+    background: var(--ev-accent-soft);
+    box-shadow: inset 2px 0 0 var(--ev-accent);
+  }
+
+  .ev-codeblock-ln {
+    position: sticky;
+    left: 0;
+    flex: 0 0 auto;
+    min-width: calc(var(--ev-code-digits, 2) * 1ch);
+    margin: 0 var(--ev-space-4) 0 calc(var(--ev-space-4) * -1);
+    padding: 0 0 0 var(--ev-space-4);
+    box-sizing: content-box;
+    background: var(--ev-code-bg);
+    color: var(--ev-text-muted);
+    text-align: right;
+    user-select: none;
+  }
+
+  .ev-codeblock-line[data-highlighted] .ev-codeblock-ln {
+    background: linear-gradient(var(--ev-accent-soft), var(--ev-accent-soft)), var(--ev-code-bg);
+    box-shadow: inset 2px 0 0 var(--ev-accent);
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-codeblock-text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Перенос строк: без горизонтальной прокрутки, номера - у первой строки. */
+  .ev-codeblock[data-wrap] .ev-codeblock-pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-codeblock[data-wrap] .ev-codeblock-code {
+    width: auto;
+  }
+
+  /* Свёрнутый код: последние строки уходят в фон. */
+  .ev-codeblock[data-collapsed] .ev-codeblock-pre::after {
+    content: '';
+    position: sticky;
+    left: 0;
+    display: block;
+    height: calc(var(--ev-code-lh) * 2em);
+    margin-top: calc(var(--ev-code-lh) * -2em);
+    background: linear-gradient(transparent, var(--ev-code-bg));
+    pointer-events: none;
+  }
+
+  .ev-codeblock-foot {
+    display: flex;
+    justify-content: center;
+    padding: var(--ev-space-2) var(--ev-space-4) var(--ev-space-3);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-code-tok[data-token='comment'] {
+    color: var(--ev-text-muted);
+    font-style: italic;
+  }
+
+  .ev-code-tok[data-token='string'] {
+    color: var(--ev-success);
+  }
+
+  .ev-code-tok[data-token='number'] {
+    color: var(--ev-warning);
+  }
+
+  .ev-code-tok[data-token='keyword'] {
+    color: var(--ev-violet);
+  }
+
+  /* --- Подсветка совпадений --- */
+  .ev-mark {
+    padding: 0 1px;
+    border-radius: var(--ev-radius-xs);
+    background: var(--ev-accent-soft);
+    box-shadow: inset 0 -1px 0 var(--ev-accent-edge);
+    color: inherit;
+  }
+
+  @media (forced-colors: active) {
+    .ev-mark {
+      background: Mark;
+      color: MarkText;
+    }
+
+    .ev-codeblock-line[data-highlighted] {
+      outline: 1px solid Highlight;
+    }
+  }
+
+  /* --- Относительное время --- */
+  .ev-reltime {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ev-reltime[tabindex]:focus-visible {
+    outline: none;
+    border-radius: var(--ev-radius-xs);
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  /* --- Сворачиваемый текст --- */
+  .ev-expandable {
+    min-width: 0;
+  }
+
+  .ev-expandable-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--ev-expandable-lines, 3);
+    line-clamp: var(--ev-expandable-lines, 3);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-expandable[data-expanded] .ev-expandable-text {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: none;
+    overflow: visible;
+  }
+
+  .ev-expandable-toggle {
+    margin-top: var(--ev-space-1);
+  }
+
+  /* До измерения кнопка занимает место, но не видна: у длинного текста нет скачка. */
+  .ev-expandable-toggle[data-pending] {
+    visibility: hidden;
+  }
+}

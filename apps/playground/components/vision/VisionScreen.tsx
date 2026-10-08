@@ -6,6 +6,10 @@ import { useUrlTab } from '@/lib/use-url-state'
 import { ActionsSection } from './ActionsSection'
 import { ChartsSection } from './ChartsSection'
 import { DataSection } from './DataSection'
+import { ChartCards } from './extras/ChartCards'
+import { ContentCards } from './extras/ContentCards'
+import { InputCards } from './extras/InputCards'
+import { NavigationCards } from './extras/NavigationCards'
 import { FeedbackSection } from './FeedbackSection'
 import { FormsSection } from './FormsSection'
 import { I18nSection } from './I18nSection'
@@ -47,10 +51,22 @@ export function VisionScreen() {
         {tab === 'theme' ? <ThemeSection /> : null}
         {tab === 'i18n' ? <I18nSection /> : null}
         {tab === 'actions' ? <ActionsSection /> : null}
-        {tab === 'forms' ? <FormsSection /> : null}
+        {tab === 'navigation' ? <NavigationCards /> : null}
+        {tab === 'forms' ? (
+          <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
+            <FormsSection />
+            <InputCards />
+          </div>
+        ) : null}
         {tab === 'data' ? <DataSection /> : null}
+        {tab === 'content' ? <ContentCards /> : null}
         {tab === 'feedback' ? <FeedbackSection /> : null}
-        {tab === 'charts' ? <ChartsSection /> : null}
+        {tab === 'charts' ? (
+          <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
+            <ChartsSection />
+            <ChartCards />
+          </div>
+        ) : null}
         {tab === 'layout' ? <LayoutSection /> : null}
       </TabPanel>
     </>

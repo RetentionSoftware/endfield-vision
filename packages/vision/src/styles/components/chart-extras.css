@@ -1,0 +1,450 @@
+@layer ev.components {
+  /* --- Кольцевая диаграмма (DonutChart) --- */
+  .ev-donut {
+    /* Скрытая таблица для скринридера позиционируется внутри диаграммы. */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ev-space-5);
+    min-width: 0;
+  }
+
+  /* Легенда справа; на узком месте переносится вниз. */
+  .ev-donut[data-legend='right'] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ev-space-5) var(--ev-space-8);
+  }
+
+  .ev-donut[data-legend='bottom'] {
+    align-items: stretch;
+  }
+
+  .ev-donut[data-legend='bottom'] .ev-donut-figure {
+    align-self: center;
+  }
+
+  .ev-donut-figure {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  .ev-donut-svg {
+    border-radius: 50%;
+  }
+
+  .ev-donut-slice {
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-donut-slice[data-dim] {
+    opacity: 0.35;
+  }
+
+  .ev-donut-track {
+    fill: var(--ev-tint-3);
+  }
+
+  .ev-donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: calc(var(--ev-donut-hole) * 0.8);
+    max-height: calc(var(--ev-donut-hole) * 0.8);
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ev-donut-center-value {
+    color: var(--ev-text);
+    font-size: var(--ev-fs-xl);
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1.15;
+    max-width: 100%;
+    /* Значение с единицей («12 550 МВт·ч») переносится на вторую строку, а не обрезается. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-donut-center-caption {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    line-height: 1.3;
+  }
+
+  .ev-donut-tooltip {
+    white-space: nowrap;
+  }
+
+  .ev-donut-legend {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-content: center;
+    column-gap: var(--ev-space-3);
+    row-gap: var(--ev-space-1);
+    /* Подпись, значение и доля помещаются от ~260px; уже - легенда уходит под кольцо. */
+    flex: 1 1 260px;
+    min-width: 0;
+    max-width: 360px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-donut[data-legend='bottom'] .ev-donut-legend {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+
+  .ev-donut-legend-item {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: var(--ev-space-1) var(--ev-space-2);
+    border-radius: var(--ev-radius-sm);
+    transition:
+      opacity var(--ev-dur-fast) var(--ev-ease),
+      background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-donut-legend-item[data-active] {
+    background: var(--ev-hover);
+  }
+
+  .ev-donut-legend-item[data-dim] {
+    opacity: 0.55;
+  }
+
+  .ev-donut-legend-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-donut-legend-value {
+    color: var(--ev-text);
+    font-weight: var(--ev-fw-medium);
+    text-align: right;
+  }
+
+  .ev-donut-legend-share {
+    min-width: 3.5em;
+    color: var(--ev-text-muted);
+    text-align: right;
+  }
+
+  /* --- Тепловая карта (Heatmap, HeatmapMatrix) --- */
+  .ev-heatmap {
+    --ev-heat: var(--ev-tone);
+    --ev-heat-gap: 3px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    min-width: 0;
+  }
+
+  .ev-heatmap[data-tone='accent'] {
+    --ev-heat: var(--ev-accent);
+  }
+
+  .ev-heatmap-frame {
+    position: relative;
+    min-width: 0;
+  }
+
+  /* Узкий экран: сетка прокручивается внутри обёртки, страница не растягивается. */
+  .ev-heatmap-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    /* Место под кольцо фокуса крайних клеток. */
+    padding: 4px;
+    margin: -4px;
+  }
+
+  .ev-heatmap-grid {
+    display: grid;
+    grid-template-columns: max-content repeat(var(--ev-heat-cols), minmax(var(--ev-heat-cell), calc(var(--ev-heat-cell) * 1.5)));
+    gap: var(--ev-heat-gap);
+    /* Клетки сжимаются от 1,5 размера до минимального, дальше - прокрутка. */
+    width: fit-content;
+    font-size: var(--ev-fs-2xs);
+  }
+
+  .ev-heatmap-grid[data-kind='matrix'] {
+    grid-template-columns: max-content repeat(var(--ev-heat-cols), minmax(var(--ev-heat-cell), 1fr));
+    width: auto;
+    min-width: max-content;
+  }
+
+  .ev-heatmap-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+  }
+
+  .ev-heatmap-rowhead,
+  .ev-heatmap-colhead,
+  .ev-heatmap-month {
+    color: var(--ev-text-muted);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .ev-heatmap-rowhead {
+    padding-right: var(--ev-space-1);
+  }
+
+  .ev-heatmap-rowhead[data-quiet],
+  .ev-heatmap-colhead[data-quiet] {
+    color: transparent;
+  }
+
+  .ev-heatmap-colhead {
+    overflow: hidden;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ev-heatmap-months {
+    min-height: 14px;
+  }
+
+  /* Подпись месяца может быть шире клетки: выходит вправо поверх соседних колонок. */
+  .ev-heatmap-month {
+    grid-row: 1;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .ev-heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--ev-tint-3);
+    outline: none;
+  }
+
+  .ev-heatmap-grid[data-kind='matrix'] .ev-heatmap-cell {
+    aspect-ratio: auto;
+    height: var(--ev-heat-row);
+    border-radius: var(--ev-radius-sm);
+  }
+
+  .ev-heatmap-cell[data-void] {
+    background: transparent;
+  }
+
+  .ev-heatmap-cell:focus-visible {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-heatmap-cell:hover {
+    box-shadow: 0 0 0 1px var(--ev-text-muted);
+  }
+
+  .ev-heatmap-cell[data-void]:hover {
+    box-shadow: none;
+  }
+
+  .ev-heatmap-cell[data-level='1'],
+  .ev-heatmap-swatch[data-level='1'] {
+    background: color-mix(in srgb, var(--ev-heat) 28%, transparent);
+  }
+
+  .ev-heatmap-cell[data-level='2'],
+  .ev-heatmap-swatch[data-level='2'] {
+    background: color-mix(in srgb, var(--ev-heat) 50%, transparent);
+  }
+
+  .ev-heatmap-cell[data-level='3'],
+  .ev-heatmap-swatch[data-level='3'] {
+    background: color-mix(in srgb, var(--ev-heat) 74%, transparent);
+  }
+
+  .ev-heatmap-cell[data-level='4'],
+  .ev-heatmap-swatch[data-level='4'] {
+    background: var(--ev-heat);
+  }
+
+  .ev-heatmap-swatch {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--ev-tint-3);
+  }
+
+  .ev-heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--ev-space-1);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-2xs);
+  }
+
+  .ev-heatmap-legend > span:first-child {
+    margin-right: var(--ev-space-1);
+  }
+
+  .ev-heatmap-legend > span:last-child {
+    margin-left: var(--ev-space-1);
+  }
+
+  .ev-heatmap-tooltip {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .ev-heatmap-tooltip:not([data-below]) {
+    transform: translateY(-100%);
+  }
+
+  .ev-heatmap-empty {
+    min-height: 120px;
+  }
+
+  /* --- Кольцевой прогресс (RingProgress) --- */
+  .ev-ring {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+  }
+
+  .ev-ring-svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+
+  .ev-ring-track {
+    fill: none;
+    stroke: var(--ev-tint-3);
+  }
+
+  .ev-ring-bar {
+    fill: none;
+    stroke: var(--ev-tone, var(--ev-accent));
+    stroke-linecap: round;
+    transition:
+      stroke-dashoffset var(--ev-dur-slow) var(--ev-ease-out),
+      stroke-dasharray var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-ring-bar[data-cap='butt'] {
+    stroke-linecap: butt;
+  }
+
+  .ev-ring[data-tone='accent'] .ev-ring-bar {
+    stroke: var(--ev-accent);
+  }
+
+  .ev-ring-label {
+    position: relative;
+    max-width: 72%;
+    overflow: hidden;
+    color: var(--ev-text);
+    font-size: max(var(--ev-fs-2xs), calc(var(--ev-ring-size) * 0.22));
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1.1;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Превышение: значение цветом тона превышения, как у Progress. */
+  .ev-ring[data-over] .ev-ring-label {
+    color: var(--ev-tone, var(--ev-text));
+  }
+
+  /* --- Полукруглая шкала (Gauge) --- */
+  .ev-gauge {
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--ev-space-1);
+    max-width: 100%;
+  }
+
+  .ev-gauge-figure {
+    position: relative;
+  }
+
+  .ev-gauge-svg {
+    display: block;
+    overflow: visible;
+  }
+
+  .ev-gauge-track {
+    fill: none;
+    stroke: var(--ev-tint-3);
+  }
+
+  .ev-gauge-band {
+    fill: none;
+    opacity: 0.7;
+  }
+
+  .ev-gauge-bar {
+    fill: none;
+    stroke: var(--ev-tone);
+    transition: stroke-dasharray var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-gauge[data-tone='accent'] .ev-gauge-bar {
+    stroke: var(--ev-accent);
+  }
+
+  .ev-gauge-center {
+    position: absolute;
+    right: var(--ev-gauge-inset);
+    bottom: 0;
+    left: var(--ev-gauge-inset);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .ev-gauge-value {
+    color: var(--ev-text);
+    font-size: var(--ev-fs-2xl);
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1.1;
+  }
+
+  .ev-gauge-caption {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-gauge-range {
+    display: flex;
+    justify-content: space-between;
+    padding-inline: calc(var(--ev-gauge-inset) - 2px);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-2xs);
+  }
+}

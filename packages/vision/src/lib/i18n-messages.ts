@@ -157,6 +157,75 @@ export interface Messages {
     /** Пометка будущего шага для скринридера. */
     pending: string
   }
+  commandPalette: {
+    label: string
+    placeholder: string
+    hintNavigate: string
+    hintSelect: string
+    hintClose: string
+  }
+  steps: {
+    label: string
+    stepOf: (n: number, total: number) => string
+    completed: string
+    current: string
+    optional: string
+    error: string
+  }
+  accordion: {
+    expandAll: string
+    collapseAll: string
+  }
+  tree: {
+    label: string
+    expand: string
+    collapse: string
+  }
+  slider: {
+    from: string
+    to: string
+  }
+  chip: {
+    remove: (label: string) => string
+  }
+  tagInput: {
+    placeholder: string
+    duplicate: string
+    limit: (max: number) => string
+  }
+  otp: {
+    label: string
+    digit: (i: number, total: number) => string
+  }
+  inlineEdit: {
+    edit: string
+    save: string
+    empty: string
+  }
+  donut: {
+    total: string
+    other: string
+  }
+  heatmap: {
+    less: string
+    more: string
+  }
+  banner: {
+    dismiss: string
+  }
+  codeBlock: {
+    label: string
+    wrap: string
+    expand: (lines: number) => string
+    collapse: string
+  }
+  relativeTime: {
+    justNow: string
+  }
+  expandableText: {
+    more: string
+    less: string
+  }
 }
 
 /** Русское склонение по числу: plural(5, 'день', 'дня', 'дней'). */
@@ -334,6 +403,75 @@ export const ru: Messages = {
     showLess: 'Свернуть',
     pending: 'ожидается',
   },
+  commandPalette: {
+    label: 'Палитра команд',
+    placeholder: 'Команда или раздел',
+    hintNavigate: 'выбор',
+    hintSelect: 'открыть',
+    hintClose: 'закрыть',
+  },
+  steps: {
+    label: 'Шаги',
+    stepOf: (n, total) => `Шаг ${n} из ${total}`,
+    completed: 'выполнен',
+    current: 'текущий',
+    optional: 'необязательно',
+    error: 'ошибка',
+  },
+  accordion: {
+    expandAll: 'Развернуть все',
+    collapseAll: 'Свернуть все',
+  },
+  tree: {
+    label: 'Дерево',
+    expand: 'Развернуть',
+    collapse: 'Свернуть',
+  },
+  slider: {
+    from: 'От',
+    to: 'До',
+  },
+  chip: {
+    remove: (label) => `Убрать «${label}»`,
+  },
+  tagInput: {
+    placeholder: 'Введите и нажмите Enter',
+    duplicate: 'Уже добавлено',
+    limit: (max) => `Не больше ${max}`,
+  },
+  otp: {
+    label: 'Код подтверждения',
+    digit: (i, total) => `Цифра ${i} из ${total}`,
+  },
+  inlineEdit: {
+    edit: 'Изменить',
+    save: 'Сохранить',
+    empty: 'Не указано',
+  },
+  donut: {
+    total: 'Всего',
+    other: 'Прочее',
+  },
+  heatmap: {
+    less: 'Меньше',
+    more: 'Больше',
+  },
+  banner: {
+    dismiss: 'Скрыть',
+  },
+  codeBlock: {
+    label: 'Код',
+    wrap: 'Переносить строки',
+    expand: (lines) => `Показать весь код (${lines} ${plural(lines, 'строка', 'строки', 'строк')})`,
+    collapse: 'Свернуть код',
+  },
+  relativeTime: {
+    justNow: 'только что',
+  },
+  expandableText: {
+    more: 'Показать полностью',
+    less: 'Свернуть',
+  },
 }
 
 export const en: Messages = {
@@ -501,6 +639,75 @@ export const en: Messages = {
     showMore: (n) => `Show ${n} more`,
     showLess: 'Show less',
     pending: 'pending',
+  },
+  commandPalette: {
+    label: 'Command palette',
+    placeholder: 'Search commands and pages',
+    hintNavigate: 'navigate',
+    hintSelect: 'open',
+    hintClose: 'close',
+  },
+  steps: {
+    label: 'Progress',
+    stepOf: (n, total) => `Step ${n} of ${total}`,
+    completed: 'completed',
+    current: 'current',
+    optional: 'optional',
+    error: 'error',
+  },
+  accordion: {
+    expandAll: 'Expand all',
+    collapseAll: 'Collapse all',
+  },
+  tree: {
+    label: 'Tree',
+    expand: 'Expand',
+    collapse: 'Collapse',
+  },
+  slider: {
+    from: 'From',
+    to: 'To',
+  },
+  chip: {
+    remove: (label) => `Remove ${label}`,
+  },
+  tagInput: {
+    placeholder: 'Type and press Enter',
+    duplicate: 'Already added',
+    limit: (max) => `Up to ${max}`,
+  },
+  otp: {
+    label: 'Verification code',
+    digit: (i, total) => `Digit ${i} of ${total}`,
+  },
+  inlineEdit: {
+    edit: 'Edit',
+    save: 'Save',
+    empty: 'Not set',
+  },
+  donut: {
+    total: 'Total',
+    other: 'Other',
+  },
+  heatmap: {
+    less: 'Less',
+    more: 'More',
+  },
+  banner: {
+    dismiss: 'Dismiss',
+  },
+  codeBlock: {
+    label: 'Code',
+    wrap: 'Wrap lines',
+    expand: (lines) => `Show all code (${lines} ${lines === 1 ? 'line' : 'lines'})`,
+    collapse: 'Collapse code',
+  },
+  relativeTime: {
+    justNow: 'just now',
+  },
+  expandableText: {
+    more: 'Show more',
+    less: 'Show less',
   },
 }
 

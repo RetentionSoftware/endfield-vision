@@ -3,6 +3,8 @@
 import { CopyButton } from 'endfield-vision'
 import {
   ChartColumn,
+  Compass,
+  FileText,
   BookOpen,
   Languages,
   LayoutTemplate,
@@ -21,7 +23,7 @@ import s from './vision.module.css'
 /* Вкладки витрины                                                     */
 /* ------------------------------------------------------------------ */
 
-export const VISION_TABS = ['intro', 'tokens', 'theme', 'i18n', 'actions', 'forms', 'data', 'feedback', 'charts', 'layout'] as const
+export const VISION_TABS = ['intro', 'tokens', 'theme', 'i18n', 'actions', 'navigation', 'forms', 'data', 'content', 'feedback', 'charts', 'layout'] as const
 export type VisionTab = (typeof VISION_TABS)[number]
 
 export const VISION_TAB_META: Record<VisionTab, { label: string; description: string; icon: LucideIcon }> = {
@@ -30,10 +32,12 @@ export const VISION_TAB_META: Record<VisionTab, { label: string; description: st
   theme: { label: 'Тема и акценты', description: 'Тёмная и светлая тема, пресеты акцента, свой акцент и каскадные слои.', icon: Palette },
   i18n: { label: 'Языки', description: 'LocaleProvider, встроенные тексты на русском и английском, свои формулировки.', icon: Languages },
   actions: { label: 'Кнопки и меню', description: 'Кнопки, ссылки, подсказки, меню, поповер, переключатели, вкладки и клавиши.', icon: MousePointerClick },
-  forms: { label: 'Формы', description: 'Поля, маски, время, списки, даты, календарь, переключатели и загрузка файлов.', icon: TextCursorInput },
+  navigation: { label: 'Навигация', description: 'Палитра команд, шаги мастера, аккордеон, раскрывающийся блок и дерево.', icon: Compass },
+  forms: { label: 'Формы', description: 'Поля, маски, время, списки, даты, календарь, переключатели, слайдер, теги, код подтверждения, правка на месте и загрузка файлов.', icon: TextCursorInput },
   data: { label: 'Данные', description: 'Таблица с фильтрами, показатели, лента событий, доступность, бейджи, прогресс и копирование.', icon: Table2 },
+  content: { label: 'Контент', description: 'Баннеры, блоки кода, подсветка совпадений, относительное время и сворачиваемый текст.', icon: FileText },
   feedback: { label: 'Состояния и окна', description: 'Плашки, уведомления, окна, шторки, пустые состояния и загрузка.', icon: MessageSquareWarning },
-  charts: { label: 'Графики', description: 'Столбцы, линии, области, стопки и мини-графики на токенах палитры.', icon: ChartColumn },
+  charts: { label: 'Графики', description: 'Столбцы, линии, области, стопки, доли, тепловые карты, кольца, шкалы и мини-графики на токенах палитры.', icon: ChartColumn },
   layout: { label: 'Каркас', description: 'AppShell, шапка страницы, карточки, панели и утилиты раскладки.', icon: LayoutTemplate },
 }
 
