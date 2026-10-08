@@ -29,6 +29,8 @@ export interface PopoverProps {
   matchWidth?: boolean
   /** Перевести фокус внутрь при открытии (по умолчанию да). */
   autoFocus?: boolean
+  /** Стандартный внутренний отступ содержимого (по умолчанию нет: отступы задаёт содержимое). */
+  padded?: boolean
 }
 
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
@@ -48,6 +50,7 @@ export function Popover({
   className,
   matchWidth = false,
   autoFocus = true,
+  padded = false,
 }: PopoverProps) {
   const id = useId()
   const [open, setOpen] = useControllable(openProp, false, onOpenChange)
@@ -109,7 +112,7 @@ export function Popover({
             role="dialog"
             aria-label={label}
             tabIndex={-1}
-            className={cx('ev-popover', className)}
+            className={cx('ev-popover', padded && 'ev-popover-padded', className)}
             data-ev-layer=""
             data-side={side}
             style={style}

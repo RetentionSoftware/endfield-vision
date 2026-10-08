@@ -64,6 +64,11 @@ export interface DataTableProps<T> {
   emptyDescription?: ReactNode
   sort?: SortState | null
   onSortChange?: (sort: SortState | null) => void
+  /**
+   * Третий клик по заголовку снимает сортировку: asc -> desc -> нет (по умолчанию).
+   * false - только asc <-> desc, когда у списка всегда есть порядок.
+   */
+  sortClearable?: boolean
   onRowClick?: (row: T) => void
   /** Выбор строк по ключам. */
   selected?: string[]
@@ -105,6 +110,13 @@ export function isInteractiveTarget(e: Pick<MouseEvent | KeyboardEvent, 'target'
   return Boolean(hit && hit !== row)
 }
 
+/** Следующее состояние сортировки по клику на заголовок колонки key. */
+export function nextSort(current: SortState | null | undefined, key: string, clearable = true): SortState | null {
+  if (!current || current.key !== key) return { key, dir: 'asc' }
+  if (current.dir === 'asc') return { key, dir: 'desc' }
+  return clearable ? null : { key, dir: 'asc' }
+}
+
 export function DataTable<T>({
   columns,
   rows,
@@ -117,6 +129,7 @@ export function DataTable<T>({
   emptyDescription,
   sort,
   onSortChange,
+  sortClearable = true,
   onRowClick,
   selected,
   onSelectedChange,
@@ -150,12 +163,8 @@ export function DataTable<T>({
     onSelectedChange(selSet.has(k) ? (selected ?? []).filter((x) => x !== k) : [...(selected ?? []), k])
   }
 
-  const nextSort = (col: Column<T>) => {
-    if (!onSortChange) return
-    const key = col.sortKey ?? col.key
-    if (!sort || sort.key !== key) onSortChange({ key, dir: 'asc' })
-    else if (sort.dir === 'asc') onSortChange({ key, dir: 'desc' })
-    else onSortChange(null)
+  const cycleSort = (col: Column<T>) => {
+    onSortChange?.(nextSort(sort, col.sortKey ?? col.key, sortClearable))
   }
 
   const showSkeleton = loading && list.length === 0
@@ -267,7 +276,7 @@ export function DataTable<T>({
                     className={c.className}
                   >
                     {c.sortable && onSortChange ? (
-                      <button type="button" className="ev-th-sort" data-sorted={sorted ?? undefined} onClick={() => nextSort(c)}>
+                      <button type="button" className="ev-th-sort" data-sorted={sorted ?? undefined} onClick={() => cycleSort(c)}>
                         <span>{c.header}</span>
                         {sorted === 'asc' ? (
                           <ArrowUp size={13} aria-hidden="true" />

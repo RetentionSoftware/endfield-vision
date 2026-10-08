@@ -26,6 +26,7 @@ export {
   type Theme,
   type ThemePreference,
   type ThemeScriptOptions,
+  type ThemeScriptProps,
 } from './lib/theme-script'
 export { setAccent, setTheme, useTheme, type ThemeState } from './lib/theme'
 export { LocaleProvider, useLocale, useMessages, useNumberFormat, type LocaleProviderProps } from './lib/i18n'
@@ -55,6 +56,11 @@ export {
   phoneFieldValue,
   PLATE_RE,
   splitPhone,
+  parseTime,
+  isValidTime,
+  formatTimeDigits,
+  timeDigitsToValue,
+  timeToDigits,
   type PhoneCountry,
 } from './lib/masks'
 
@@ -82,10 +88,12 @@ export {
   PhoneInput,
   PlateInput,
   SnilsInput,
+  TimeInput,
   type DigitsInputProps,
   type PhoneInputProps,
   type PlateInputProps,
   type SnilsInputProps,
+  type TimeInputProps,
 } from './components/MaskedInput'
 export { MultiSelect, Select, type MultiSelectProps, type SelectOption, type SelectProps } from './components/Select'
 export { Calendar, type CalendarProps } from './components/Calendar'
@@ -100,9 +108,10 @@ export {
   type ChoiceOption,
   type RadioGroupProps,
   type SegmentedControlProps,
+  type SegmentedOption,
   type SwitchProps,
 } from './components/Choice'
-export { TabPanel, Tabs, type TabItem, type TabsProps } from './components/Tabs'
+export { TabPanel, Tabs, type TabItem, type TabPanelProps, type TabsProps } from './components/Tabs'
 export {
   Avatar,
   Badge,
@@ -118,6 +127,7 @@ export {
   SkeletonText,
   StatTile,
   StatusPill,
+  type AvatarProps,
   type BadgeProps,
   type CalloutProps,
   type CardProps,
@@ -140,6 +150,7 @@ export {
 export {
   DataTable,
   FilterBar,
+  nextSort,
   Pagination,
   type Column,
   type DataTableProps,
@@ -165,7 +176,9 @@ export {
   type ModalSize,
 } from './components/Modal'
 export { toast, Toaster, ToastProvider, useToast, type ToastApi, type ToastOptions, type ToastTone } from './components/Toast'
-export { Menu, type MenuEntry, type MenuProps } from './components/Menu'
+export { Timeline, type TimelineItem, type TimelineProps } from './components/Timeline'
+export { UptimeBar, type UptimeBarProps, type UptimeDay, type UptimeStatus } from './components/UptimeBar'
+export { findTypeaheadMatch, Menu, type MenuEntry, type MenuProps } from './components/Menu'
 export { Popover, type PopoverProps } from './components/Popover'
 export {
   CopyButton,
@@ -187,6 +200,7 @@ export {
   type BarChartProps,
   type ChartSeries,
   type LineChartProps,
+  type SparklineProps,
 } from './components/charts/Charts'
 export {
   AppShell,

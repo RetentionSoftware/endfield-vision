@@ -1,7 +1,7 @@
 'use client'
 
 import { TriangleAlert, CircleCheck, Info, OctagonAlert } from 'lucide-react'
-import { useId, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
 import { cx, EMPTY_VALUE } from '../lib/cx'
 import { useMessages } from '../lib/i18n'
 
@@ -53,10 +53,12 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, 'title'> {
   flush?: boolean
   /** Иконка слева от заголовка. */
   icon?: ReactNode
+  /** Строка между шапкой и телом: фильтры, поиск. У flush-карточки - с отступами карточки. */
+  toolbar?: ReactNode
   as?: 'section' | 'div' | 'article'
 }
 
-export function Card({ title, description, actions, footer, flush = false, icon, as = 'section', className, children, ...rest }: CardProps) {
+export function Card({ title, description, actions, footer, flush = false, icon, toolbar, as = 'section', className, children, ...rest }: CardProps) {
   const Tag = as
   const hasHead = title || description || actions
   return (
@@ -71,6 +73,7 @@ export function Card({ title, description, actions, footer, flush = false, icon,
           {actions ? <div className="ev-card-actions">{actions}</div> : null}
         </header>
       ) : null}
+      {toolbar ? <div className="ev-card-toolbar">{toolbar}</div> : null}
       <div className={cx('ev-card-body', flush && 'ev-card-body-flush')}>{children}</div>
       {footer ? <footer className="ev-card-foot">{footer}</footer> : null}
     </Tag>
@@ -224,15 +227,46 @@ function hashTone(name: string): Tone {
   return AVATAR_TONES[Math.abs(h) % AVATAR_TONES.length]!
 }
 
-export function Avatar({ name, size = 32, tone, className }: { name: string; size?: number; tone?: Tone; className?: string }) {
+export interface AvatarProps {
+  /** Имя: из него инициалы и цвет. */
+  name: string
+  size?: number
+  tone?: Tone
+  /** Фото. Не загрузилось - инициалы. */
+  src?: string
+  /** Подпись для скринридера. Без неё аватар декоративный (aria-hidden). */
+  alt?: string
+  className?: string
+}
+
+export function Avatar({ name, size = 32, tone, src, alt, className }: AvatarProps) {
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const showImg = Boolean(src) && failedSrc !== src
+  const labelled = Boolean(alt)
+
+  // Ошибка загрузки до гидрации не доходит до onError: проверяем картинку после монтирования.
+  useEffect(() => {
+    const img = imgRef.current
+    if (src && img && img.complete && img.naturalWidth === 0) setFailedSrc(src)
+  }, [src])
+
   return (
     <span
       className={cx('ev-avatar', className)}
       data-tone={tone ?? hashTone(name)}
       style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.38)) }}
-      aria-hidden="true"
+      role={labelled ? 'img' : undefined}
+      aria-label={labelled ? alt : undefined}
+      aria-hidden={labelled ? undefined : true}
     >
-      {initials(name)}
+      {showImg ? (
+        // Библиотека не завязана на next/image: обычный img.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img ref={imgRef} className="ev-avatar-img" src={src} alt="" draggable={false} onError={() => setFailedSrc(src ?? null)} />
+      ) : (
+        initials(name)
+      )}
     </span>
   )
 }
@@ -309,10 +343,12 @@ export interface ProgressProps {
   value: number | null
   max?: number
   tone?: Tone
+  /** Тон при превышении (value > max): полоса во всю ширину, значение - реальное. */
+  overTone?: Tone
   size?: 'sm' | 'md'
   /** Подпись над полосой. */
   label?: ReactNode
-  /** Значение справа над полосой: true - проценты, функция - свой формат. */
+  /** Значение справа над полосой: true - проценты, функция - свой формат (получает реальное значение, в том числе больше max). */
   showValue?: boolean | ((value: number, max: number) => ReactNode)
   /** Подпись для скринридера, если видимой подписи нет. */
   'aria-label'?: string
@@ -320,18 +356,30 @@ export interface ProgressProps {
 }
 
 /** Полоса прогресса: загрузка, заполненность, выполнение плана. */
-export function Progress({ value, max = 100, tone = 'accent', size = 'md', label, showValue = false, className, ...aria }: ProgressProps) {
+export function Progress({
+  value,
+  max = 100,
+  tone = 'accent',
+  overTone = 'danger',
+  size = 'md',
+  label,
+  showValue = false,
+  className,
+  ...aria
+}: ProgressProps) {
   const labelId = useId()
   const clamped = value === null ? null : Math.min(Math.max(value, 0), max)
   const pct = clamped === null || max <= 0 ? 0 : (clamped / max) * 100
+  const over = value !== null && max > 0 && value > max
+  const realPct = over ? (value / max) * 100 : pct
   const shown =
-    clamped === null || !showValue
+    value === null || !showValue
       ? null
       : typeof showValue === 'function'
-        ? showValue(clamped, max)
-        : `${Math.round(pct)}%`
+        ? showValue(over ? value : (clamped ?? 0), max)
+        : `${Math.round(realPct)}%`
   return (
-    <div className={cx('ev-progress', className)} data-tone={tone} data-size={size}>
+    <div className={cx('ev-progress', className)} data-tone={over ? overTone : tone} data-size={size} data-over={over || undefined}>
       {label || shown !== null ? (
         <div className="ev-progress-head">
           {label ? (
@@ -350,6 +398,7 @@ export function Progress({ value, max = 100, tone = 'accent', size = 'md', label
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={clamped ?? undefined}
+        aria-valuetext={over ? `${Math.round(realPct)}%` : undefined}
         aria-labelledby={label ? labelId : undefined}
         aria-label={label ? undefined : aria['aria-label']}
         data-indeterminate={clamped === null || undefined}

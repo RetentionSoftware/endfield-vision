@@ -133,6 +133,36 @@ export interface Messages {
     period: string
     empty: string
   }
+  time: {
+    placeholder: string
+  }
+  uptime: {
+    operational: string
+    degraded: string
+    outage: string
+    maintenance: string
+    noData: string
+    /** Подпись полосы для скринридера: «Доступность за 90 дней». */
+    label: (days: number) => string
+    daysAgo: (days: number) => string
+    today: string
+  }
+  timeline: {
+    label: string
+    showMore: (n: number) => string
+    showLess: string
+    /** Пометка будущего шага для скринридера. */
+    pending: string
+  }
+}
+
+/** Русское склонение по числу: plural(5, 'день', 'дня', 'дней'). */
+function plural(n: number, one: string, few: string, many: string): string {
+  const m10 = n % 10
+  const m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
 }
 
 export const ru: Messages = {
@@ -259,6 +289,25 @@ export const ru: Messages = {
     period: 'Период',
     empty: 'Нет данных за период',
   },
+  time: {
+    placeholder: 'чч:мм',
+  },
+  uptime: {
+    operational: 'Работает',
+    degraded: 'С ограничениями',
+    outage: 'Сбой',
+    maintenance: 'Обслуживание',
+    noData: 'Нет данных',
+    label: (days) => `Доступность за ${days} ${plural(days, 'день', 'дня', 'дней')}`,
+    daysAgo: (days) => `${days} ${plural(days, 'день', 'дня', 'дней')} назад`,
+    today: 'Сегодня',
+  },
+  timeline: {
+    label: 'Лента событий',
+    showMore: (n) => `Показать ещё ${n}`,
+    showLess: 'Свернуть',
+    pending: 'ожидается',
+  },
 }
 
 export const en: Messages = {
@@ -384,6 +433,25 @@ export const en: Messages = {
   charts: {
     period: 'Period',
     empty: 'No data for this period',
+  },
+  time: {
+    placeholder: 'hh:mm',
+  },
+  uptime: {
+    operational: 'Operational',
+    degraded: 'Degraded',
+    outage: 'Outage',
+    maintenance: 'Maintenance',
+    noData: 'No data',
+    label: (days) => `Uptime over the last ${days} ${days === 1 ? 'day' : 'days'}`,
+    daysAgo: (days) => `${days} ${days === 1 ? 'day' : 'days'} ago`,
+    today: 'Today',
+  },
+  timeline: {
+    label: 'Activity',
+    showMore: (n) => `Show ${n} more`,
+    showLess: 'Show less',
+    pending: 'pending',
   },
 }
 

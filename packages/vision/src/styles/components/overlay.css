@@ -70,6 +70,10 @@
     animation: ev-pop-in var(--ev-dur-fast) var(--ev-ease-out);
   }
 
+  .ev-popover-padded {
+    padding: var(--ev-space-5);
+  }
+
   /* --- Меню действий --- */
   .ev-menu {
     z-index: var(--ev-z-dropdown);

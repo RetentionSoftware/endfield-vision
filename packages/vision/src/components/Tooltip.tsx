@@ -24,7 +24,9 @@ import { Portal } from '../lib/overlay'
  * оборачивается в span с display: contents (позиция - по самому ребёнку).
  */
 
-export type TooltipPlacement = 'top' | 'bottom' | 'right' | 'auto'
+export type TooltipPlacement = 'top' | 'bottom' | 'right' | 'left' | 'auto'
+
+type TooltipSide = 'top' | 'bottom' | 'right' | 'left'
 
 export interface TooltipProps {
   content: ReactNode
@@ -49,7 +51,7 @@ export function Tooltip({ content, placement = 'auto', delay = 200, children }: 
   const tipRef = useRef<HTMLDivElement | null>(null)
   const timer = useRef<number | null>(null)
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; left: number; side: 'top' | 'bottom' | 'right' } | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; side: TooltipSide } | null>(null)
 
   const cancel = useCallback(() => {
     if (timer.current !== null) {
@@ -83,10 +85,16 @@ export function Tooltip({ content, placement = 'auto', delay = 200, children }: 
     const tr = tip.getBoundingClientRect()
     const vw = window.innerWidth
     const vh = window.innerHeight
-    if (placement === 'right' && ar.right + GAP + tr.width <= vw - PAD) {
-      const t = Math.max(PAD, Math.min(ar.top + ar.height / 2 - tr.height / 2, vh - tr.height - PAD))
-      setPos({ top: t, left: ar.right + GAP, side: 'right' })
-      return
+    if (placement === 'right' || placement === 'left') {
+      // Сбоку: нужная сторона, при нехватке места - противоположная, иначе сверху или снизу.
+      const fitsRight = ar.right + GAP + tr.width <= vw - PAD
+      const fitsLeft = ar.left - GAP - tr.width >= PAD
+      const side = placement === 'right' ? (fitsRight ? 'right' : fitsLeft ? 'left' : null) : fitsLeft ? 'left' : fitsRight ? 'right' : null
+      if (side) {
+        const t = Math.max(PAD, Math.min(ar.top + ar.height / 2 - tr.height / 2, vh - tr.height - PAD))
+        setPos({ top: t, left: side === 'right' ? ar.right + GAP : ar.left - GAP - tr.width, side })
+        return
+      }
     }
     let side: 'top' | 'bottom' = placement === 'bottom' ? 'bottom' : 'top'
     if (side === 'top' && ar.top - tr.height - GAP < PAD) side = 'bottom'

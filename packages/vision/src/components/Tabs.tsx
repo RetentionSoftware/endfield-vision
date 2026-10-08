@@ -127,9 +127,36 @@ export function Tabs<V extends string = string>({ value, onChange, items, varian
   )
 }
 
-export function TabPanel({ idBase, value, children, className }: { idBase: string; value: string; children: ReactNode; className?: string }) {
+export interface TabPanelProps {
+  idBase: string
+  /** Значение вкладки, которой принадлежит панель. */
+  value: string
+  children: ReactNode
+  className?: string
+  /**
+   * Значение активной вкладки. Вместе с keepMounted панель остаётся в DOM
+   * скрытой (hidden), пока её вкладка не выбрана: состояние форм внутри сохраняется.
+   * Без него панель считается активной - её рендерят только для выбранной вкладки.
+   */
+  activeValue?: string
+  /** Не размонтировать неактивную панель, а скрывать (нужен activeValue). */
+  keepMounted?: boolean
+}
+
+export function TabPanel({ idBase, value, children, className, activeValue, keepMounted = false }: TabPanelProps) {
+  const active = activeValue === undefined || activeValue === value
+  if (!active && !keepMounted) return null
   return (
-    <div role="tabpanel" id={tabPanelId(idBase, value)} aria-labelledby={tabId(idBase, value)} tabIndex={0} className={cx('ev-tabpanel', className)}>
+    <div
+      role="tabpanel"
+      id={tabPanelId(idBase, value)}
+      aria-labelledby={tabId(idBase, value)}
+      tabIndex={active ? 0 : -1}
+      hidden={!active}
+      // display: none инлайном: класс приложения с display перебил бы атрибут hidden.
+      style={active ? undefined : { display: 'none' }}
+      className={cx('ev-tabpanel', className)}
+    >
       {children}
     </div>
   )

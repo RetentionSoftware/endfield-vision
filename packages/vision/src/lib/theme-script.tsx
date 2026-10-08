@@ -34,7 +34,12 @@ export function themeBootstrap({
   return `(function(){var c=${cfg},d=document.documentElement,t=c.t,a=c.a;try{t=localStorage.getItem(c.tk)||t;a=localStorage.getItem(c.ak)||a}catch(e){}var p=t==='system'?'system':t==='light'?'light':'dark';if(p==='system')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';d.dataset.theme=t==='light'?'light':'dark';d.dataset.themePref=p;if(a&&a!=='indigo')d.dataset.accent=a;else delete d.dataset.accent})()`
 }
 
+export interface ThemeScriptProps extends ThemeScriptOptions {
+  /** nonce для строгой CSP (script-src 'nonce-...'): тот же, что у остальных скриптов страницы. */
+  nonce?: string
+}
+
 /** Скрипт для <head> корневого layout. Не требует клиента: подходит для серверных компонентов. */
-export function ThemeScript(props: ThemeScriptOptions) {
-  return <script dangerouslySetInnerHTML={{ __html: themeBootstrap(props) }} />
+export function ThemeScript({ nonce, ...options }: ThemeScriptProps) {
+  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeBootstrap(options) }} />
 }

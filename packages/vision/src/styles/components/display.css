@@ -133,6 +133,26 @@
     margin: -4px 0;
   }
 
+  /* Строка фильтров между шапкой и телом. С отступами карточки и у flush-тела. */
+  .ev-card-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3);
+    min-width: 0;
+    padding: var(--ev-space-5) var(--ev-space-6) 0;
+  }
+
+  .ev-card-toolbar:first-child {
+    padding-top: var(--ev-space-6);
+  }
+
+  /* Единственный ребёнок (FilterBar, поле поиска) - на всю строку. */
+  .ev-card-toolbar > :only-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .ev-card-body {
     flex: 1 1 auto;
     min-width: 0;
@@ -155,7 +175,8 @@
     padding: var(--ev-space-4) 0 0;
   }
 
-  .ev-card-head + .ev-card-body-flush {
+  .ev-card-head + .ev-card-body-flush,
+  .ev-card-toolbar + .ev-card-body-flush {
     padding-top: var(--ev-space-4);
   }
 
@@ -200,6 +221,14 @@
     .ev-card-head {
       padding: var(--ev-space-5) var(--ev-space-5) 0;
       flex-wrap: wrap;
+    }
+
+    .ev-card-toolbar {
+      padding: var(--ev-space-4) var(--ev-space-5) 0;
+    }
+
+    .ev-card-toolbar:first-child {
+      padding-top: var(--ev-space-5);
     }
 
     .ev-card-body {
@@ -454,6 +483,15 @@
     font-weight: var(--ev-fw-semibold);
     letter-spacing: 0.02em;
     user-select: none;
+    overflow: hidden;
+  }
+
+  .ev-avatar-img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: inherit;
+    object-fit: cover;
   }
 
   /* --- Плитка показателя --- */
@@ -1036,6 +1074,11 @@
     background: var(--ev-accent);
   }
 
+  /* Превышение: значение цветом тона превышения, полоса во всю ширину. */
+  .ev-progress[data-over] .ev-progress-value {
+    color: var(--ev-tone);
+  }
+
   .ev-progress-track[data-indeterminate] .ev-progress-bar {
     width: 35%;
     animation: ev-progress-run 1.4s var(--ev-ease) infinite;
@@ -1048,5 +1091,307 @@
     to {
       transform: translateX(300%);
     }
+  }
+}
+
+@layer ev.components {
+  /* --- Лента событий --- */
+  .ev-timeline {
+    --ev-tl-box: 24px;
+    --ev-tl-dot: 10px;
+    --ev-tl-gap: 4px;
+    --ev-tl-line: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-timeline[data-variant='compact'] {
+    --ev-tl-box: 20px;
+    --ev-tl-dot: 8px;
+    --ev-tl-gap: 3px;
+  }
+
+  .ev-timeline-item {
+    /* Размер своего маркера и следующего: от них считаются концы линии. */
+    --ev-tl-mark: var(--ev-tl-dot);
+    --ev-tl-next: var(--ev-tl-dot);
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--ev-tl-box) minmax(0, 1fr);
+    column-gap: var(--ev-space-4);
+    padding-bottom: var(--ev-space-5);
+  }
+
+  .ev-timeline-item[data-icon] {
+    --ev-tl-mark: var(--ev-tl-box);
+  }
+
+  .ev-timeline-item[data-next-icon] {
+    --ev-tl-next: var(--ev-tl-box);
+  }
+
+  .ev-timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  /* Линия от маркера до следующего маркера, с зазором с обеих сторон. */
+  .ev-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--ev-tl-box) / 2 - var(--ev-tl-line) / 2);
+    top: calc(var(--ev-tl-box) / 2 + var(--ev-tl-mark) / 2 + var(--ev-tl-gap));
+    bottom: calc(var(--ev-tl-gap) + var(--ev-tl-next) / 2 - var(--ev-tl-box) / 2);
+    border-left: var(--ev-tl-line) solid var(--ev-border-strong);
+  }
+
+  .ev-timeline-item:last-child::before {
+    display: none;
+  }
+
+  .ev-timeline-item:is([data-pending], [data-next-pending])::before {
+    border-left-style: dashed;
+  }
+
+  .ev-timeline-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ev-tl-box);
+    height: var(--ev-tl-box);
+  }
+
+  .ev-timeline-dot {
+    width: var(--ev-tl-dot);
+    height: var(--ev-tl-dot);
+    border-radius: 50%;
+    background: var(--ev-tone);
+  }
+
+  .ev-timeline-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--ev-tone-soft);
+    color: var(--ev-tone);
+  }
+
+  .ev-timeline-icon > svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-icon > svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Будущий шаг: полый маркер. */
+  .ev-timeline-item[data-pending] .ev-timeline-dot {
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--ev-tone);
+  }
+
+  .ev-timeline-item[data-pending][data-tone='neutral'] .ev-timeline-dot {
+    box-shadow: inset 0 0 0 2px var(--ev-border-strong);
+  }
+
+  .ev-timeline-item[data-pending] .ev-timeline-icon {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--ev-border-strong);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-1);
+    min-width: 0;
+  }
+
+  .ev-timeline-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0 var(--ev-space-4);
+    /* Первая строка - по центру маркера. */
+    min-height: var(--ev-tl-box);
+    padding-top: calc((var(--ev-tl-box) - 1.5em) / 2);
+    line-height: 1.5;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-timeline-title {
+    min-width: 0;
+    font-weight: var(--ev-fw-medium);
+    overflow-wrap: anywhere;
+  }
+
+  .ev-timeline-item[data-pending] .ev-timeline-title {
+    color: var(--ev-text-secondary);
+    font-weight: var(--ev-fw-regular);
+  }
+
+  .ev-timeline-time {
+    flex: 0 0 auto;
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+    white-space: nowrap;
+  }
+
+  .ev-timeline-desc {
+    font-size: var(--ev-fs-sm);
+    color: var(--ev-text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  .ev-timeline-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2);
+    margin-top: var(--ev-space-1);
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-item {
+    column-gap: var(--ev-space-3);
+    padding-bottom: var(--ev-space-3);
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-content {
+    gap: 0;
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-desc {
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-meta {
+    margin-top: 2px;
+  }
+
+  /* Кнопка «Показать ещё» - под колонкой текста. */
+  .ev-timeline-more {
+    padding-left: calc(var(--ev-tl-box) + var(--ev-space-4) - var(--ev-space-3));
+  }
+
+  .ev-timeline[data-variant='compact'] .ev-timeline-more {
+    padding-left: calc(var(--ev-tl-box) + var(--ev-space-3) - var(--ev-space-3));
+  }
+
+  /* --- Полоса доступности --- */
+  .ev-uptime {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-uptime-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .ev-uptime-day,
+  .ev-uptime-swatch {
+    --ev-uptime-c: var(--ev-tint-3);
+  }
+
+  :is(.ev-uptime-day, .ev-uptime-swatch)[data-status='operational'] {
+    --ev-uptime-c: var(--ev-success);
+  }
+
+  :is(.ev-uptime-day, .ev-uptime-swatch)[data-status='degraded'] {
+    --ev-uptime-c: var(--ev-warning);
+  }
+
+  :is(.ev-uptime-day, .ev-uptime-swatch)[data-status='outage'] {
+    --ev-uptime-c: var(--ev-danger);
+  }
+
+  :is(.ev-uptime-day, .ev-uptime-swatch)[data-status='maintenance'] {
+    --ev-uptime-c: var(--ev-info);
+  }
+
+  .ev-uptime-day {
+    flex: 1 1 0;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--ev-uptime-c);
+    outline: none;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-uptime-day:hover {
+    opacity: 0.7;
+  }
+
+  .ev-uptime-day:focus-visible {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-uptime-swatch {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--ev-uptime-c);
+  }
+
+  .ev-uptime-range {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ev-space-4);
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-uptime-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2) var(--ev-space-5);
+    font-size: var(--ev-fs-xs);
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-uptime-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-uptime-tip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .ev-uptime-tip-date {
+    font-weight: var(--ev-fw-semibold);
+  }
+
+  .ev-uptime-tip-status {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-uptime-tip-note {
+    opacity: 0.8;
   }
 }

@@ -198,6 +198,11 @@
     padding-inline: var(--ev-space-6);
   }
 
+  /* Во flush-теле блок над таблицей (фильтры, их обёртка) отделён от неё отступом карточки. */
+  .ev-card-body-flush > :not(.ev-table-wrap, .ev-table-cards):has(+ :is(.ev-table-wrap, .ev-table-cards)) {
+    margin-bottom: var(--ev-space-5);
+  }
+
   @media (max-width: 600px) {
     .ev-card-body-flush .ev-table tr:not(.ev-table-state-row) > :is(th, td):first-child {
       padding-left: var(--ev-space-5);
@@ -368,7 +373,12 @@
   }
 
   /* --- Фильтры --- */
-  .ev-filterbar {
+  /*
+   * У строки фильтров нет своего внешнего отступа: в раскладках с gap
+   * (ev-stack, колонка страницы) он удваивал промежуток. Отступ до таблицы
+   * дают тело карточки и flush-карточка.
+   */
+  .ev-card-body > .ev-filterbar:not(:last-child) {
     margin-bottom: var(--ev-space-5);
   }
 

@@ -104,6 +104,37 @@ export function formatSnils(digits: string): string {
   return out
 }
 
+/** Время «ЧЧ:ММ» (24 часа) -> часы и минуты; неполное или неверное - null. */
+export function parseTime(value: string | null | undefined): { hours: number; minutes: number } | null {
+  const m = /^(\d{2}):(\d{2})$/.exec(value ?? '')
+  if (!m) return null
+  const hours = Number(m[1])
+  const minutes = Number(m[2])
+  return hours <= 23 && minutes <= 59 ? { hours, minutes } : null
+}
+
+/** Полное корректное время «ЧЧ:ММ» от 00:00 до 23:59. */
+export function isValidTime(value: string | null | undefined): boolean {
+  return parseTime(value) !== null
+}
+
+/** Время по мере ввода: «ЧЧ:ММ» из цифр. */
+export function formatTimeDigits(digits: string): string {
+  return digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2, 4)}` : digits.slice(0, 2)
+}
+
+/** 4 цифры -> «ЧЧ:ММ»; неполное или неверное время - null. */
+export function timeDigitsToValue(digits: string): string | null {
+  if (digits.length !== 4) return null
+  const v = `${digits.slice(0, 2)}:${digits.slice(2, 4)}`
+  return isValidTime(v) ? v : null
+}
+
+/** «ЧЧ:ММ» -> цифры для поля; неверное значение - пустая строка. */
+export function timeToDigits(value: string): string {
+  return isValidTime(value) ? value.replace(':', '') : ''
+}
+
 const PLATE_LATIN_TO_CYR: Record<string, string> = {
   A: 'А',
   B: 'В',

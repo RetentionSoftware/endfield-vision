@@ -541,21 +541,34 @@ export function AreaChart<D>(props: Omit<LineChartProps<D>, 'area'>) {
   return <LineChart {...props} area />
 }
 
-/** Мини-график для плиток показателей: без осей и подсказок. */
-export function Sparkline({
-  values,
-  height = 32,
-  width = 120,
-  color = 'var(--ev-chart-1)',
-  'aria-label': label,
-}: {
+export interface SparklineProps {
   values: number[]
   height?: number
-  width?: number
+  /** Ширина в px или 'auto' - по ширине контейнера (до замера и на сервере - 120). */
+  width?: number | 'auto'
   color?: string
   'aria-label'?: string
-}) {
-  if (values.length < 2) return null
+}
+
+const SPARKLINE_FALLBACK_W = 120
+
+/** Мини-график для плиток показателей: без осей и подсказок. */
+export function Sparkline({ values, height = 32, width = SPARKLINE_FALLBACK_W, color = 'var(--ev-chart-1)', 'aria-label': label }: SparklineProps) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const measured = useElementWidth(wrapRef)
+  const fluid = width === 'auto'
+  const w = fluid ? (measured > 0 ? measured : SPARKLINE_FALLBACK_W) : width
+  const svg = values.length < 2 ? null : <SparklineSvg values={values} width={w} height={height} color={color} label={label} />
+  if (!fluid) return svg
+  // Обёртка есть и без данных: высота зарезервирована, замер не теряет элемент.
+  return (
+    <div ref={wrapRef} className="ev-sparkline-fluid" style={{ height }}>
+      {svg}
+    </div>
+  )
+}
+
+function SparklineSvg({ values, width, height, color, label }: { values: number[]; width: number; height: number; color: string; label?: string }) {
   const max = Math.max(...values)
   const min = Math.min(...values)
   const span = max - min || 1

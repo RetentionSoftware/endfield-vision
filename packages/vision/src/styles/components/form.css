@@ -601,8 +601,15 @@
     background: var(--ev-surface-input);
     border: 1px solid var(--ev-border-strong);
     border-radius: var(--ev-radius);
+    min-width: 0;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
+  }
+
+  /* Не помещается - прокрутка внутри переключателя, полоса прокрутки скрыта. */
+  .ev-segmented::-webkit-scrollbar {
+    display: none;
   }
 
   .ev-segmented-block {
@@ -616,6 +623,7 @@
 
   .ev-segmented-item {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     gap: var(--ev-space-2);
@@ -661,6 +669,12 @@
 
   .ev-segmented-icon {
     display: inline-flex;
+  }
+
+  /* Сегмент-иконка: квадрат по высоте сегмента. */
+  .ev-segmented .ev-segmented-item[data-icon-only] {
+    aspect-ratio: 1;
+    padding: 0;
   }
 
   .ev-segmented-count {

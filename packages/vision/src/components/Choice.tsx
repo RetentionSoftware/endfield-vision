@@ -5,6 +5,7 @@ import { useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type React
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { useFieldProps } from './Field'
+import { Tooltip } from './Tooltip'
 
 /*
  * Чекбокс, тумблер, радиогруппа, сегментный переключатель. Нативные input
@@ -184,10 +185,21 @@ export function RadioGroup<V extends string = string>({
   )
 }
 
+export interface SegmentedOption<V extends string = string> {
+  value: V
+  /** Подпись. Без неё сегмент только с иконкой: тогда нужен aria-label (он же текст подсказки). */
+  label?: ReactNode
+  icon?: ReactNode
+  disabled?: boolean
+  count?: number
+  /** Подпись для скринридера и подсказки у сегмента-иконки (вид: сетка, таблица). */
+  'aria-label'?: string
+}
+
 export interface SegmentedControlProps<V extends string = string> {
   value: V
   onChange: (value: V) => void
-  options: Array<{ value: V; label: ReactNode; icon?: ReactNode; disabled?: boolean; count?: number }>
+  options: SegmentedOption<V>[]
   size?: 'sm' | 'md'
   /** Растянуть сегменты на всю ширину. */
   block?: boolean
@@ -195,7 +207,15 @@ export interface SegmentedControlProps<V extends string = string> {
   className?: string
 }
 
-/** Переключатель 2-5 значений (режим, период, статус). Стрелки двигают выбор. */
+function hasContent(v: ReactNode): boolean {
+  return v !== undefined && v !== null && v !== false && v !== ''
+}
+
+/**
+ * Переключатель 2-5 значений (режим, период, статус). Стрелки двигают выбор.
+ * Не помещается по ширине - прокручивается внутри себя, выбранный сегмент
+ * держится в видимой области.
+ */
 export function SegmentedControl<V extends string = string>({
   value,
   onChange,
@@ -205,7 +225,21 @@ export function SegmentedControl<V extends string = string>({
   className,
   ...aria
 }: SegmentedControlProps<V>) {
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const refs = useRef<Array<HTMLButtonElement | null>>([])
+  const activeIndex = options.findIndex((o) => o.value === value)
+
+  // Прокрутка только самого переключателя (не страницы, как у scrollIntoView).
+  useIsoLayoutEffect(() => {
+    const box = rootRef.current
+    const el = refs.current[activeIndex]
+    if (!box || !el || box.scrollWidth <= box.clientWidth) return
+    const b = box.getBoundingClientRect()
+    const r = el.getBoundingClientRect()
+    if (r.left < b.left) box.scrollLeft -= b.left - r.left
+    else if (r.right > b.right) box.scrollLeft += r.right - b.right
+  }, [activeIndex])
+
   const onKey = (e: KeyboardEvent, index: number) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
     e.preventDefault()
@@ -221,10 +255,11 @@ export function SegmentedControl<V extends string = string>({
     }
   }
   return (
-    <div role="radiogroup" className={cx('ev-segmented', block && 'ev-segmented-block', className)} data-size={size} {...aria}>
+    <div ref={rootRef} role="radiogroup" className={cx('ev-segmented', block && 'ev-segmented-block', className)} data-size={size} {...aria}>
       {options.map((o, i) => {
         const on = o.value === value
-        return (
+        const iconOnly = !hasContent(o.label) && Boolean(o.icon)
+        const button = (
           <button
             key={o.value}
             ref={(n) => {
@@ -233,17 +268,30 @@ export function SegmentedControl<V extends string = string>({
             type="button"
             role="radio"
             aria-checked={on}
+            aria-label={o['aria-label']}
             tabIndex={on ? 0 : -1}
             disabled={o.disabled}
             className="ev-segmented-item"
             data-active={on || undefined}
+            data-icon-only={iconOnly || undefined}
             onClick={() => onChange(o.value)}
             onKeyDown={(e) => onKey(e, i)}
           >
-            {o.icon ? <span className="ev-segmented-icon">{o.icon}</span> : null}
-            <span>{o.label}</span>
+            {o.icon ? (
+              <span className="ev-segmented-icon" aria-hidden={iconOnly || undefined}>
+                {o.icon}
+              </span>
+            ) : null}
+            {hasContent(o.label) ? <span>{o.label}</span> : null}
             {o.count !== undefined ? <span className="ev-segmented-count ev-num">{o.count}</span> : null}
           </button>
+        )
+        return iconOnly && o['aria-label'] ? (
+          <Tooltip key={o.value} content={o['aria-label']} placement="top">
+            {button}
+          </Tooltip>
+        ) : (
+          button
         )
       })}
     </div>

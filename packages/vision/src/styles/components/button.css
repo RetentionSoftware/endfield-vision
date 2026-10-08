@@ -138,6 +138,40 @@
     background: var(--ev-danger-soft);
   }
 
+  /* Кнопка-ссылка: текст акцентом внутри строки, без фона, рамки и высоты контрола. */
+  .ev-btn[data-variant='link'] {
+    gap: var(--ev-space-1);
+    height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ev-radius-xs);
+    background: transparent;
+    color: var(--ev-accent-text);
+    font-size: inherit;
+    line-height: inherit;
+    vertical-align: baseline;
+    white-space: normal;
+    user-select: auto;
+  }
+
+  .ev-btn[data-variant='link']:hover {
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .ev-btn[data-variant='link']:active:not(:disabled) {
+    transform: none;
+  }
+
+  .ev-btn[data-variant='link'].ev-btn-iconic {
+    width: auto;
+  }
+
+  .ev-btn[data-variant='link'] .ev-btn-label {
+    overflow: visible;
+  }
+
   .ev-spinner {
     display: inline-block;
     flex: 0 0 auto;

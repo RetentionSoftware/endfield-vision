@@ -7,7 +7,8 @@ import { UiLink } from '../lib/link'
 import { Spinner } from './Spinner'
 import { Tooltip, type TooltipPlacement } from './Tooltip'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-ghost'
+/** link - текстовая ссылка без фона и высоты контрола, для действий внутри текста («Забыли пароль?»). */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-ghost' | 'link'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonOwnProps {

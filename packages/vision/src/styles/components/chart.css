@@ -136,4 +136,10 @@
     display: block;
     overflow: visible;
   }
+
+  /* Sparkline width="auto": обёртка по ширине контейнера, высота задана заранее. */
+  .ev-sparkline-fluid {
+    width: 100%;
+    min-width: 0;
+  }
 }

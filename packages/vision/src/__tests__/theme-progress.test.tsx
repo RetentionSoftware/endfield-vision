@@ -47,15 +47,22 @@ describe('тема', () => {
     expect(ACCENTS).toContain('indigo')
     expect(ACCENTS).toContain('amber')
   })
+
+  it('ThemeScript передаёт nonce для строгой CSP', () => {
+    expect(renderToString(<ThemeScript nonce="abc123" />)).toContain('<script nonce="abc123">')
+  })
 })
 
 describe('Progress', () => {
-  it('роль progressbar, границы значения и подпись', () => {
+  it('роль progressbar, границы значения и подпись; превышение - реальный процент', () => {
     const out = renderToString(<Progress label="Загрузка" value={150} showValue />)
     expect(out).toContain('role="progressbar"')
     expect(out).toContain('aria-valuenow="100"')
     expect(out).toContain('aria-valuemax="100"')
-    expect(out).toContain('100%')
+    expect(out).toContain('aria-valuetext="150%"')
+    expect(out).toContain('>150%<')
+    expect(out).toContain('data-over="true"')
+    expect(out).toContain('width:100%')
     expect(out).toContain('aria-labelledby=')
   })
 

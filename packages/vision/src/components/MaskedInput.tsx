@@ -9,11 +9,14 @@ import {
   applyMaskedEdit,
   formatPhoneNational,
   formatSnils,
+  formatTimeDigits,
   normalizePlate,
   PHONE_COUNTRIES,
   phoneFieldValue,
   sanitizePhonePaste,
   splitPhone,
+  timeDigitsToValue,
+  timeToDigits,
   type PhoneCountry,
 } from '../lib/masks'
 import { useFieldProps } from './Field'
@@ -40,8 +43,32 @@ export interface MaskedDigitsInputProps extends BaseInputProps {
   ref?: Ref<HTMLInputElement>
 }
 
-/** Низкоуровневое поле: только <input>, без рамки (рамку даёт обёртка). */
-export function MaskedDigitsInput({ digits, onDigits, format, maxDigits, sanitize, ref, ...rest }: MaskedDigitsInputProps) {
+/**
+ * Низкоуровневое поле: только <input>, без рамки (рамку даёт обёртка).
+ * Внутри Field само берёт id, aria-invalid, aria-describedby, disabled и
+ * required из контекста; явные пропсы важнее.
+ */
+export function MaskedDigitsInput({
+  digits,
+  onDigits,
+  format,
+  maxDigits,
+  sanitize,
+  ref,
+  id,
+  disabled,
+  required,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedBy,
+  ...rest
+}: MaskedDigitsInputProps) {
+  const f = useFieldProps({
+    id,
+    disabled,
+    required,
+    invalid: ariaInvalid === undefined ? undefined : ariaInvalid !== false && ariaInvalid !== 'false',
+    'aria-describedby': ariaDescribedBy,
+  })
   const inner = useRef<HTMLInputElement | null>(null)
   const caretRef = useRef<number | null>(null)
   const display = format(digits)
@@ -83,6 +110,11 @@ export function MaskedDigitsInput({ digits, onDigits, format, maxDigits, sanitiz
         if (typeof ref === 'function') ref(node)
         else if (ref) (ref as { current: HTMLInputElement | null }).current = node
       }}
+      id={f.id}
+      disabled={f.disabled}
+      required={f.required}
+      aria-invalid={f['aria-invalid']}
+      aria-describedby={f['aria-describedby']}
       value={display}
       onChange={handleChange}
     />
@@ -128,7 +160,7 @@ export function DigitsInput({ value, onChange, maxDigits, format, size = 'md', c
         maxDigits={maxDigits}
         id={f.id}
         disabled={f.disabled}
-        aria-invalid={f['aria-invalid']}
+        aria-invalid={f.invalid}
         aria-describedby={f['aria-describedby']}
       />
     </div>
@@ -237,7 +269,7 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
         onPaste={onPaste}
         id={f.id}
         disabled={f.disabled}
-        aria-invalid={f['aria-invalid']}
+        aria-invalid={f.invalid}
         aria-describedby={f['aria-describedby']}
       />
     </div>
@@ -267,6 +299,74 @@ export function PlateInput({ value, onChange, size = 'md', className, invalid, p
         id={f.id}
         disabled={f.disabled}
         aria-invalid={f['aria-invalid']}
+        aria-describedby={f['aria-describedby']}
+      />
+    </div>
+  )
+}
+
+export interface TimeInputProps extends MaskedFieldShellProps {
+  /** 'ЧЧ:ММ' (24 часа) или '' (не задано). */
+  value: string
+  onChange: (value: string) => void
+  /** Нижняя граница 'ЧЧ:ММ'. */
+  min?: string
+  /** Верхняя граница 'ЧЧ:ММ'. */
+  max?: string
+}
+
+/**
+ * Время «ЧЧ:ММ», 24 часа. Значение фиксируется только на полном корректном
+ * времени в пределах min/max, недописанное время откатывается при потере фокуса.
+ */
+export function TimeInput({ value, onChange, min, max, size = 'md', className, invalid, placeholder, onBlur, ...rest }: TimeInputProps) {
+  const t = useMessages()
+  const f = useFieldProps({ id: rest.id, invalid, disabled: rest.disabled, required: rest.required, 'aria-describedby': rest['aria-describedby'] })
+  const [digits, setDigits] = useState(() => timeToDigits(value))
+  const [prevValue, setPrevValue] = useState(value)
+
+  // Значение пришло снаружи - синхронизировать текст поля.
+  if (value !== prevValue) {
+    setPrevValue(value)
+    setDigits(timeToDigits(value))
+  }
+
+  // 'ЧЧ:ММ' сравниваются как строки.
+  const allowed = (v: string) => !(min && v < min) && !(max && v > max)
+
+  const onDigits = (next: string) => {
+    setDigits(next)
+    if (next.length === 0) {
+      if (value !== '') onChange('')
+      return
+    }
+    const v = timeDigitsToValue(next)
+    if (v && allowed(v) && v !== value) onChange(v)
+  }
+
+  const handleBlur = () => {
+    const v = timeDigitsToValue(digits)
+    if (digits.length > 0 && !(v && allowed(v))) setDigits(timeToDigits(value))
+    onBlur?.()
+  }
+
+  return (
+    <div className={cx('ev-input', className)} data-size={size} data-invalid={f.invalid || undefined} data-disabled={f.disabled || undefined}>
+      <MaskedDigitsInput
+        {...rest}
+        className="ev-input-el ev-num"
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder={placeholder ?? t.time.placeholder}
+        digits={digits}
+        onDigits={onDigits}
+        format={formatTimeDigits}
+        maxDigits={4}
+        onBlur={handleBlur}
+        id={f.id}
+        disabled={f.disabled}
+        required={f.required}
+        aria-invalid={f.invalid}
         aria-describedby={f['aria-describedby']}
       />
     </div>

@@ -50,18 +50,21 @@ export interface PageHeaderProps {
   meta?: ReactNode
   /** Вкладки или фильтры под заголовком. */
   children?: ReactNode
+  /** Уровень заголовка (вид тот же): 2 или 3, если h1 уже есть на странице. */
+  headingLevel?: 1 | 2 | 3
   className?: string
 }
 
 /** Шапка страницы: цепочка, заголовок с бейджами, описание, действия. */
-export function PageHeader({ title, subtitle, breadcrumbs, actions, meta, children, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, breadcrumbs, actions, meta, children, headingLevel = 1, className }: PageHeaderProps) {
+  const Heading = `h${headingLevel}` as 'h1' | 'h2' | 'h3'
   return (
     <header className={cx('ev-page-head', className)}>
       {breadcrumbs && breadcrumbs.length > 0 ? <Breadcrumbs items={breadcrumbs} /> : null}
       <div className="ev-page-head-row">
         <div className="ev-page-head-titles">
           <div className="ev-page-head-title-row">
-            <h1 className="ev-page-title">{title}</h1>
+            <Heading className="ev-page-title">{title}</Heading>
             {meta ? <div className="ev-page-meta">{meta}</div> : null}
           </div>
           {subtitle ? <p className="ev-page-subtitle">{subtitle}</p> : null}
