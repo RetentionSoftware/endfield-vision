@@ -1,0 +1,97 @@
+/*
+ * Пресеты акцента: <html data-accent="amber">. Без атрибута - indigo из tokens.css.
+ * Пресет меняет только акцентные токены; семантика (success, danger...) не зависит от акцента.
+ * Свой акцент - те же переменные в стилях приложения на :root (вне слоёв они сильнее).
+ *
+ * Контраст: --ev-accent-text к --ev-surface-1 >= 4.5:1, --ev-text-on-accent
+ * к --ev-accent-strong >= 4.5:1 в обеих темах.
+ */
+
+@layer ev.tokens {
+  /* Образцы пресетов для переключателей акцента: не зависят от текущего акцента. */
+  :root {
+    --ev-accent-swatch-indigo: #7b93ff;
+    --ev-accent-swatch-amber: #f5b731;
+    --ev-accent-swatch-emerald: #34d399;
+    --ev-accent-swatch-cyan: #38bdf8;
+    --ev-accent-swatch-rose: #fb7185;
+    --ev-accent-swatch-violet: #a78bfa;
+  }
+
+  :root[data-accent='amber'] {
+    --ev-accent-rgb: 245, 183, 49;
+    --ev-accent-text: #f7c55a;
+    --ev-accent-strong: #f5b731;
+    --ev-accent-strong-hover: #ffc443;
+    --ev-text-on-accent: #1a1300;
+  }
+
+  :root[data-accent='emerald'] {
+    --ev-accent-rgb: 52, 211, 153;
+    --ev-accent-text: #5ee0b0;
+    --ev-accent-strong: #047857;
+    --ev-accent-strong-hover: #05916a;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-accent='cyan'] {
+    --ev-accent-rgb: 56, 189, 248;
+    --ev-accent-text: #67cdfa;
+    --ev-accent-strong: #0369a1;
+    --ev-accent-strong-hover: #0377b6;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-accent='rose'] {
+    --ev-accent-rgb: 251, 113, 133;
+    --ev-accent-text: #fd8fa0;
+    --ev-accent-strong: #e11d48;
+    --ev-accent-strong-hover: #ec2f59;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-accent='violet'] {
+    --ev-accent-rgb: 167, 139, 250;
+    --ev-accent-text: #b9a2fb;
+    --ev-accent-strong: #7c3aed;
+    --ev-accent-strong-hover: #8b4cf3;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  /* --- Светлая тема --- */
+  :root[data-theme='light'][data-accent='amber'] {
+    --ev-accent-rgb: 196, 130, 0;
+    --ev-accent-text: #8a5a00;
+    --ev-accent-strong: #f0ad1c;
+    --ev-accent-strong-hover: #e09e0d;
+    --ev-text-on-accent: #1a1300;
+  }
+
+  :root[data-theme='light'][data-accent='emerald'] {
+    --ev-accent-rgb: 5, 150, 105;
+    --ev-accent-text: #047857;
+    --ev-accent-strong: #047857;
+    --ev-accent-strong-hover: #065f46;
+  }
+
+  :root[data-theme='light'][data-accent='cyan'] {
+    --ev-accent-rgb: 2, 132, 199;
+    --ev-accent-text: #0369a1;
+    --ev-accent-strong: #0369a1;
+    --ev-accent-strong-hover: #075985;
+  }
+
+  :root[data-theme='light'][data-accent='rose'] {
+    --ev-accent-rgb: 225, 29, 72;
+    --ev-accent-text: #be123c;
+    --ev-accent-strong: #e11d48;
+    --ev-accent-strong-hover: #be123c;
+  }
+
+  :root[data-theme='light'][data-accent='violet'] {
+    --ev-accent-rgb: 124, 58, 237;
+    --ev-accent-text: #6d28d9;
+    --ev-accent-strong: #7c3aed;
+    --ev-accent-strong-hover: #6d28d9;
+  }
+}

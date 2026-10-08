@@ -1,0 +1,22 @@
+{
+  "name": "endfield-vision-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Endfield Vision - design system for React / Next.js: tokens, themes, components, playground",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @endfield-vision/playground",
+    "build:lib": "npm run build -w endfield-vision",
+    "build": "npm run build:lib && npm run build -w @endfield-vision/playground",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+  }
+}

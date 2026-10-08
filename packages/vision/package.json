@@ -1,0 +1,48 @@
+{
+  "name": "endfield-vision",
+  "version": "0.1.0",
+  "description": "Endfield Vision - design system for React / Next.js: tokens, dark and light themes, accent presets, accessible components without third-party UI dependencies",
+  "keywords": ["react", "nextjs", "design-system", "ui", "components", "dark-theme", "css-variables"],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RetentionSoftware/endfield-vision.git",
+    "directory": "packages/vision"
+  },
+  "type": "module",
+  "sideEffects": ["**/*.css"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles/index.css",
+    "./tokens.css": "./dist/styles/tokens.css",
+    "./accents.css": "./dist/styles/accents.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "src", "!src/**/__tests__"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^1.53.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

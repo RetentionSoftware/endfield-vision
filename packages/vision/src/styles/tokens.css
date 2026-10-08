@@ -1,0 +1,267 @@
+/*
+ * Токены дизайн-системы Endfield Vision. Все переменные - с префиксом --ev-.
+ *
+ * Тёмная тема - базовая: значения на :root. Светлая - переопределение
+ * под :root[data-theme='light']. Компоненты используют только эти
+ * переменные; литералы цветов допустимы только в этом файле.
+ *
+ * Контраст (WCAG 2.1) посчитан для тёмной темы на --ev-surface-1:
+ * --ev-text 15.0, --ev-text-secondary 8.4, --ev-text-muted 5.6, --ev-accent 6.4,
+ * --ev-border-control 3.06 к фону поля (граница интерактивного элемента >= 3:1).
+ */
+
+@layer ev.tokens {
+  :root {
+    color-scheme: dark;
+
+    /* --- Поверхности: от самой глубокой к самой высокой --- */
+    --ev-bg: #0b0e14;
+    --ev-surface-1: #12161e; /* панели, карточки */
+    --ev-surface-2: #181d27; /* шапка таблицы, поповеры, приподнятые блоки */
+    --ev-surface-3: #1e2430; /* кнопки, чипы, активные элементы */
+    --ev-surface-input: #0e1219; /* поля ввода */
+    --ev-surface-overlay: rgba(4, 6, 10, 0.66); /* подложка модалок */
+    --ev-surface-tooltip: #2a3140;
+    --ev-surface-nested: var(--ev-surface-2); /* панель внутри панели, окна или шторки */
+
+    /* Полупрозрачные тинты: одна «высота» в обеих темах */
+    --ev-tint-1: rgba(255, 255, 255, 0.025);
+    --ev-tint-2: rgba(255, 255, 255, 0.045);
+    --ev-tint-3: rgba(255, 255, 255, 0.07);
+    --ev-tint-4: rgba(255, 255, 255, 0.1);
+    --ev-hover: var(--ev-tint-2);
+    --ev-active: var(--ev-tint-3);
+
+    /* --- Рамки --- */
+    --ev-border-soft: rgba(255, 255, 255, 0.05);
+    --ev-border: #232a35;
+    --ev-border-strong: #2f3846;
+    --ev-border-control: #56627a;
+    --ev-border-hover: #6b7790;
+
+    /* --- Текст --- */
+    --ev-text: #e7eaf0;
+    --ev-text-secondary: #a9b1bf;
+    --ev-text-muted: #8690a2;
+    --ev-text-disabled: #5c6577;
+    --ev-text-on-accent: #ffffff;
+    --ev-text-on-solid: #0b0e14;
+    /* Знак поверх произвольного цвета (образцы палитры): не зависит от темы и акцента. */
+    --ev-on-dark: #ffffff;
+    --ev-on-light: #0b0e14;
+
+    /* --- Акцент (бренд). Менять только здесь. --- */
+    --ev-accent-rgb: 123, 147, 255;
+    --ev-accent: rgb(var(--ev-accent-rgb)); /* #7b93ff: ссылки, активные элементы */
+    --ev-accent-text: #93a6ff;
+    --ev-accent-strong: #4263eb; /* заливка primary-кнопки: белый текст 4.98:1 */
+    --ev-accent-strong-hover: #4f6ff0;
+    --ev-accent-soft: rgba(var(--ev-accent-rgb), 0.14);
+    --ev-accent-softer: rgba(var(--ev-accent-rgb), 0.08);
+    --ev-accent-edge: rgba(var(--ev-accent-rgb), 0.45);
+
+    /* --- Семантика, независимая от акцента --- */
+    --ev-success-rgb: 63, 207, 142;
+    --ev-success: rgb(var(--ev-success-rgb));
+    --ev-success-strong: #12a26a;
+    --ev-success-soft: rgba(var(--ev-success-rgb), 0.13);
+    --ev-success-edge: rgba(var(--ev-success-rgb), 0.4);
+
+    --ev-warning-rgb: 242, 181, 70;
+    --ev-warning: rgb(var(--ev-warning-rgb));
+    --ev-warning-strong: #d9930d;
+    --ev-warning-soft: rgba(var(--ev-warning-rgb), 0.13);
+    --ev-warning-edge: rgba(var(--ev-warning-rgb), 0.4);
+
+    --ev-danger-rgb: 248, 113, 113;
+    --ev-danger: rgb(var(--ev-danger-rgb));
+    --ev-danger-strong: #c92a2a; /* заливка danger-кнопки: белый текст 5.46:1 */
+    --ev-danger-strong-hover: #d63333;
+    --ev-danger-soft: rgba(var(--ev-danger-rgb), 0.13);
+    --ev-danger-edge: rgba(var(--ev-danger-rgb), 0.42);
+
+    --ev-info-rgb: 79, 195, 247;
+    --ev-info: rgb(var(--ev-info-rgb));
+    --ev-info-soft: rgba(var(--ev-info-rgb), 0.13);
+    --ev-info-edge: rgba(var(--ev-info-rgb), 0.4);
+
+    --ev-violet-rgb: 177, 151, 252;
+    --ev-violet: rgb(var(--ev-violet-rgb));
+    --ev-violet-soft: rgba(var(--ev-violet-rgb), 0.13);
+    --ev-violet-edge: rgba(var(--ev-violet-rgb), 0.4);
+
+    --ev-neutral: var(--ev-text-secondary);
+    --ev-neutral-soft: var(--ev-tint-3);
+    --ev-neutral-edge: var(--ev-border-strong);
+
+    /* --- Графики (палитра проверена на CVD и контраст к --ev-surface-1) --- */
+    --ev-chart-1: #3987e5;
+    --ev-chart-2: #d95926;
+    --ev-chart-3: #199e70;
+    --ev-chart-4: #c98500;
+    --ev-chart-5: #d55181;
+    --ev-chart-6: #008300;
+    --ev-chart-7: #9085e9;
+    --ev-chart-8: #e66767;
+    --ev-chart-grid: #232a35;
+    --ev-chart-axis: #2f3846;
+    --ev-chart-crosshair: #56627a;
+
+    /* --- Геометрия --- */
+    --ev-radius-xs: 3px;
+    --ev-radius-sm: 5px;
+    --ev-radius: 7px;
+    --ev-radius-md: 9px;
+    --ev-radius-lg: 12px;
+    --ev-radius-xl: 16px;
+    --ev-radius-pill: 999px;
+
+    --ev-space-0: 2px;
+    --ev-space-1: 4px;
+    --ev-space-2: 6px;
+    --ev-space-3: 8px;
+    --ev-space-4: 10px;
+    --ev-space-5: 12px;
+    --ev-space-6: 16px;
+    --ev-space-7: 20px;
+    --ev-space-8: 24px;
+    --ev-space-9: 32px;
+    --ev-space-10: 40px;
+    --ev-space-11: 56px;
+
+    --ev-control-h-sm: 28px;
+    --ev-control-h: 34px;
+    --ev-control-h-lg: 40px;
+
+    /* --- Типографика --- */
+    --ev-font-sans: var(--font-inter, 'Inter'), system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+      sans-serif;
+    --ev-font-mono: var(--font-jetbrains-mono, 'JetBrains Mono'), ev-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono',
+      monospace;
+
+    --ev-fs-2xs: 11px;
+    --ev-fs-xs: 12px;
+    --ev-fs-sm: 13px;
+    --ev-fs-base: 14px;
+    --ev-fs-md: 15px;
+    --ev-fs-lg: 17px;
+    --ev-fs-xl: 20px;
+    --ev-fs-2xl: 24px;
+    --ev-fs-3xl: 30px;
+
+    --ev-lh-tight: 1.25;
+    --ev-lh: 1.5;
+
+    --ev-fw-regular: 400;
+    --ev-fw-medium: 500;
+    --ev-fw-semibold: 600;
+    --ev-fw-bold: 700;
+
+    --ev-tracking-caps: 0.06em;
+
+    /* --- Тени и фокус --- */
+    --ev-shadow-card: none; /* панели без рамки: в тёмной теме их отделяет поверхность */
+    --ev-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --ev-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    --ev-shadow-pop: 0 14px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--ev-border-strong);
+    --ev-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--ev-border-strong);
+    --ev-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 6px 16px -6px rgba(var(--ev-accent-rgb), 0.55);
+    --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 4px rgba(var(--ev-accent-rgb), 0.7);
+    --ev-focus-ring-inset: 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
+
+    /* --- Слои: подсказка выше выпадающих списков и меню --- */
+    --ev-z-sticky: 5;
+    --ev-z-topbar: 30;
+    --ev-z-sidebar: 40;
+    --ev-z-drawer: 200;
+    --ev-z-modal: 300;
+    --ev-z-dropdown: 1100;
+    --ev-z-toast: 1400;
+    --ev-z-tooltip: 1500;
+    --ev-z-overlay: 2000;
+
+    /* --- Движение --- */
+    --ev-dur-fast: 120ms;
+    --ev-dur: 180ms;
+    --ev-dur-slow: 280ms;
+    --ev-ease: cubic-bezier(0.2, 0, 0, 1);
+    --ev-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* --- Каркас --- */
+    --ev-topbar-h: 56px;
+    --ev-sidebar-w: 248px;
+    --ev-sidebar-w-collapsed: 64px;
+    --ev-content-max: 1440px;
+    --ev-page-gutter: var(--ev-space-8);
+  }
+
+  @media (max-width: 720px) {
+    :root {
+      --ev-page-gutter: var(--ev-space-6);
+      --ev-topbar-h: 52px;
+    }
+  }
+
+  /* Светлая тема - переопределение токенов, компоненты не меняются. */
+  :root[data-theme='light'] {
+    color-scheme: light;
+
+    --ev-bg: #f3f5f8;
+    --ev-surface-1: #ffffff;
+    --ev-surface-2: #f7f8fa;
+    --ev-surface-3: #eef1f5;
+    --ev-surface-input: #ffffff;
+    --ev-surface-overlay: rgba(20, 26, 38, 0.45);
+    --ev-surface-tooltip: #1c2230;
+    /* Вложенная панель на белом: ступень как у фона страницы, --ev-surface-2 почти не отличим от белого. */
+    --ev-surface-nested: var(--ev-bg);
+
+    --ev-tint-1: rgba(20, 30, 60, 0.025);
+    --ev-tint-2: rgba(20, 30, 60, 0.045);
+    --ev-tint-3: rgba(20, 30, 60, 0.07);
+    --ev-tint-4: rgba(20, 30, 60, 0.1);
+
+    --ev-border-soft: rgba(20, 30, 60, 0.06);
+    --ev-border: #e1e5ec;
+    --ev-border-strong: #cfd5df;
+    --ev-border-control: #8a94a6;
+    --ev-border-hover: #6b7588;
+
+    --ev-text: #161b26;
+    --ev-text-secondary: #4a5366;
+    --ev-text-muted: #5f687a;
+    --ev-text-disabled: #9aa2b1;
+    --ev-text-on-solid: #ffffff;
+
+    --ev-accent-rgb: 66, 99, 235;
+    --ev-accent-text: #3451d1;
+    --ev-accent-strong: #4263eb;
+    --ev-accent-strong-hover: #3b5bdb;
+    --ev-accent-soft: rgba(var(--ev-accent-rgb), 0.1);
+    --ev-accent-softer: rgba(var(--ev-accent-rgb), 0.06);
+
+    --ev-success-rgb: 15, 138, 85;
+    --ev-warning-rgb: 176, 108, 0;
+    --ev-danger-rgb: 201, 42, 42;
+    --ev-info-rgb: 3, 120, 170;
+    --ev-violet-rgb: 112, 72, 232;
+
+    --ev-chart-1: #2a78d6;
+    --ev-chart-2: #eb6834;
+    --ev-chart-3: #1baf7a;
+    --ev-chart-4: #eda100;
+    --ev-chart-5: #e87ba4;
+    --ev-chart-6: #008300;
+    --ev-chart-7: #4a3aa7;
+    --ev-chart-8: #e34948;
+    --ev-chart-grid: #e7eaf0;
+    --ev-chart-axis: #cfd5df;
+    --ev-chart-crosshair: #8a94a6;
+
+    --ev-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 4px rgba(16, 24, 40, 0.04);
+    --ev-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --ev-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
+    --ev-shadow-pop: 0 14px 36px rgba(16, 24, 40, 0.14), 0 0 0 1px var(--ev-border);
+    --ev-shadow-modal: 0 24px 64px rgba(16, 24, 40, 0.2), 0 0 0 1px var(--ev-border);
+  }
+}

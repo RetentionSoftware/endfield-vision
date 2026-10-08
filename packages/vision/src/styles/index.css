@@ -1,0 +1,17 @@
+/*
+ * Точка входа стилей Endfield Vision. Порядок слоёв задаёт приоритет: стили
+ * страниц (вне слоёв, например CSS Modules) всегда сильнее стилей кита.
+ */
+@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities;
+
+@import './tokens.css';
+@import './accents.css';
+@import './base.css';
+@import './components/button.css';
+@import './components/form.css';
+@import './components/select.css';
+@import './components/overlay.css';
+@import './components/display.css';
+@import './components/data.css';
+@import './components/chart.css';
+@import './shell.css';

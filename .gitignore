@@ -1,0 +1,26 @@
+# Dependencies and builds
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+coverage/
+*.tgz
+
+# Environment and secrets - never commit
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Next.js
+next-env.d.ts

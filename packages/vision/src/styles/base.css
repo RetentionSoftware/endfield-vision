@@ -1,0 +1,243 @@
+/* Сброс, типографика, скроллбары, фокус. */
+
+@layer ev.reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  figure,
+  blockquote,
+  dl,
+  dd,
+  ul,
+  ol {
+    margin: 0;
+  }
+
+  ul[role='list'],
+  ol[role='list'] {
+    list-style: none;
+    padding: 0;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+  }
+
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+}
+
+@layer ev.base {
+  html,
+  body {
+    background: var(--ev-bg);
+    color: var(--ev-text);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--ev-font-sans);
+    font-size: var(--ev-fs-base);
+    line-height: var(--ev-lh);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: var(--ev-fw-semibold);
+    line-height: var(--ev-lh-tight);
+    letter-spacing: -0.01em;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--ev-font-mono);
+    font-size: 0.92em;
+  }
+
+  ::selection {
+    background: rgba(var(--ev-accent-rgb), 0.32);
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  /* Тонкие скроллбары по всему приложению. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ev-border-strong) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--ev-border-strong);
+    border-radius: var(--ev-radius-pill);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--ev-border-control);
+    background-clip: padding-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Утилиты раскладки и текста: только то, что нужно постоянно. */
+@layer ev.utilities {
+  .ev-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .ev-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-gap, var(--ev-space-5));
+    min-width: 0;
+  }
+
+  .ev-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-gap, var(--ev-space-3));
+    min-width: 0;
+  }
+
+  .ev-row[data-nowrap] {
+    flex-wrap: nowrap;
+  }
+
+  .ev-spacer {
+    flex: 1 1 auto;
+  }
+
+  /* auto-fit: элементы делят всю ширину, пустых дорожек справа нет. */
+  .ev-grid {
+    display: grid;
+    gap: var(--ev-gap, var(--ev-space-5));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ev-grid-min, 240px)), 1fr));
+    min-width: 0;
+  }
+
+  .ev-mono {
+    font-family: var(--ev-font-mono);
+    font-size: 0.93em;
+  }
+
+  .ev-num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ev-muted {
+    color: var(--ev-text-muted);
+  }
+
+  .ev-secondary {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .ev-link {
+    color: var(--ev-accent-text);
+    text-decoration: none;
+    border-radius: var(--ev-radius-xs);
+  }
+
+  .ev-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .ev-empty-value {
+    color: var(--ev-text-disabled);
+  }
+}

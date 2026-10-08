@@ -1,0 +1,427 @@
+@layer ev.components {
+  /* --- Таблица --- */
+  .ev-table-wrap {
+    position: relative;
+    min-width: 0;
+    background: var(--ev-surface-1);
+    border-radius: var(--ev-radius-lg);
+    box-shadow: var(--ev-shadow-card);
+    overflow: hidden;
+    transition: opacity var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-table-wrap[data-fetching] .ev-table tbody,
+  .ev-table-cards[data-fetching] .ev-table-card {
+    opacity: 0.55;
+    transition: opacity var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-table-scroll {
+    overflow: auto;
+    min-width: 0;
+  }
+
+  .ev-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-table th,
+  .ev-table td {
+    padding: 0 var(--ev-space-5);
+    height: 44px;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--ev-border-soft);
+  }
+
+  .ev-table[data-dense] th,
+  .ev-table[data-dense] td {
+    height: 36px;
+    padding: 0 var(--ev-space-4);
+  }
+
+  .ev-table td[data-wrap] {
+    white-space: normal;
+    padding-top: var(--ev-space-3);
+    padding-bottom: var(--ev-space-3);
+    min-width: 200px;
+  }
+
+  .ev-table [data-align='right'] {
+    text-align: right;
+  }
+
+  .ev-table [data-align='center'] {
+    text-align: center;
+  }
+
+  .ev-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--ev-z-sticky);
+    height: 40px;
+    background: var(--ev-surface-2);
+    border-bottom: 1px solid var(--ev-border);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    letter-spacing: 0.01em;
+  }
+
+  .ev-th-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    margin: 0 -4px;
+    padding: 2px 4px;
+    border-radius: var(--ev-radius-xs);
+    color: inherit;
+    font: inherit;
+  }
+
+  [data-align='right'] > .ev-th-sort {
+    flex-direction: row-reverse;
+  }
+
+  .ev-th-sort:hover {
+    color: var(--ev-text);
+  }
+
+  .ev-th-sort[data-sorted] {
+    color: var(--ev-accent-text);
+  }
+
+  .ev-th-sort-idle {
+    opacity: 0;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-th-sort:hover .ev-th-sort-idle,
+  .ev-th-sort:focus-visible .ev-th-sort-idle {
+    opacity: 0.7;
+  }
+
+  .ev-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .ev-table tbody tr:hover td {
+    background: var(--ev-tint-1);
+  }
+
+  .ev-table tbody tr[data-clickable] {
+    cursor: pointer;
+  }
+
+  .ev-table tbody tr[data-clickable]:hover td {
+    background: var(--ev-hover);
+  }
+
+  .ev-table tbody tr[data-clickable]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .ev-table tbody tr[data-clickable]:focus-visible td {
+    background: var(--ev-accent-softer);
+    box-shadow: inset 0 1px 0 var(--ev-accent-edge), inset 0 -1px 0 var(--ev-accent-edge);
+  }
+
+  .ev-table tbody tr[data-selected] td {
+    background: var(--ev-accent-softer);
+  }
+
+  .ev-table tbody tr[data-muted] td {
+    color: var(--ev-text-muted);
+  }
+
+  .ev-table-select {
+    width: 44px;
+    padding-right: 0 !important;
+  }
+
+  .ev-table-select .ev-check {
+    vertical-align: middle;
+  }
+
+  .ev-table-select .ev-check-box {
+    margin-top: 0;
+  }
+
+  .ev-table-state-row td {
+    height: auto;
+    padding: 0;
+    white-space: normal;
+  }
+
+  .ev-table-state-row:hover td {
+    background: transparent !important;
+  }
+
+  .ev-table-foot {
+    padding: var(--ev-space-3) var(--ev-space-5);
+    border-top: 1px solid var(--ev-border);
+  }
+
+  /* Таблица внутри карточки, панели, окна или шторки - на ступень выше фона, шапка - ещё на ступень. */
+  :is(.ev-card, .ev-panel, .ev-modal, .ev-drawer) .ev-table-wrap {
+    background: var(--ev-surface-nested);
+    box-shadow: none;
+  }
+
+  :is(.ev-card, .ev-panel, .ev-modal, .ev-drawer) .ev-table thead th {
+    background: var(--ev-surface-3);
+  }
+
+  /* Во flush-карточке таблица - часть самой карточки: её поверхность, крайние колонки - по отступу карточки. */
+  .ev-card-body-flush .ev-table-wrap {
+    background: transparent;
+  }
+
+  .ev-card-body-flush .ev-table thead th {
+    background: var(--ev-surface-2);
+  }
+
+  .ev-card-body-flush .ev-table tr:not(.ev-table-state-row) > :is(th, td):first-child {
+    padding-left: var(--ev-space-6);
+  }
+
+  .ev-card-body-flush .ev-table tr:not(.ev-table-state-row) > :is(th, td):last-child {
+    padding-right: var(--ev-space-6);
+  }
+
+  .ev-card-body-flush .ev-table-wrap > .ev-table-foot {
+    padding-inline: var(--ev-space-6);
+  }
+
+  @media (max-width: 600px) {
+    .ev-card-body-flush .ev-table tr:not(.ev-table-state-row) > :is(th, td):first-child {
+      padding-left: var(--ev-space-5);
+    }
+
+    .ev-card-body-flush .ev-table tr:not(.ev-table-state-row) > :is(th, td):last-child {
+      padding-right: var(--ev-space-5);
+    }
+
+    .ev-card-body-flush .ev-table-wrap > .ev-table-foot {
+      padding-inline: var(--ev-space-5);
+    }
+  }
+
+  /* --- Карточки на узком экране --- */
+  .ev-table-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    min-width: 0;
+  }
+
+  .ev-table-cards-bar {
+    padding: 0 var(--ev-space-1);
+  }
+
+  .ev-table-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    padding: var(--ev-space-4) var(--ev-space-5);
+    background: var(--ev-surface-1);
+    border-radius: var(--ev-radius-lg);
+    box-shadow: var(--ev-shadow-card);
+    min-width: 0;
+  }
+
+  .ev-table-card[data-clickable] {
+    cursor: pointer;
+  }
+
+  /* Нажатие - тинт поверх своей поверхности: у вложенной карточки она уже --ev-surface-nested. */
+  .ev-table-card[data-clickable]:active {
+    background-image: linear-gradient(var(--ev-active), var(--ev-active));
+  }
+
+  .ev-table-card[data-selected] {
+    background: var(--ev-accent-softer);
+    box-shadow: inset 0 0 0 1px var(--ev-accent-edge);
+  }
+
+  .ev-table-card[data-muted] {
+    opacity: 0.7;
+  }
+
+  .ev-table-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-3);
+    min-width: 0;
+  }
+
+  .ev-table-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: var(--ev-fw-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .ev-table-card-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ev-space-2);
+    margin: 0;
+  }
+
+  .ev-table-card-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--ev-space-4);
+    min-width: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-table-card-field dt {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+  }
+
+  .ev-table-card-field dd {
+    margin: 0;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-table-cards .ev-table-foot {
+    padding: var(--ev-space-2) 0 0;
+    border: 0;
+    background: none;
+  }
+
+  .ev-table-state {
+    background: var(--ev-surface-1);
+    border-radius: var(--ev-radius-lg);
+    box-shadow: var(--ev-shadow-card);
+  }
+
+  /* --- Пагинация --- */
+  .ev-pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3) var(--ev-space-6);
+  }
+
+  .ev-pagination-info {
+    font-size: var(--ev-fs-sm);
+    color: var(--ev-text-muted);
+  }
+
+  .ev-pagination-size {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-pagination-pages {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+  }
+
+  .ev-pagination-num {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 var(--ev-space-2);
+    border-radius: var(--ev-radius-sm);
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-pagination-num:hover:not(:disabled) {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-pagination-num[data-active] {
+    background: var(--ev-accent-soft);
+    color: var(--ev-accent-text);
+    font-weight: var(--ev-fw-semibold);
+  }
+
+  .ev-pagination-gap {
+    min-width: 20px;
+    color: var(--ev-text-disabled);
+    text-align: center;
+  }
+
+  .ev-pagination-current {
+    min-width: 64px;
+    font-size: var(--ev-fs-sm);
+    text-align: center;
+    color: var(--ev-text-secondary);
+  }
+
+  /* --- Фильтры --- */
+  .ev-filterbar {
+    margin-bottom: var(--ev-space-5);
+  }
+
+  .ev-filterbar-main {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-filterbar-search {
+    flex: 1 1 260px;
+    max-width: 360px;
+  }
+
+  .ev-filterbar-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-filterbar-filters > .ev-select {
+    width: auto;
+    min-width: 180px;
+  }
+
+  .ev-filterbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3);
+    margin-left: auto;
+  }
+
+  @media (max-width: 720px) {
+    .ev-filterbar-search {
+      max-width: none;
+      flex-basis: 100%;
+    }
+
+    .ev-filterbar-filters {
+      flex-basis: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .ev-filterbar-filters > * {
+      width: 100%;
+    }
+
+    .ev-filterbar-actions {
+      margin-left: 0;
+    }
+  }
+}
