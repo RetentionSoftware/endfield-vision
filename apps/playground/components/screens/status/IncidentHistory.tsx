@@ -65,7 +65,12 @@ function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusI
   const st = INCIDENT_STATE[inc.state]
   const bodyId = `incident-${inc.id}`
   return (
-    <li className={s.incident} data-open={inc.state !== 'resolved' || undefined}>
+    <li
+      className={`${s.incident} ev-corners`}
+      data-tone={sev.tone}
+      // Идущий инцидент - уголки в тоне уровня, раскрытый - рамка видоискателя, решённый - без метки.
+      data-corners={inc.state === 'resolved' ? 'off' : expanded ? 'frame' : 'diagonal'}
+    >
       <div className={s.incidentHead}>
         <div className={s.incidentTitles}>
           <div className={s.incidentTitleRow}>

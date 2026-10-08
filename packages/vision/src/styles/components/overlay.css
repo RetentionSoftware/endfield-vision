@@ -422,11 +422,14 @@
     padding: var(--ev-space-4) var(--ev-space-4) var(--ev-space-4) var(--ev-space-5);
     background: var(--ev-surface-2);
     border-radius: var(--ev-radius-md);
-    box-shadow:
-      var(--ev-shadow-pop),
-      inset 3px 0 0 var(--ev-toast-tone);
+    box-shadow: var(--ev-shadow-pop);
     pointer-events: auto;
     animation: ev-toast-in var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  /* Уголки видоискателя - в тоне уведомления. */
+  .ev-toast.ev-corners {
+    --ev-corner-color: var(--ev-toast-tone);
   }
 
   .ev-toast[data-tone='success'] {

@@ -188,6 +188,43 @@ function ShellMiniature() {
   )
 }
 
+const CORNERS_CODE = `<div className="ev-corners" data-tone="warning">...</div>              // уголок сверху слева
+<div className="ev-corners" data-corners="diagonal">...</div>         // два уголка по диагонали
+<div className="ev-corners" data-corners="frame" data-tone="danger">  // рамка видоискателя
+<div className="ev-corners" data-corners="off">...</div>              // метка скрыта
+
+/* Размер, толщина и отступ - токены; цвет - тон элемента или свой: */
+.my-card { --ev-corner-size: 14px; --ev-corner-color: var(--ev-violet); }`
+
+/** Уголки видоискателя: фирменный акцент вместо цветной полосы по краю панели. */
+function CornersCard() {
+  const variants = [
+    { corners: undefined, tone: 'warning', title: 'corner', text: 'Тихая метка тона: черновик, внимание.' },
+    { corners: 'diagonal', tone: 'accent', title: 'diagonal', text: 'Основной вариант: уведомления, баннеры, активный пункт меню.' },
+    { corners: 'frame', tone: 'danger', title: 'frame', text: 'Выбранный или раскрытый элемент: идущий инцидент, фокус внимания.' },
+  ] as const
+  return (
+    <Card
+      title="Уголки видоискателя (ev-corners)"
+      description="Фирменный акцент Endfield Vision вместо цветной полосы по краю панели. Острые угловые скобки внутри панели не повторяют её скругление - метка читается как элемент интерфейса, а не как кромка. Используются в Banner, Toast, активном пункте Sidebar и истории инцидентов."
+    >
+      <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+        <div className="ev-grid" style={{ '--ev-grid-min': '200px' } as CSSProperties}>
+          {variants.map((v) => (
+            <Panel key={v.title} className="ev-corners" data-corners={v.corners} data-tone={v.tone}>
+              <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-1)', padding: 'var(--ev-space-2)' } as CSSProperties}>
+                <code>{v.title}</code>
+                <span className={s.text}>{v.text}</span>
+              </div>
+            </Panel>
+          ))}
+        </div>
+        <CodeBlock label="ev-corners" code={CORNERS_CODE} />
+      </div>
+    </Card>
+  )
+}
+
 export function LayoutSection() {
   const [tab, setTab] = useState('summary')
   return (
@@ -206,6 +243,8 @@ export function LayoutSection() {
           <CodeBlock label="ConsoleShell.tsx" code={SHELL_CODE} />
         </div>
       </Card>
+
+      <CornersCard />
 
       <Card title="PageHeader и Breadcrumbs" description="Шапка страницы: цепочка, заголовок с бейджами статуса, описание, действия справа, вкладки или фильтры снизу. headingLevel - уровень заголовка, если h1 на странице уже есть (как здесь: пример - h2). Breadcrumbs - отдельно, для вложенных экранов.">
         <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>

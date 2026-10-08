@@ -218,11 +218,6 @@
   padding: var(--ev-space-4) var(--ev-space-5);
   border-radius: var(--ev-radius-md);
   background: var(--ev-surface-nested);
-  box-shadow: inset 3px 0 0 var(--ev-border-soft);
-}
-
-.incident[data-open] {
-  box-shadow: inset 3px 0 0 var(--ev-danger);
 }
 
 .incidentHead {

@@ -104,7 +104,7 @@ export function Banner({
   }
 
   return (
-    <div className={cx('ev-banner', className)} data-tone={tone} data-sticky={sticky || undefined} role={tone === 'danger' ? 'alert' : 'status'}>
+    <div className={cx('ev-banner ev-corners', className)} data-corners="diagonal" data-tone={tone} data-sticky={sticky || undefined} role={tone === 'danger' ? 'alert' : 'status'}>
       {icon !== false ? (
         <span className="ev-banner-icon" aria-hidden="true">
           {icon ?? ICONS[tone]}

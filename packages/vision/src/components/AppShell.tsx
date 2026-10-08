@@ -151,7 +151,8 @@ export function SidebarItem({ href, label, icon, active = false, badge, onClick 
   const link = (
     <UiLink
       href={href}
-      className="ev-sidebar-item"
+      className="ev-sidebar-item ev-corners"
+      data-corners={active ? 'diagonal' : 'off'}
       data-active={active || undefined}
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}

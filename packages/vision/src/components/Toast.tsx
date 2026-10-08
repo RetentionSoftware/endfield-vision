@@ -142,7 +142,7 @@ function ToastCard({ item }: { item: ToastItem }) {
   }, [item.createdAt])
 
   return (
-    <div className="ev-toast" data-tone={item.tone} role={item.tone === 'error' ? 'alert' : 'status'} onMouseEnter={stop} onMouseLeave={start}>
+    <div className="ev-toast ev-corners" data-corners="diagonal" data-tone={item.tone} role={item.tone === 'error' ? 'alert' : 'status'} onMouseEnter={stop} onMouseLeave={start}>
       <span className="ev-toast-icon" aria-hidden="true">
         {ICONS[item.tone]}
       </span>

@@ -170,6 +170,11 @@
     --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 4px rgba(var(--ev-accent-rgb), 0.7);
     --ev-focus-ring-inset: 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
 
+    /* --- Уголки видоискателя (ev-corners): фирменный акцент вместо полосы по краю --- */
+    --ev-corner-size: 10px;
+    --ev-corner-width: 2px;
+    --ev-corner-inset: 4px;
+
     /* --- Слои: подсказка выше выпадающих списков и меню --- */
     --ev-z-sticky: 5;
     --ev-z-topbar: 30;

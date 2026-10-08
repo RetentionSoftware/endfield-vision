@@ -1,5 +1,5 @@
 @layer ev.components {
-  /* --- Баннер: тонированная полоса с кромкой тона, сильнее Callout --- */
+  /* --- Баннер: тонированная плашка с уголками видоискателя в тоне, сильнее Callout --- */
   .ev-banner {
     display: flex;
     align-items: flex-start;
@@ -10,7 +10,6 @@
     border-radius: var(--ev-radius-md);
     /* Мягкий тон поверх непрозрачного фона: прилипший баннер не просвечивает. */
     background: linear-gradient(var(--ev-tone-soft), var(--ev-tone-soft)), var(--ev-banner-surface, var(--ev-bg));
-    box-shadow: inset 3px 0 0 var(--ev-tone);
     color: var(--ev-text);
   }
 
@@ -175,7 +174,6 @@
 
   .ev-codeblock-line[data-highlighted] {
     background: var(--ev-accent-soft);
-    box-shadow: inset 2px 0 0 var(--ev-accent);
   }
 
   .ev-codeblock-ln {
@@ -194,8 +192,8 @@
 
   .ev-codeblock-line[data-highlighted] .ev-codeblock-ln {
     background: linear-gradient(var(--ev-accent-soft), var(--ev-accent-soft)), var(--ev-code-bg);
-    box-shadow: inset 2px 0 0 var(--ev-accent);
-    color: var(--ev-text-secondary);
+    color: var(--ev-accent-text);
+    font-weight: var(--ev-fw-semibold);
   }
 
   .ev-codeblock-text {

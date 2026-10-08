@@ -212,15 +212,11 @@
     color: var(--ev-text);
   }
 
-  .ev-sidebar-item[data-active]::before {
-    content: '';
-    position: absolute;
-    left: -12px;
-    top: 8px;
-    bottom: 8px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--ev-accent);
+  /* Активный пункт - уголки видоискателя (ev-corners), меньше и ближе к краю. */
+  .ev-sidebar-item.ev-corners {
+    --ev-corner-size: 6px;
+    --ev-corner-inset: 3px;
+    --ev-corner-color: var(--ev-accent);
   }
 
   .ev-sidebar-item:focus-visible {
@@ -267,10 +263,6 @@
   .ev-shell[data-collapsed] .ev-sidebar-item {
     justify-content: center;
     padding: 0;
-  }
-
-  .ev-shell[data-collapsed] .ev-sidebar-item[data-active]::before {
-    left: -8px;
   }
 
   .ev-sidebar-footer {

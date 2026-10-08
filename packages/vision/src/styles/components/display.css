@@ -1395,3 +1395,58 @@
     opacity: 0.8;
   }
 }
+
+@layer ev.components {
+  /*
+   * Уголки видоискателя - фирменный акцент Endfield Vision. Вместо цветной
+   * полосы по краю (она повторяет скругление панели) - острые угловые скобки
+   * внутри панели: метка тона, выбранный или открытый элемент.
+   *   class="ev-corners"                         - уголок сверху слева
+   *   class="ev-corners" data-corners="diagonal" - сверху слева и снизу справа
+   *   class="ev-corners" data-corners="frame"    - все четыре: рамка видоискателя
+   * Цвет - тон элемента (data-tone) или акцент; --ev-corner-color переопределяет.
+   */
+  .ev-corners {
+    --ev-corner-color: var(--ev-tone, var(--ev-accent));
+    position: relative;
+  }
+
+  .ev-corners::before {
+    --ev-c: linear-gradient(var(--ev-corner-color) 0 0);
+    --ev-h: var(--ev-corner-size) var(--ev-corner-width);
+    --ev-v: var(--ev-corner-width) var(--ev-corner-size);
+    content: '';
+    position: absolute;
+    inset: var(--ev-corner-inset);
+    background:
+      var(--ev-c) left top / var(--ev-h) no-repeat,
+      var(--ev-c) left top / var(--ev-v) no-repeat;
+    pointer-events: none;
+    transition: opacity var(--ev-dur) var(--ev-ease);
+  }
+
+  .ev-corners[data-corners='diagonal']::before {
+    background:
+      var(--ev-c) left top / var(--ev-h) no-repeat,
+      var(--ev-c) left top / var(--ev-v) no-repeat,
+      var(--ev-c) right bottom / var(--ev-h) no-repeat,
+      var(--ev-c) right bottom / var(--ev-v) no-repeat;
+  }
+
+  .ev-corners[data-corners='frame']::before {
+    background:
+      var(--ev-c) left top / var(--ev-h) no-repeat,
+      var(--ev-c) left top / var(--ev-v) no-repeat,
+      var(--ev-c) right top / var(--ev-h) no-repeat,
+      var(--ev-c) right top / var(--ev-v) no-repeat,
+      var(--ev-c) left bottom / var(--ev-h) no-repeat,
+      var(--ev-c) left bottom / var(--ev-v) no-repeat,
+      var(--ev-c) right bottom / var(--ev-h) no-repeat,
+      var(--ev-c) right bottom / var(--ev-v) no-repeat;
+  }
+
+  /* Уголки без тона на элементе: data-corners="off" скрывает (например, закрытая карточка). */
+  .ev-corners[data-corners='off']::before {
+    opacity: 0;
+  }
+}

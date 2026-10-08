@@ -32,7 +32,8 @@ const codeText = (html: string) =>
 describe('Banner', () => {
   it('роль status, тон и иконка по умолчанию', () => {
     const out = ru(<Banner title="Плановые работы">Склад Застава недоступен с 02:00 до 04:00.</Banner>)
-    expect(out).toContain('class="ev-banner"')
+    expect(out).toContain('class="ev-banner ev-corners"')
+    expect(out).toContain('data-corners="diagonal"')
     expect(out).toContain('data-tone="info"')
     expect(out).toContain('role="status"')
     expect(out).toContain('class="ev-banner-icon"')
