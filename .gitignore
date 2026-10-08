@@ -25,6 +25,5 @@ Thumbs.db
 # Next.js
 next-env.d.ts
 
-# Claude Code local state
-.claude/*.lock
-.claude/settings.local.json
+# Local AI tooling state
+.claude/
