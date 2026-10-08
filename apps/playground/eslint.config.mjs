@@ -3,7 +3,7 @@ import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTs from 'eslint-config-next/typescript'
 
 /*
- * Правила плейграунда: рекомендации Next + конвенции проекта (CLAUDE.md):
+ * Правила плейграунда: рекомендации Next + конвенции проекта (AGENTS.md):
  * никакого нативного <select> и атрибута title= на DOM-элементах
  * (есть Select и Tooltip), никакого длинного тире в текстах.
  * Правила действуют на исходники (ts/tsx), не на этот файл.

@@ -11,7 +11,7 @@
     "dark-theme",
     "css-variables"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RetentionSoftware/endfield-vision.git",
@@ -34,7 +34,8 @@
   "files": [
     "dist",
     "src",
-    "!src/**/__tests__"
+    "!src/**/__tests__",
+    "LICENSE"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",

@@ -149,3 +149,7 @@ import { LocaleProvider } from 'endfield-vision'
 1. **Токены** - переопределите `--ev-*` в своих стилях: цвета, радиусы, плотность (`--ev-control-h`), шрифты.
 2. **Стили компонентов** - классы `ev-*` и data-атрибуты (`data-variant`, `data-size`, `data-tone`) стабильны; ваши правила вне слоёв перекрывают библиотеку.
 3. **Код** - скопируйте нужный компонент из `node_modules/endfield-vision/src/components` в проект и правьте как свой.
+
+## Лицензия
+
+[MIT](LICENSE)

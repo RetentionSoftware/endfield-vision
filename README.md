@@ -37,4 +37,8 @@ import 'endfield-vision/styles.css'
 import { Button, DataTable, ThemeScript, useModals, toast } from 'endfield-vision'
 ```
 
-Подробности (провайдеры, тема, акценты, слои, токены, список компонентов) - в [README пакета](packages/vision/README.md). Конвенции разработки - в [CLAUDE.md](CLAUDE.md).
+Подробности (провайдеры, тема, акценты, слои, токены, список компонентов) - в [README пакета](packages/vision/README.md). Конвенции разработки (и для ИИ-агентов) - в [AGENTS.md](AGENTS.md).
+
+## Лицензия
+
+[MIT](LICENSE)
