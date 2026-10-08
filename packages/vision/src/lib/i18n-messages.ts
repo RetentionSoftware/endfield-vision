@@ -5,6 +5,8 @@
  * переопределить отдельные строки (messages={{ table: { empty: '...' } }}).
  */
 
+import type { PhoneCountry } from './masks'
+
 export type Locale = 'ru' | 'en'
 
 export interface Messages {
@@ -102,7 +104,8 @@ export interface Messages {
   phone: {
     countryCode: string
     countryCodeValue: (dial: string) => string
-    countries: { RU: string; UZ: string; TJ: string }
+    /** Названия стран в списке кодов телефона. */
+    countries: Record<PhoneCountry, string>
   }
   modal: { actionFailed: string }
   select: {
@@ -258,7 +261,30 @@ export const ru: Messages = {
   phone: {
     countryCode: 'Код страны',
     countryCodeValue: (dial) => `Код страны: +${dial}`,
-    countries: { RU: 'Россия', UZ: 'Узбекистан', TJ: 'Таджикистан' },
+    countries: {
+      RU: 'Россия',
+      KZ: 'Казахстан',
+      BY: 'Беларусь',
+      UA: 'Украина',
+      UZ: 'Узбекистан',
+      TJ: 'Таджикистан',
+      KG: 'Киргизия',
+      AM: 'Армения',
+      AZ: 'Азербайджан',
+      GE: 'Грузия',
+      MD: 'Молдова',
+      TM: 'Туркменистан',
+      TR: 'Турция',
+      US: 'США и Канада',
+      GB: 'Великобритания',
+      FR: 'Франция',
+      ES: 'Испания',
+      PL: 'Польша',
+      IL: 'Израиль',
+      AE: 'ОАЭ',
+      IN: 'Индия',
+      CN: 'Китай',
+    },
   },
   modal: { actionFailed: 'Не удалось выполнить действие' },
   select: {
@@ -403,7 +429,30 @@ export const en: Messages = {
   phone: {
     countryCode: 'Country code',
     countryCodeValue: (dial) => `Country code: +${dial}`,
-    countries: { RU: 'Russia', UZ: 'Uzbekistan', TJ: 'Tajikistan' },
+    countries: {
+      RU: 'Russia',
+      KZ: 'Kazakhstan',
+      BY: 'Belarus',
+      UA: 'Ukraine',
+      UZ: 'Uzbekistan',
+      TJ: 'Tajikistan',
+      KG: 'Kyrgyzstan',
+      AM: 'Armenia',
+      AZ: 'Azerbaijan',
+      GE: 'Georgia',
+      MD: 'Moldova',
+      TM: 'Turkmenistan',
+      TR: 'Türkiye',
+      US: 'United States and Canada',
+      GB: 'United Kingdom',
+      FR: 'France',
+      ES: 'Spain',
+      PL: 'Poland',
+      IL: 'Israel',
+      AE: 'United Arab Emirates',
+      IN: 'India',
+      CN: 'China',
+    },
   },
   modal: { actionFailed: 'The action failed' },
   select: {

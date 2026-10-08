@@ -53,6 +53,8 @@ export {
   joinPhone,
   normalizePlate,
   PHONE_COUNTRIES,
+  PHONE_COUNTRY_CODES,
+  formatByMask,
   phoneFieldValue,
   PLATE_RE,
   splitPhone,
@@ -62,6 +64,7 @@ export {
   timeDigitsToValue,
   timeToDigits,
   type PhoneCountry,
+  type PhoneCountryInfo,
 } from './lib/masks'
 
 export { Button, IconButton, LinkButton, type ButtonProps, type ButtonSize, type ButtonVariant, type IconButtonProps, type LinkButtonProps } from './components/Button'

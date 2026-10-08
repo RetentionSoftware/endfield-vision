@@ -33,8 +33,8 @@ const COLOR_GROUPS: Array<{ title: string; description: string; tokens: string[]
   },
   {
     title: 'Текст',
-    description: 'Основной, вторичный, приглушённый и недоступный. Знаки на заливке - --ev-text-on-accent и --ev-text-on-solid.',
-    tokens: ['--ev-text', '--ev-text-secondary', '--ev-text-muted', '--ev-text-disabled', '--ev-text-on-accent', '--ev-text-on-solid'],
+    description: 'Основной, вторичный, приглушённый и недоступный. Знаки на заливке - --ev-text-on-accent (акцент), --ev-text-on-danger (danger) и --ev-text-on-solid.',
+    tokens: ['--ev-text', '--ev-text-secondary', '--ev-text-muted', '--ev-text-disabled', '--ev-text-on-accent', '--ev-text-on-danger', '--ev-text-on-solid'],
   },
   {
     title: 'Акцент',

@@ -121,7 +121,7 @@
   .ev-btn[data-variant='danger'] {
     background: var(--ev-danger-strong);
     border-color: transparent;
-    color: var(--ev-text-on-accent);
+    color: var(--ev-text-on-danger);
   }
 
   .ev-btn[data-variant='danger']:hover {

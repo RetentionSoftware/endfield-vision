@@ -1,57 +1,140 @@
 /**
  * Маски и нормализация значений, которые пользователи вводят руками.
- * Телефон РФ, Узбекистана и Таджикистана в E.164,
+ * Телефон в E.164 с маской страны (22 страны, общий код +7/+1 делится по первым цифрам),
  * СНИЛС - 11 цифр, госномер - кириллица в верхнем регистре без пробелов.
  */
 
-export type PhoneCountry = 'RU' | 'UZ' | 'TJ'
+/** Страны поля телефона. Порядок - порядок в списке выбора кода. */
+export const PHONE_COUNTRY_CODES = [
+  'RU',
+  'KZ',
+  'BY',
+  'UA',
+  'UZ',
+  'TJ',
+  'KG',
+  'AM',
+  'AZ',
+  'GE',
+  'MD',
+  'TM',
+  'TR',
+  'US',
+  'GB',
+  'FR',
+  'ES',
+  'PL',
+  'IL',
+  'AE',
+  'IN',
+  'CN',
+] as const
+
+export type PhoneCountry = (typeof PHONE_COUNTRY_CODES)[number]
 
 export interface PhoneCountryInfo {
   code: PhoneCountry
   /** Код страны без «+». */
   dial: string
-  /** Длина национальной части. */
+  /** Маска национальной части: «#» - цифра, остальное - разделители. */
+  mask: string
+  /** Длина национальной части (число «#» в маске). */
   length: number
+  /**
+   * Первые цифры национального номера - для стран с общим кодом (+7: Россия
+   * и Казахстан). Страна без префиксов забирает остальные номера этого кода.
+   */
+  prefixes?: readonly string[]
+  /** Название по-английски; в интерфейсе - из словаря (phone.countries). */
   label: string
+  /** Пример номера в маске - плейсхолдер поля. */
   placeholder: string
 }
 
-export const PHONE_COUNTRIES: Record<PhoneCountry, PhoneCountryInfo> = {
-  RU: { code: 'RU', dial: '7', length: 10, label: 'Россия', placeholder: '(900) 123-45-67' },
-  UZ: { code: 'UZ', dial: '998', length: 9, label: 'Узбекистан', placeholder: '(90) 123-45-67' },
-  TJ: { code: 'TJ', dial: '992', length: 9, label: 'Таджикистан', placeholder: '(90) 123-45-67' },
+function country(code: PhoneCountry, dial: string, mask: string, example: string, label: string, prefixes?: readonly string[]): PhoneCountryInfo {
+  return { code, dial, mask, length: mask.split('#').length - 1, prefixes, label, placeholder: formatByMask(mask, example) }
 }
 
-/** Национальная часть с маской по мере ввода. */
-export function formatPhoneNational(country: PhoneCountry, digits: string): string {
+/**
+ * Цифры по маске по мере ввода: разделитель появляется перед следующей
+ * цифрой, закрывающая скобка - сразу после заполненной группы:
+ * «9» -> «(9», «900» -> «(900)», «9001» -> «(900) 1».
+ */
+export function formatByMask(mask: string, digits: string): string {
   if (!digits) return ''
-  if (country === 'RU') {
-    // (XXX) XXX-XX-XX
-    let out = `(${digits.slice(0, 3)}`
-    if (digits.length >= 3) out += ')'
-    if (digits.length > 3) out += ` ${digits.slice(3, 6)}`
-    if (digits.length > 6) out += `-${digits.slice(6, 8)}`
-    if (digits.length > 8) out += `-${digits.slice(8, 10)}`
-    return out
+  let out = ''
+  let pending = ''
+  let i = 0
+  for (let m = 0; m < mask.length; m++) {
+    const ch = mask[m]!
+    if (ch === '#') {
+      if (i >= digits.length) break
+      out += pending + digits[i]
+      pending = ''
+      i += 1
+    } else if (ch === ')' && mask[m - 1] === '#' && i > 0) {
+      out += pending + ch
+      pending = ''
+    } else {
+      pending += ch
+    }
   }
-  // (XX) XXX-XX-XX
-  let out = `(${digits.slice(0, 2)}`
-  if (digits.length >= 2) out += ')'
-  if (digits.length > 2) out += ` ${digits.slice(2, 5)}`
-  if (digits.length > 5) out += `-${digits.slice(5, 7)}`
-  if (digits.length > 7) out += `-${digits.slice(7, 9)}`
   return out
 }
 
-/** E.164 -> страна и национальная часть. Неизвестный код - РФ с пустой частью. */
-export function splitPhone(e164: string | null | undefined): { country: PhoneCountry; national: string } {
+export const PHONE_COUNTRIES: Record<PhoneCountry, PhoneCountryInfo> = {
+  RU: country('RU', '7', '(###) ###-##-##', '9001234567', 'Russia'),
+  KZ: country('KZ', '7', '(###) ###-##-##', '7011234567', 'Kazakhstan', ['6', '7']),
+  BY: country('BY', '375', '(##) ###-##-##', '291234567', 'Belarus'),
+  UA: country('UA', '380', '(##) ###-##-##', '501234567', 'Ukraine'),
+  UZ: country('UZ', '998', '(##) ###-##-##', '901234567', 'Uzbekistan'),
+  TJ: country('TJ', '992', '(##) ###-##-##', '901234567', 'Tajikistan'),
+  KG: country('KG', '996', '(###) ###-###', '555123456', 'Kyrgyzstan'),
+  AM: country('AM', '374', '(##) ###-###', '77123456', 'Armenia'),
+  AZ: country('AZ', '994', '(##) ###-##-##', '501234567', 'Azerbaijan'),
+  GE: country('GE', '995', '(###) ##-##-##', '555123456', 'Georgia'),
+  MD: country('MD', '373', '### ## ###', '69123456', 'Moldova'),
+  TM: country('TM', '993', '## ##-##-##', '65123456', 'Turkmenistan'),
+  TR: country('TR', '90', '(###) ###-##-##', '5321234567', 'Turkey'),
+  US: country('US', '1', '(###) ###-####', '2015550123', 'United States and Canada'),
+  GB: country('GB', '44', '#### ######', '7911123456', 'United Kingdom'),
+  FR: country('FR', '33', '# ## ## ## ##', '612345678', 'France'),
+  ES: country('ES', '34', '### ## ## ##', '612345678', 'Spain'),
+  PL: country('PL', '48', '### ### ###', '512345678', 'Poland'),
+  IL: country('IL', '972', '##-###-####', '501234567', 'Israel'),
+  AE: country('AE', '971', '## ### ####', '501234567', 'United Arab Emirates'),
+  IN: country('IN', '91', '##### #####', '9812345678', 'India'),
+  CN: country('CN', '86', '### #### ####', '13123456789', 'China'),
+}
+
+/** Национальная часть с маской страны по мере ввода. */
+export function formatPhoneNational(country: PhoneCountry, digits: string): string {
+  return formatByMask(PHONE_COUNTRIES[country].mask, digits)
+}
+
+/** Страны с самым длинным кодом - первыми: «998» проверяется раньше «9...». */
+const BY_DIAL_DESC = [...PHONE_COUNTRY_CODES].sort((a, b) => PHONE_COUNTRIES[b].dial.length - PHONE_COUNTRIES[a].dial.length)
+
+/** Страна по цифрам номера с кодом: самый длинный подходящий код, затем префиксы общего кода. */
+function detectCountry(digits: string, allowed: readonly PhoneCountry[] = PHONE_COUNTRY_CODES): PhoneCountry | null {
+  const dial = BY_DIAL_DESC.find((c) => digits.startsWith(PHONE_COUNTRIES[c].dial))
+  if (!dial) return null
+  const code = PHONE_COUNTRIES[dial].dial
+  const national = digits.slice(code.length)
+  const sameDial = PHONE_COUNTRY_CODES.filter((c) => PHONE_COUNTRIES[c].dial === code && allowed.includes(c))
+  const byPrefix = sameDial.find((c) => PHONE_COUNTRIES[c].prefixes?.some((p) => national.startsWith(p)))
+  return byPrefix ?? sameDial.find((c) => !PHONE_COUNTRIES[c].prefixes) ?? sameDial[0] ?? null
+}
+
+/** E.164 -> страна и национальная часть. Неизвестный код - страна по умолчанию с пустой частью. */
+export function splitPhone(e164: string | null | undefined, fallback: PhoneCountry = 'RU'): { country: PhoneCountry; national: string } {
   const d = (e164 ?? '').replace(/\D/g, '')
-  if (d.startsWith('998')) return { country: 'UZ', national: d.slice(3, 12) }
-  if (d.startsWith('992')) return { country: 'TJ', national: d.slice(3, 12) }
-  if (d.startsWith('7')) return { country: 'RU', national: d.slice(1, 11) }
-  // Номер, сохранённый до E.164 («8 900 123-45-67»), - тоже РФ.
-  if (d.length === 11 && d.startsWith('8')) return { country: 'RU', national: d.slice(1) }
-  return { country: 'RU', national: '' }
+  // Номер, сохранённый до E.164 («8 900 123-45-67»), - РФ (или Казахстан по префиксу).
+  const digits = d.length === 11 && d.startsWith('8') ? `7${d.slice(1)}` : d
+  const found = digits ? detectCountry(digits) : null
+  if (!found) return { country: fallback, national: '' }
+  const info = PHONE_COUNTRIES[found]
+  return { country: found, national: digits.slice(info.dial.length, info.dial.length + info.length) }
 }
 
 /** Собрать E.164; неполный номер - пустая строка. */
@@ -70,20 +153,32 @@ export function phoneFieldValue(country: PhoneCountry, national: string): string
   return national ? `+${PHONE_COUNTRIES[country].dial}${national}` : ''
 }
 
-/** Полный номер одной из стран поля в E.164. */
-export function isCompletePhone(value: string | null | undefined): boolean {
-  return Boolean(value) && /^\+(?:7\d{10}|998\d{9}|992\d{9})$/.test(value as string)
+/** Полный номер в E.164 одной из стран (по умолчанию - любой из списка). */
+export function isCompletePhone(value: string | null | undefined, countries: readonly PhoneCountry[] = PHONE_COUNTRY_CODES): boolean {
+  if (!value || !/^\+\d+$/.test(value)) return false
+  const digits = value.slice(1)
+  const found = detectCountry(digits, countries)
+  if (!found) return false
+  const info = PHONE_COUNTRIES[found]
+  return digits.length === info.dial.length + info.length
 }
 
 /**
  * Вставка полного номера в поле национальной части: распознаём код страны.
  * Возвращает страну, если её удалось определить, и цифры национальной части.
  */
-export function sanitizePhonePaste(raw: string, current: PhoneCountry): { country: PhoneCountry; national: string } {
-  const d = raw.replace(/\D/g, '')
-  if (d.length === 12 && d.startsWith('998')) return { country: 'UZ', national: d.slice(3) }
-  if (d.length === 12 && d.startsWith('992')) return { country: 'TJ', national: d.slice(3) }
-  if (d.length === 11 && (d.startsWith('7') || d.startsWith('8'))) return { country: 'RU', national: d.slice(1) }
+export function sanitizePhonePaste(
+  raw: string,
+  current: PhoneCountry,
+  allowed: readonly PhoneCountry[] = PHONE_COUNTRY_CODES,
+): { country: PhoneCountry; national: string } {
+  let d = raw.replace(/\D/g, '')
+  if (d.length === 11 && d.startsWith('8')) d = `7${d.slice(1)}`
+  const found = detectCountry(d, allowed)
+  if (found) {
+    const info = PHONE_COUNTRIES[found]
+    if (d.length === info.dial.length + info.length) return { country: found, national: d.slice(info.dial.length) }
+  }
   return { country: current, national: d.slice(0, PHONE_COUNTRIES[current].length) }
 }
 

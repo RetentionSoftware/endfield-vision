@@ -113,7 +113,8 @@
 
   .ev-select-clear {
     position: absolute;
-    right: 30px;
+    /* правый отступ триггера + стрелка + зазор */
+    right: calc(var(--ev-space-3) + 21px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -128,8 +129,9 @@
     color: var(--ev-text);
   }
 
-  .ev-select:has(.ev-select-clear) .ev-select-trigger {
-    padding-right: 56px;
+  /* Место под крестик резервирует значение, а не триггер: стрелка остаётся у правого края. */
+  .ev-select:has(.ev-select-clear) .ev-select-value {
+    margin-right: 26px;
   }
 
   /* --- Поповер списка --- */

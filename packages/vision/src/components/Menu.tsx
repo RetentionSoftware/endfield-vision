@@ -47,6 +47,8 @@ export interface MenuProps {
   label?: string
   className?: string
   minWidth?: number
+  /** Предел высоты списка (длинные меню прокручиваются). По умолчанию - высота экрана. */
+  maxHeight?: number
 }
 
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
@@ -88,7 +90,7 @@ export function findTypeaheadMatch(labels: Array<string | null>, candidates: num
 }
 
 /** Меню действий (role="menu"): стрелки, Home/End, поиск по первым буквам, Enter, Escape с возвратом фокуса. */
-export function Menu({ trigger, items, placement = 'bottom-end', label, className, minWidth = 200 }: MenuProps) {
+export function Menu({ trigger, items, placement = 'bottom-end', label, className, minWidth = 200, maxHeight }: MenuProps) {
   const id = useId()
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -220,7 +222,7 @@ export function Menu({ trigger, items, placement = 'bottom-end', label, classNam
             className={cx('ev-menu', className)}
             data-ev-layer=""
             data-side={side}
-            style={{ ...style, minWidth }}
+            style={{ ...style, minWidth, maxHeight }}
             onKeyDown={onMenuKey}
           >
             {items.map((it, i) => {

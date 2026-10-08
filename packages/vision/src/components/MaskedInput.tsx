@@ -12,6 +12,7 @@ import {
   formatTimeDigits,
   normalizePlate,
   PHONE_COUNTRIES,
+  PHONE_COUNTRY_CODES,
   phoneFieldValue,
   sanitizePhonePaste,
   splitPhone,
@@ -184,20 +185,34 @@ export interface PhoneInputProps extends MaskedFieldShellProps {
    */
   value: string
   onChange: (e164: string) => void
-  /** Разрешённые страны; по умолчанию РФ, Узбекистан, Таджикистан. */
-  countries?: PhoneCountry[]
+  /** Разрешённые страны в порядке списка; по умолчанию - все (PHONE_COUNTRY_CODES). */
+  countries?: readonly PhoneCountry[]
+  /** Страна пустого поля; по умолчанию - первая из countries. */
+  defaultCountry?: PhoneCountry
 }
 
 /**
- * Телефон с выбором страны (+7, +998, +992). Вставка полного номера
- * распознаёт код страны. Неполный номер уходит наружу как есть («+7900»),
+ * Телефон с выбором страны: маска национальной части по стране, вставка
+ * полного номера распознаёт код страны (общий +7 делится на Россию и
+ * Казахстан по первым цифрам). Неполный номер уходит наружу как есть («+7900»),
  * а не пустой строкой: иначе форма молча стёрла бы телефон, который
  * пользователь видит в поле. Форма отклоняет его через isCompletePhone.
  */
-export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], size = 'md', className, invalid, placeholder, ...rest }: PhoneInputProps) {
+export function PhoneInput({
+  value,
+  onChange,
+  countries = PHONE_COUNTRY_CODES,
+  defaultCountry,
+  size = 'md',
+  className,
+  invalid,
+  placeholder,
+  ...rest
+}: PhoneInputProps) {
   const t = useMessages()
   const f = useFieldProps({ id: rest.id, invalid, disabled: rest.disabled, required: rest.required, 'aria-describedby': rest['aria-describedby'] })
-  const initial = splitPhone(value)
+  const fallback = defaultCountry ?? countries[0] ?? 'RU'
+  const initial = splitPhone(value, fallback)
   const [country, setCountry] = useState<PhoneCountry>(initial.country)
   const [national, setNational] = useState(initial.national)
   const [prevValue, setPrevValue] = useState(value)
@@ -206,7 +221,7 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
   if (value !== prevValue) {
     setPrevValue(value)
     if (value !== phoneFieldValue(country, national)) {
-      const s = splitPhone(value)
+      const s = splitPhone(value, fallback)
       setCountry(s.country)
       setNational(s.national)
     }
@@ -226,7 +241,7 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
     const digits = text.replace(/\D/g, '')
     if (digits.length >= 11) {
       e.preventDefault()
-      const s = sanitizePhonePaste(text, country)
+      const s = sanitizePhonePaste(text, country, countries)
       if (countries.includes(s.country)) update(s.country, s.national)
     }
   }
@@ -237,7 +252,8 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
         <Menu
           label={t.phone.countryCode}
           placement="bottom-start"
-          minWidth={190}
+          minWidth={240}
+          maxHeight={320}
           trigger={
             <button type="button" className="ev-phone-country" disabled={f.disabled} aria-label={t.phone.countryCodeValue(info.dial)}>
               +{info.dial}
@@ -246,8 +262,9 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
           }
           items={countries.map((c) => ({
             id: c,
-            label: `+${PHONE_COUNTRIES[c].dial}`,
-            hint: t.phone.countries[c],
+            // Название - подписью (по нему работает поиск по первой букве), код - справа.
+            label: t.phone.countries[c],
+            hint: `+${PHONE_COUNTRIES[c].dial}`,
             checked: c === country,
             onSelect: () => update(c, national.slice(0, PHONE_COUNTRIES[c].length)),
           }))}

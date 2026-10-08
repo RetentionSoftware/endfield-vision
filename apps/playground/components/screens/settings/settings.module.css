@@ -89,7 +89,7 @@
   height: 36px;
   border-radius: var(--ev-radius-pill);
   box-shadow: inset 0 0 0 1px var(--ev-border-soft);
-  color: var(--ev-text-on-accent);
+  color: var(--ev-on-light); /* образцы пресетов светлые: тёмная галочка читается на всех */
 }
 
 .swatchLabel {
