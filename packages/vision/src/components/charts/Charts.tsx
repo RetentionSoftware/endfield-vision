@@ -3,6 +3,7 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { useElementWidth } from '../../lib/hooks'
+import { useMessages } from '../../lib/i18n'
 
 /*
  * Лёгкие SVG-графики без библиотек. Правила оформления:
@@ -50,7 +51,11 @@ interface BaseChartProps<D> {
 const PAD_TOP = 12
 const PAD_RIGHT = 12
 const AXIS_H = 24
-const defaultFormat = (v: number) => v.toLocaleString('ru-RU')
+/** Формат значений по умолчанию: число по правилам текущего языка. */
+function useDefaultFormat(format: ((v: number) => string) | undefined): (v: number) => string {
+  const { intl } = useMessages()
+  return useMemo(() => format ?? ((v: number) => v.toLocaleString(intl)), [format, intl])
+}
 
 function seriesColor<D>(s: ChartSeries<D>, i: number): string {
   return s.color ?? `var(--ev-chart-${(i % 8) + 1})`
@@ -191,13 +196,14 @@ function Legend<D>({ series, kind }: { series: ChartSeries<D>[]; kind: 'bar' | '
 function DataTableSr<D>({ data, series, x, format, label }: { data: D[]; series: ChartSeries<D>[]; x: (d: D) => string; format: (v: number) => string; label: string }) {
   // Скрыта обёртка, а не сама таблица: таблица не сжимается до 1px, и длинный
   // ряд выходил за каркас страницы (пустая тёмная полоса внизу при прокрутке).
+  const t = useMessages()
   return (
     <div className="ev-visually-hidden">
       <table>
         <caption>{label}</caption>
         <thead>
           <tr>
-            <th scope="col">Период</th>
+            <th scope="col">{t.charts.period}</th>
             {series.map((s) => (
               <th key={s.key} scope="col">
                 {s.label}
@@ -238,14 +244,17 @@ export function BarChart<D>({
   tooltipTitle,
   series,
   height = 240,
-  format = defaultFormat,
+  format: formatProp,
   formatAxis,
   integer,
   stacked = false,
-  emptyText = 'Нет данных за период',
+  emptyText: emptyTextProp,
   className,
   ...aria
 }: BarChartProps<D>) {
+  const t = useMessages()
+  const format = useDefaultFormat(formatProp)
+  const emptyText = emptyTextProp ?? t.charts.empty
   const { wrapRef, width, tip, setTip } = useChartFrame(height)
   const titleId = useId()
   const axisFmt = formatAxis ?? format
@@ -385,14 +394,17 @@ export function LineChart<D>({
   tooltipTitle,
   series,
   height = 240,
-  format = defaultFormat,
+  format: formatProp,
   formatAxis,
   integer,
   area = false,
-  emptyText = 'Нет данных за период',
+  emptyText: emptyTextProp,
   className,
   ...aria
 }: LineChartProps<D>) {
+  const t = useMessages()
+  const format = useDefaultFormat(formatProp)
+  const emptyText = emptyTextProp ?? t.charts.empty
   const { wrapRef, width, tip, setTip } = useChartFrame(height)
   const titleId = useId()
   const axisFmt = formatAxis ?? format

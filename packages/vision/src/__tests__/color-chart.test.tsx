@@ -1,4 +1,4 @@
-import { renderToString } from 'react-dom/server'
+import { renderRu as renderToString } from './render-ru'
 import { describe, expect, it } from 'vitest'
 import { allIntegerValues, BarChart, niceScale, scaleTicks } from '../components/charts/Charts'
 import { ColorField } from '../components/ColorField'

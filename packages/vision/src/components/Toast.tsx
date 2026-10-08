@@ -2,6 +2,7 @@
 
 import { TriangleAlert, CircleCheck, Info, OctagonAlert, X } from 'lucide-react'
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
+import { useMessages } from '../lib/i18n'
 import { Portal } from '../lib/overlay'
 
 /*
@@ -114,6 +115,7 @@ const ICONS: Record<ToastTone, ReactNode> = {
 }
 
 function ToastCard({ item }: { item: ToastItem }) {
+  const t = useMessages()
   const remaining = useRef(item.duration)
   const started = useRef(0)
   const timer = useRef<number | null>(null)
@@ -160,7 +162,7 @@ function ToastCard({ item }: { item: ToastItem }) {
           </button>
         ) : null}
       </div>
-      <button type="button" className="ev-toast-close" aria-label="Закрыть уведомление" onClick={() => dismiss(item.id)}>
+      <button type="button" className="ev-toast-close" aria-label={t.toast.dismiss} onClick={() => dismiss(item.id)}>
         <X size={14} />
       </button>
     </div>
@@ -171,6 +173,7 @@ const EMPTY: ToastItem[] = []
 
 /** Стек уведомлений. Ставится один раз в корне приложения. */
 export function Toaster() {
+  const t = useMessages()
   const list = useSyncExternalStore(
     subscribe,
     () => items,
@@ -183,14 +186,14 @@ export function Toaster() {
       <div className="ev-toasts" aria-live="polite">
         {hidden > 0 ? (
           <div className="ev-toasts-more">
-            <span>И ещё {hidden}</span>
+            <span>{t.toast.more(hidden)}</span>
             <button type="button" onClick={dismissAll}>
-              Убрать все
+              {t.toast.dismissAll}
             </button>
           </div>
         ) : null}
-        {visible.map((t) => (
-          <ToastCard key={t.id} item={t} />
+        {visible.map((item) => (
+          <ToastCard key={item.id} item={item} />
         ))}
       </div>
     </Portal>

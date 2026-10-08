@@ -1,6 +1,9 @@
+'use client'
+
 import { TriangleAlert, CircleCheck, Info, OctagonAlert } from 'lucide-react'
 import { useId, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
 import { cx, EMPTY_VALUE } from '../lib/cx'
+import { useMessages } from '../lib/i18n'
 
 /*
  * Простые компоненты отображения без состояния: бейджи, карточки,
@@ -262,7 +265,7 @@ export function StatTile({
   value,
   delta,
   deltaLabel,
-  formatDelta = (d) => `${d > 0 ? '+' : ''}${d.toLocaleString('ru-RU', { maximumFractionDigits: 1 })}%`,
+  formatDelta: formatDeltaProp,
   positiveIsGood = true,
   hint,
   icon,
@@ -271,6 +274,8 @@ export function StatTile({
   trend,
   className,
 }: StatTileProps) {
+  const { intl } = useMessages()
+  const formatDelta = formatDeltaProp ?? ((d: number) => `${d > 0 ? '+' : ''}${d.toLocaleString(intl, { maximumFractionDigits: 1 })}%`)
   const dir = delta === null || delta === undefined || delta === 0 ? 'flat' : delta > 0 ? 'up' : 'down'
   const good = dir === 'flat' ? null : (dir === 'up') === positiveIsGood
   return (

@@ -4,23 +4,6 @@
  * чтобы не ловить сдвиг часового пояса.
  */
 
-export const WEEKDAYS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-export const MONTHS = [
-  'Январь',
-  'Февраль',
-  'Март',
-  'Апрель',
-  'Май',
-  'Июнь',
-  'Июль',
-  'Август',
-  'Сентябрь',
-  'Октябрь',
-  'Ноябрь',
-  'Декабрь',
-]
-export const MONTHS_SHORT = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
-
 export interface Ymd {
   y: number
   /** Месяц с 0. */
@@ -76,11 +59,14 @@ export function addMonths(y: number, m0: number, delta: number): { y: number; m:
   return { y: Math.floor(total / 12), m: ((total % 12) + 12) % 12 }
 }
 
-/** 'YYYY-MM-DD' -> 'дд.мм.гггг'. */
-export function formatIsoRu(iso: string | null | undefined): string {
+/** 'YYYY-MM-DD' -> 'дд.мм.гггг' (формат полей дат на обоих языках). */
+export function formatIsoDate(iso: string | null | undefined): string {
   const p = parseIso(iso)
   return p ? `${pad2(p.d)}.${pad2(p.m + 1)}.${p.y}` : ''
 }
+
+/** @deprecated Используйте formatIsoDate. */
+export const formatIsoRu = formatIsoDate
 
 /** Цифры маски «ддммгггг» <-> ISO. */
 export function isoToDateDigits(iso: string): string {
@@ -112,7 +98,7 @@ export interface DateRangePreset {
   range: () => DateRange
 }
 
-/** Типовые периоды отчётов. Все границы включительно. */
+/** Типовые периоды отчётов. Все границы включительно. DateRangePicker подставляет подписи текущего языка. */
 export const DEFAULT_RANGE_PRESETS: DateRangePreset[] = [
   {
     id: 'today',

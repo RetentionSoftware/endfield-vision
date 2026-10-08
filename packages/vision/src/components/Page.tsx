@@ -2,6 +2,7 @@
 
 import { ChevronRight, CircleAlert, Inbox, RotateCw } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx } from '../lib/cx'
 import { UiLink } from '../lib/link'
 import { Button } from './Button'
@@ -11,10 +12,11 @@ export interface Crumb {
   href?: string
 }
 
-export function Breadcrumbs({ items, className }: { items: Crumb[]; className?: string }) {
+export function Breadcrumbs({ items, className, 'aria-label': ariaLabel }: { items: Crumb[]; className?: string; 'aria-label'?: string }) {
+  const t = useMessages()
   if (items.length === 0) return null
   return (
-    <nav aria-label="Навигационная цепочка" className={cx('ev-crumbs', className)}>
+    <nav aria-label={ariaLabel ?? t.breadcrumbs} className={cx('ev-crumbs', className)}>
       <ol role="list">
         {items.map((c, i) => {
           const last = i === items.length - 1
@@ -118,7 +120,7 @@ export interface ErrorStateProps {
 
 /** Ошибка загрузки: причина, «Повторить» и выход - со страницы всегда есть путь. */
 export function ErrorState({
-  title = 'Не удалось загрузить данные',
+  title,
   message,
   onRetry,
   retrying = false,
@@ -126,18 +128,19 @@ export function ErrorState({
   compact = false,
   className,
 }: ErrorStateProps) {
+  const t = useMessages()
   return (
     <div className={cx('ev-empty ev-error-state', className)} data-compact={compact || undefined} role="alert">
       <span className="ev-empty-icon" aria-hidden="true">
         <CircleAlert size={compact ? 20 : 26} />
       </span>
-      <div className="ev-empty-title">{title}</div>
+      <div className="ev-empty-title">{title ?? t.errorState.title}</div>
       {message ? <div className="ev-empty-desc">{message}</div> : null}
       {onRetry || actions ? (
         <div className="ev-empty-actions">
           {onRetry ? (
             <Button size={compact ? 'sm' : 'md'} icon={<RotateCw size={14} />} loading={retrying} onClick={onRetry}>
-              Повторить
+              {t.common.retry}
             </Button>
           ) : null}
           {actions}

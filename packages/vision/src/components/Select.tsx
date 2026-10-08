@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx, normalizeSearch } from '../lib/cx'
 import { useEventCallback, useIsoLayoutEffect, useOutsideClick } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFloating } from '../lib/overlay'
@@ -63,6 +64,7 @@ function OptionList<V extends string>({
   emptyText,
   loading,
 }: ListProps<V>) {
+  const t = useMessages()
   const listRef = useRef<HTMLDivElement | null>(null)
 
   useIsoLayoutEffect(() => {
@@ -74,7 +76,7 @@ function OptionList<V extends string>({
   if (loading && options.length === 0) {
     return (
       <div className="ev-select-empty">
-        <Spinner size={14} /> Загрузка
+        <Spinner size={14} /> {t.common.loading}
       </div>
     )
   }
@@ -316,9 +318,9 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
     value,
     onChange,
     options,
-    placeholder = 'Выберите',
-    searchPlaceholder = 'Поиск',
-    emptyText = 'Ничего не найдено',
+    placeholder: placeholderProp,
+    searchPlaceholder: searchPlaceholderProp,
+    emptyText: emptyTextProp,
     clearable = false,
     size = 'md',
     className,
@@ -329,6 +331,10 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
     selectedLabel,
     ref,
   } = props
+  const t = useMessages()
+  const searchPlaceholder = searchPlaceholderProp ?? t.common.search
+  const emptyText = emptyTextProp ?? t.common.nothingFound
+  const placeholder = placeholderProp ?? t.select.placeholder
   const f = useFieldProps({ id: props.id, invalid: props.invalid, disabled: props.disabled, 'aria-describedby': props['aria-describedby'] })
   const { triggerRef, wrapRef, popRef, searchRef, listBoxRef, ...core } = useSelectCore(props, () => {
     const i = options.findIndex((o) => o.value === value)
@@ -380,7 +386,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
         <ChevronDown size={15} className="ev-select-caret" aria-hidden="true" />
       </button>
       {clearable && value !== null && !f.disabled ? (
-        <button type="button" className="ev-select-clear" aria-label="Очистить выбор" onClick={() => onChange(null)}>
+        <button type="button" className="ev-select-clear" aria-label={t.select.clearSelection} onClick={() => onChange(null)}>
           <X size={14} />
         </button>
       ) : null}
@@ -457,9 +463,9 @@ export function MultiSelect<V extends string = string>(props: MultiSelectProps<V
     value,
     onChange,
     options,
-    placeholder = 'Не выбрано',
-    searchPlaceholder = 'Поиск',
-    emptyText = 'Ничего не найдено',
+    placeholder: placeholderProp,
+    searchPlaceholder: searchPlaceholderProp,
+    emptyText: emptyTextProp,
     size = 'md',
     className,
     width,
@@ -470,6 +476,10 @@ export function MultiSelect<V extends string = string>(props: MultiSelectProps<V
     bulkActions = true,
     ref,
   } = props
+  const t = useMessages()
+  const searchPlaceholder = searchPlaceholderProp ?? t.common.search
+  const emptyText = emptyTextProp ?? t.common.nothingFound
+  const placeholder = placeholderProp ?? t.select.multiPlaceholder
   const f = useFieldProps({ id: props.id, invalid: props.invalid, disabled: props.disabled, 'aria-describedby': props['aria-describedby'] })
   const { triggerRef, wrapRef, popRef, searchRef, listBoxRef, ...core } = useSelectCore(props, () => firstEnabled(options))
   const set = new Set(value)
@@ -587,10 +597,10 @@ export function MultiSelect<V extends string = string>(props: MultiSelectProps<V
                     onChange(Array.from(new Set([...value, ...add])))
                   }}
                 >
-                  Выбрать все
+                  {t.select.selectAll}
                 </button>
                 <button type="button" className="ev-select-foot-btn" disabled={value.length === 0} onClick={() => onChange([])}>
-                  Очистить
+                  {t.common.clear}
                 </button>
               </div>
             ) : null}

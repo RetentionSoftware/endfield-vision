@@ -2,6 +2,7 @@
 
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { cx } from '../lib/cx'
+import { useMessages } from '../lib/i18n'
 import { UiLink } from '../lib/link'
 import { Spinner } from './Spinner'
 import { Tooltip, type TooltipPlacement } from './Tooltip'
@@ -43,6 +44,7 @@ export function Button({
   type = 'button',
   ...rest
 }: ButtonProps) {
+  const t = useMessages()
   const hasLabel = children !== undefined && children !== null && children !== false
   return (
     <button
@@ -55,7 +57,7 @@ export function Button({
       aria-busy={loading || undefined}
       {...rest}
     >
-      {loading ? <Spinner size={spinnerSize(size)} label="Выполняется" /> : icon ? <span className="ev-btn-icon">{icon}</span> : null}
+      {loading ? <Spinner size={spinnerSize(size)} label={t.common.inProgress} /> : icon ? <span className="ev-btn-icon">{icon}</span> : null}
       {hasLabel ? <span className="ev-btn-label">{children}</span> : null}
       {iconRight ? <span className="ev-btn-icon">{iconRight}</span> : null}
     </button>
@@ -116,6 +118,7 @@ export function IconButton({
   type = 'button',
   ...rest
 }: IconButtonProps) {
+  const t = useMessages()
   const button = (
     <button
       type={type}
@@ -128,7 +131,7 @@ export function IconButton({
       disabled={disabled || loading}
       {...rest}
     >
-      {loading ? <Spinner size={spinnerSize(size)} label="Выполняется" /> : <span className="ev-btn-icon">{icon}</span>}
+      {loading ? <Spinner size={spinnerSize(size)} label={t.common.inProgress} /> : <span className="ev-btn-icon">{icon}</span>}
     </button>
   )
   if (noTooltip) return button

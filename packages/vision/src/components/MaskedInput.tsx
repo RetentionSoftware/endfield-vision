@@ -2,6 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import { useRef, useState, type ChangeEvent, type ClipboardEvent, type InputHTMLAttributes, type Ref } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import {
@@ -162,6 +163,7 @@ export interface PhoneInputProps extends MaskedFieldShellProps {
  * пользователь видит в поле. Форма отклоняет его через isCompletePhone.
  */
 export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], size = 'md', className, invalid, placeholder, ...rest }: PhoneInputProps) {
+  const t = useMessages()
   const f = useFieldProps({ id: rest.id, invalid, disabled: rest.disabled, required: rest.required, 'aria-describedby': rest['aria-describedby'] })
   const initial = splitPhone(value)
   const [country, setCountry] = useState<PhoneCountry>(initial.country)
@@ -201,11 +203,11 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
     <div className={cx('ev-input ev-phone', className)} data-size={size} data-invalid={f.invalid || undefined} data-disabled={f.disabled || undefined}>
       {countries.length > 1 ? (
         <Menu
-          label="Код страны"
+          label={t.phone.countryCode}
           placement="bottom-start"
           minWidth={190}
           trigger={
-            <button type="button" className="ev-phone-country" disabled={f.disabled} aria-label={`Код страны: +${info.dial}`}>
+            <button type="button" className="ev-phone-country" disabled={f.disabled} aria-label={t.phone.countryCodeValue(info.dial)}>
               +{info.dial}
               <ChevronDown size={13} aria-hidden="true" />
             </button>
@@ -213,7 +215,7 @@ export function PhoneInput({ value, onChange, countries = ['RU', 'UZ', 'TJ'], si
           items={countries.map((c) => ({
             id: c,
             label: `+${PHONE_COUNTRIES[c].dial}`,
-            hint: PHONE_COUNTRIES[c].label,
+            hint: t.phone.countries[c],
             checked: c === country,
             onSelect: () => update(c, national.slice(0, PHONE_COUNTRIES[c].length)),
           }))}

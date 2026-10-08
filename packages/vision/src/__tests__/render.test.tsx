@@ -1,4 +1,4 @@
-import { renderToString } from 'react-dom/server'
+import { renderRu as renderToString } from './render-ru'
 import { describe, expect, it } from 'vitest'
 import * as ui from '../index'
 import {

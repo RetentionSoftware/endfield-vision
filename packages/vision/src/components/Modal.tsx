@@ -12,6 +12,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
@@ -68,6 +69,7 @@ export function Modal({
   className,
   flush = false,
 }: ModalProps) {
+  const t = useMessages()
   const titleId = useId()
   const descId = useId()
   const ref = useRef<HTMLDivElement | null>(null)
@@ -115,7 +117,7 @@ export function Modal({
                 ) : null}
               </div>
               {closable ? (
-                <button type="button" className="ev-modal-close" aria-label="Закрыть" data-dialog-close="" disabled={busy} onClick={onClose}>
+                <button type="button" className="ev-modal-close" aria-label={t.common.close} data-dialog-close="" disabled={busy} onClick={onClose}>
                   <X size={17} />
                 </button>
               ) : null}
@@ -168,6 +170,7 @@ export function Drawer({
   bare = false,
   ...aria
 }: DrawerProps) {
+  const t = useMessages()
   const titleId = useId()
   const ref = useRef<HTMLDivElement | null>(null)
   const canClose = closable && !busy
@@ -208,7 +211,7 @@ export function Drawer({
                 {subtitle ? <p className="ev-modal-subtitle">{subtitle}</p> : null}
               </div>
               {closable ? (
-                <button type="button" className="ev-modal-close" aria-label="Закрыть" data-dialog-close="" disabled={busy} onClick={onClose}>
+                <button type="button" className="ev-modal-close" aria-label={t.common.close} data-dialog-close="" disabled={busy} onClick={onClose}>
                   <X size={17} />
                 </button>
               ) : null}
@@ -275,7 +278,7 @@ export interface ConfirmOptions {
   okIcon?: ReactNode
   size?: ModalSize
   /** Выполнить действие внутри окна: false - не закрывать. Ошибка остаётся в окне. */
-  onOk?: () => boolean | void | Promise<boolean | void>
+  onOk?: () => unknown
 }
 
 export interface AlertOptions {
@@ -307,7 +310,7 @@ let globalApi: ModalsApi | null = null
 /** Вызов окон вне React (клиент API, обработчики). Работает, пока смонтирован ModalsProvider. */
 export const modals: ModalsApi = {
   open: (o) => {
-    if (!globalApi) throw new Error('ModalsProvider не смонтирован')
+    if (!globalApi) throw new Error('endfield-vision: ModalsProvider is not mounted')
     return globalApi.open(o)
   },
   confirm: (o) => (globalApi ? globalApi.confirm(o) : Promise.resolve(false)),
@@ -318,7 +321,7 @@ export const modals: ModalsApi = {
 
 export function useModals(): ModalsApi {
   const api = useContext(ModalsContext)
-  if (!api) throw new Error('useModals() вне ModalsProvider')
+  if (!api) throw new Error('endfield-vision: useModals() must be used inside ModalsProvider')
   return api
 }
 
@@ -334,6 +337,12 @@ function errorMessage(err: unknown): string | undefined {
  */
 export function ModalsProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<Entry[]>([])
+  // Подписи кнопок confirm/alert - из текущего словаря; ref, чтобы API окон не пересоздавался при смене языка.
+  const t = useMessages()
+  const tRef = useRef(t)
+  useIsoLayoutEffect(() => {
+    tRef.current = t
+  })
   // Источник правды - ref: побочные эффекты (onClose, resolve) выполняются
   // вне функций-апдейтеров setState, которые StrictMode вызывает дважды.
   const listRef = useRef<Entry[]>([])
@@ -389,9 +398,9 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         body: o.message ? <div className="ev-modal-message">{o.message}</div> : undefined,
         footer: {
           buttons: [
-            { label: o.cancelLabel ?? 'Отмена', variant: 'ghost', result: false },
+            { label: o.cancelLabel ?? tRef.current.common.cancel, variant: 'ghost', result: false },
             {
-              label: o.okLabel ?? 'Подтвердить',
+              label: o.okLabel ?? tRef.current.common.confirm,
               variant: o.okVariant ?? 'primary',
               icon: o.okIcon,
               autoFocus: true,
@@ -405,7 +414,7 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
                   const r = await o.onOk()
                   if (r !== false) ctx.close(true)
                 } catch (err) {
-                  toast.error('Не удалось выполнить действие', { description: errorMessage(err) })
+                  toast.error(tRef.current.modal.actionFailed, { description: errorMessage(err) })
                 } finally {
                   ctx.setBusy(false)
                 }
@@ -422,7 +431,7 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         title: o.title,
         size: o.size ?? 'sm',
         body: o.message ? <div className="ev-modal-message">{o.message}</div> : undefined,
-        footer: { buttons: [{ label: o.okLabel ?? 'Понятно', variant: 'primary', autoFocus: true }] },
+        footer: { buttons: [{ label: o.okLabel ?? tRef.current.common.ok, variant: 'primary', autoFocus: true }] },
       }).result.then(() => undefined)
 
     return {
@@ -468,6 +477,7 @@ function ModalEntry({
   close: (id: string, r?: unknown) => void
   setBusy: (id: string, b: boolean) => void
 }) {
+  const t = useMessages()
   const { opts, busy, id } = entry
   // Кнопка, нажатая последней: спиннер занятости - на ней, а не на кнопке с autoFocus.
   const [pressed, setPressed] = useState<number | null>(null)
@@ -475,7 +485,7 @@ function ModalEntry({
     close: (r) => close(id, r),
     setBusy: (b) => setBusy(id, b),
   }
-  const buttons = opts.footer === null ? null : (opts.footer?.buttons ?? [{ label: 'Закрыть', variant: 'ghost' as const }])
+  const buttons = opts.footer === null ? null : (opts.footer?.buttons ?? [{ label: t.common.close, variant: 'ghost' as const }])
   const footer = buttons
     ? buttons.map((b, i) => (
         <Button

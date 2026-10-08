@@ -10,7 +10,7 @@ import {
   Divider,
   Field,
   FileDrop,
-  formatIsoRu,
+  formatIsoDate,
   FormSection,
   MultiSelect,
   RadioGroup,
@@ -108,7 +108,7 @@ function DatesCard() {
             </span>
           </Subhead>
           <Calendar value={day} onPick={setDay} min="2026-09-15" />
-          <span className="ev-muted">Выбрано: {formatIsoRu(day)}. Дни до 15.09.2026 недоступны (min).</span>
+          <span className="ev-muted">Выбрано: {formatIsoDate(day)}. Дни до 15.09.2026 недоступны (min).</span>
         </div>
         <div className="ev-stack">
           <Subhead>
@@ -118,7 +118,7 @@ function DatesCard() {
           </Subhead>
           <Calendar range={span} onPick={pickSpan} />
           <span className="ev-muted">
-            {span.from && span.to ? `${formatIsoRu(span.from)} - ${formatIsoRu(span.to)}` : 'Выберите конец периода'}
+            {span.from && span.to ? `${formatIsoDate(span.from)} - ${formatIsoDate(span.to)}` : 'Выберите конец периода'}
           </span>
         </div>
       </div>

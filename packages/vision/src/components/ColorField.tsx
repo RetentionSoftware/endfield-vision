@@ -4,6 +4,7 @@ import { Check } from 'lucide-react'
 import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { hexInputState, isLightHex, normalizeHexColor } from '../lib/color'
 import { cx } from '../lib/cx'
+import { useMessages } from '../lib/i18n'
 import { useFieldContext } from './Field'
 import { Input, type ControlSize } from './Input'
 import { Popover } from './Popover'
@@ -57,6 +58,7 @@ export function ColorField({
   'aria-describedby': ariaDescribedBy,
 }: ColorFieldProps) {
   const field = useFieldContext()
+  const t = useMessages()
   const formatId = useId()
   const current = normalizeHexColor(value ?? null, { shorthand: false })
   const [text, setText] = useState(current ?? '')
@@ -75,7 +77,7 @@ export function ColorField({
   const bad = state === 'invalid'
   const describedBy =
     [ariaDescribedBy ?? field?.describedBy, bad ? formatId : null].filter(Boolean).join(' ') || undefined
-  const name = ariaLabel ?? 'Цвет'
+  const name = ariaLabel ?? t.color.name
 
   const commit = (hex: string) => {
     setText(hex)
@@ -117,10 +119,10 @@ export function ColorField({
       <Popover
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
-        label={`${name}: палитра`}
+        label={t.color.palette(name)}
         placement="bottom-start"
         trigger={
-          <button type="button" className="ev-color-swatch" aria-label={`${name}: выбрать из палитры`} disabled={isDisabled}>
+          <button type="button" className="ev-color-swatch" aria-label={t.color.pickFromPalette(name)} disabled={isDisabled}>
             {swatchFace}
           </button>
         }
@@ -149,7 +151,7 @@ export function ColorField({
         size={size}
         wrapperClassName={cx('ev-color-field', className)}
         value={text}
-        placeholder={placeholder ?? (value === undefined ? 'Разные' : '#000000')}
+        placeholder={placeholder ?? (value === undefined ? t.color.mixed : '#000000')}
         maxLength={7}
         spellCheck={false}
         autoComplete="off"
@@ -171,7 +173,7 @@ export function ColorField({
       />
       {bad ? (
         <span id={formatId} className="ev-visually-hidden">
-          Цвет в формате #RRGGBB, например #1A2B3C
+          {t.color.formatHint}
         </span>
       ) : null}
     </>
@@ -187,6 +189,7 @@ function ColorPalette({
   selected: string | null
   onPick: (hex: string) => void
 }) {
+  const t = useMessages()
   const gridRef = useRef<HTMLDivElement | null>(null)
   const items = palette
     .map((c) => ({ hex: normalizeHexColor(c.value), label: c.label }))
@@ -214,7 +217,7 @@ function ColorPalette({
   }
 
   return (
-    <div ref={gridRef} className="ev-color-palette" role="group" aria-label="Палитра цветов" onKeyDown={onKeyDown}>
+    <div ref={gridRef} className="ev-color-palette" role="group" aria-label={t.color.paletteGroup} onKeyDown={onKeyDown}>
       {items.map((c, i) => {
         const active = c.hex === selected
         const label = c.label ? `${c.label}, ${c.hex}` : c.hex

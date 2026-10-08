@@ -3,6 +3,7 @@
 import { Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
+import { useMessages } from '../lib/i18n'
 import { useMediaQuery } from '../lib/hooks'
 import { UiLink } from '../lib/link'
 import { IconButton } from './Button'
@@ -47,6 +48,7 @@ export interface AppShellProps {
 }
 
 export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, onCollapsedChange, className }: AppShellProps) {
+  const t = useMessages()
   const mobile = useMediaQuery('(max-width: 1023px)')
   const [navOpen, setNavOpen] = useState(false)
   const [innerCollapsed, setInnerCollapsed] = useState(false)
@@ -68,7 +70,7 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
     <ShellContext.Provider value={ctx}>
       <div className={cx('ev-shell', className)} data-collapsed={collapsed || undefined}>
         <a href="#ev-main" className="ev-skip-link">
-          Перейти к содержимому
+          {t.shell.skipToContent}
         </a>
         {!mobile ? <aside className="ev-shell-sidebar">{sidebar}</aside> : null}
         <div className="ev-shell-main">
@@ -78,7 +80,7 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
           </main>
         </div>
         {mobile ? (
-          <Drawer open={navOpen} onClose={() => setNavOpen(false)} side="left" width={288} bare aria-label="Меню">
+          <Drawer open={navOpen} onClose={() => setNavOpen(false)} side="left" width={288} bare aria-label={t.shell.menu}>
             <div className="ev-shell-drawer-nav">{sidebar}</div>
           </Drawer>
         ) : null}
@@ -89,9 +91,10 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
 
 /** Кнопка меню в шапке: видна только на узком экране. */
 export function AppShellMenuButton() {
+  const t = useMessages()
   const { mobile, setNavOpen } = useAppShell()
   if (!mobile) return null
-  return <IconButton label="Открыть меню" icon={<MenuIcon size={19} />} noTooltip onClick={() => setNavOpen(true)} />
+  return <IconButton label={t.shell.openMenu} icon={<MenuIcon size={19} />} noTooltip onClick={() => setNavOpen(true)} />
 }
 
 export function Topbar({ left, right, children, className }: { left?: ReactNode; right?: ReactNode; children?: ReactNode; className?: string }) {
@@ -108,10 +111,11 @@ export function Topbar({ left, right, children, className }: { left?: ReactNode;
 }
 
 export function Sidebar({ header, footer, children, className }: { header?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string }) {
+  const t = useMessages()
   return (
     <div className={cx('ev-sidebar', className)}>
       {header ? <div className="ev-sidebar-header">{header}</div> : null}
-      <nav className="ev-sidebar-nav" aria-label="Разделы">
+      <nav className="ev-sidebar-nav" aria-label={t.shell.navigation}>
         {children}
       </nav>
       {footer ? <div className="ev-sidebar-footer">{footer}</div> : null}
@@ -170,11 +174,12 @@ export function SidebarItem({ href, label, icon, active = false, badge, onClick 
 
 /** Свернуть или развернуть меню (только на широком экране). */
 export function SidebarCollapseButton() {
+  const t = useMessages()
   const { collapsed, setCollapsed, mobile } = useAppShell()
   if (mobile) return null
   return (
     <IconButton
-      label={collapsed ? 'Развернуть меню' : 'Свернуть меню'}
+      label={collapsed ? t.shell.expand : t.shell.collapse}
       icon={collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
       tooltipPlacement="right"
       onClick={() => setCollapsed(!collapsed)}

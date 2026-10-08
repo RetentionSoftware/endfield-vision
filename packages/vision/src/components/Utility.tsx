@@ -2,6 +2,8 @@
 
 import { Check, Copy, ExternalLink, FileUp, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type DragEvent, type ReactNode } from 'react'
+import { useMessages } from '../lib/i18n'
+import type { Messages } from '../lib/i18n-messages'
 import { cx } from '../lib/cx'
 import { Button, IconButton } from './Button'
 import { useToast } from './Toast'
@@ -38,6 +40,7 @@ export async function copyText(text: string): Promise<boolean> {
  * полторы секунды - иконка копирования меняется на галочку.
  */
 function useCopy(text: string, withToast: boolean): { done: boolean; run: () => Promise<void> } {
+  const t = useMessages()
   const [done, setDone] = useState(false)
   const toast = useToast()
   const timer = useRef<number | null>(null)
@@ -48,11 +51,11 @@ function useCopy(text: string, withToast: boolean): { done: boolean; run: () => 
   const run = async () => {
     const ok = await copyText(text)
     if (!ok) {
-      toast.error('Не удалось скопировать')
+      toast.error(t.copy.failed)
       return
     }
     setDone(true)
-    if (withToast) toast.success('Скопировано', { duration: 1800, id: 'ev-copy' })
+    if (withToast) toast.success(t.copy.copied, { duration: 1800, id: 'ev-copy' })
     if (timer.current !== null) window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => setDone(false), 1500)
   }
@@ -70,7 +73,8 @@ export interface CopyButtonProps {
   className?: string
 }
 
-export function CopyButton({ text, label, tooltip = 'Скопировать', toast: withToast = true, size = 'sm', className }: CopyButtonProps) {
+export function CopyButton({ text, label, tooltip, toast: withToast = true, size = 'sm', className }: CopyButtonProps) {
+  const t = useMessages()
   const { done, run } = useCopy(text, withToast)
   const icon = done ? <Check size={14} /> : <Copy size={14} />
   if (label) {
@@ -80,7 +84,7 @@ export function CopyButton({ text, label, tooltip = 'Скопировать', to
       </Button>
     )
   }
-  return <IconButton label={done ? 'Скопировано' : tooltip} icon={icon} size={size} onClick={run} className={className} />
+  return <IconButton label={done ? t.copy.copied : (tooltip ?? t.copy.copy)} icon={icon} size={size} onClick={run} className={className} />
 }
 
 export interface CopyValueProps {
@@ -112,19 +116,22 @@ export interface CopyValueProps {
 export function CopyValue({
   value,
   children,
-  label = 'Скопировать',
+  label: labelProp,
   mono = true,
   href,
-  hrefLabel = 'Открыть',
+  hrefLabel: hrefLabelProp,
   toast: withToast = true,
   block = false,
   size = 'md',
   className,
 }: CopyValueProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.copy.copy
+  const hrefLabel = hrefLabelProp ?? t.copy.open
   const { done, run } = useCopy(value, withToast)
   return (
     <span className={cx('ev-copyvalue', className)} data-block={block || undefined} data-size={size}>
-      <Tooltip content={done ? 'Скопировано' : label}>
+      <Tooltip content={done ? t.copy.copied : label}>
         <button
           type="button"
           className="ev-copyvalue-btn"
@@ -177,10 +184,11 @@ export interface FileDropProps {
   className?: string
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} КБ`
-  return `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} МБ`
+function formatSize(bytes: number, t: Messages): string {
+  const { b, kb, mb } = t.file.units
+  if (bytes < 1024) return `${bytes} ${b}`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024).toLocaleString(t.intl)} ${kb}`
+  return `${(bytes / 1024 / 1024).toLocaleString(t.intl, { maximumFractionDigits: 1 })} ${mb}`
 }
 
 function acceptMatches(file: File, accept?: string): boolean {
@@ -203,12 +211,13 @@ export function FileDrop({
   onFiles,
   files,
   onRemove,
-  title = 'Перетащите файл сюда или выберите на компьютере',
+  title,
   hint,
   disabled = false,
   error,
   className,
 }: FileDropProps) {
+  const t = useMessages()
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [over, setOver] = useState(false)
@@ -219,12 +228,12 @@ export function FileDrop({
     const arr = Array.from(list).slice(0, multiple ? undefined : 1)
     const wrongType = arr.find((f) => !acceptMatches(f, accept))
     if (wrongType) {
-      setLocalError(`Файл «${wrongType.name}» не подходит по типу`)
+      setLocalError(t.file.wrongType(wrongType.name))
       return
     }
     const tooBig = maxSize ? arr.find((f) => f.size > maxSize) : undefined
     if (tooBig && maxSize) {
-      setLocalError(`Файл «${tooBig.name}» больше ${formatSize(maxSize)}`)
+      setLocalError(t.file.tooBig(tooBig.name, formatSize(maxSize, t)))
       return
     }
     setLocalError(null)
@@ -254,7 +263,7 @@ export function FileDrop({
         onDrop={onDrop}
       >
         <FileUp size={22} aria-hidden="true" className="ev-filedrop-icon" />
-        <span className="ev-filedrop-title">{title}</span>
+        <span className="ev-filedrop-title">{title ?? t.file.dropTitle}</span>
         {hint ? <span className="ev-filedrop-hint">{hint}</span> : null}
         <input
           ref={inputRef}
@@ -280,8 +289,8 @@ export function FileDrop({
           {files.map((f) => (
             <li key={`${f.name}-${f.size}-${f.lastModified}`}>
               <span className="ev-truncate">{f.name}</span>
-              <span className="ev-muted ev-num">{formatSize(f.size)}</span>
-              {onRemove ? <IconButton size="sm" label="Убрать файл" icon={<X size={14} />} onClick={() => onRemove(f)} /> : null}
+              <span className="ev-muted ev-num">{formatSize(f.size, t)}</span>
+              {onRemove ? <IconButton size="sm" label={t.file.remove} icon={<X size={14} />} onClick={() => onRemove(f)} /> : null}
             </li>
           ))}
         </ul>

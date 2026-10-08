@@ -1,7 +1,8 @@
 'use client'
 
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from 'lucide-react'
-import { useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx, EMPTY_VALUE } from '../lib/cx'
 import { useMediaQuery } from '../lib/hooks'
 import { Button } from './Button'
@@ -112,7 +113,7 @@ export function DataTable<T>({
   fetching = false,
   error,
   onRetry,
-  empty = 'Записей нет',
+  empty: emptyProp,
   emptyDescription,
   sort,
   onSortChange,
@@ -128,6 +129,8 @@ export function DataTable<T>({
   className,
   ...aria
 }: DataTableProps<T>) {
+  const t = useMessages()
+  const empty = emptyProp ?? t.table.empty
   const narrow = useMediaQuery('(max-width: 720px)')
   const asCards = narrow && mobile === 'cards'
   const selectable = Boolean(onSelectedChange)
@@ -189,7 +192,7 @@ export function DataTable<T>({
       <div className={cx('ev-table-cards', className)} data-fetching={fetching || undefined} aria-busy={loading || fetching || undefined}>
         {selectable && list.length > 0 ? (
           <div className="ev-table-cards-bar">
-            <Checkbox checked={allOnPage} indeterminate={!allOnPage && someOnPage} onChange={toggleAll} label="Выбрать все на странице" />
+            <Checkbox checked={allOnPage} indeterminate={!allOnPage && someOnPage} onChange={toggleAll} label={t.table.selectAllOnPage} />
           </div>
         ) : null}
         {showSkeleton
@@ -209,7 +212,7 @@ export function DataTable<T>({
               <div className="ev-table-card-head">
                 {selectable ? (
                   <span data-row-stop="">
-                    <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label="Выбрать строку" />
+                    <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label={t.table.selectRow} />
                   </span>
                 ) : null}
                 <div className="ev-table-card-title">{primary ? renderCell(primary.cell(row, i)) : null}</div>
@@ -244,7 +247,7 @@ export function DataTable<T>({
                     checked={allOnPage}
                     indeterminate={!allOnPage && someOnPage}
                     onChange={toggleAll}
-                    aria-label="Выбрать все строки на странице"
+                    aria-label={t.table.selectAllRows}
                     disabled={list.length === 0}
                   />
                 </th>
@@ -310,7 +313,7 @@ export function DataTable<T>({
                 <tr key={k} data-muted={rowMuted?.(row) || undefined} data-selected={selSet.has(k) || undefined} {...rowProps(row)}>
                   {selectable ? (
                     <td className="ev-table-select" data-row-stop="">
-                      <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label="Выбрать строку" />
+                      <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label={t.table.selectRow} />
                     </td>
                   ) : null}
                   {columns.map((c) => (
@@ -358,8 +361,6 @@ function pageList(page: number, count: number): Array<number | 'gap'> {
   return out
 }
 
-const fmt = (n: number) => n.toLocaleString('ru-RU')
-
 /** Пагинация: «1-50 из 1 234», номера страниц с пропусками, размер страницы. */
 export function Pagination({
   page,
@@ -371,22 +372,29 @@ export function Pagination({
   disabled = false,
   className,
 }: PaginationProps) {
+  const t = useMessages()
+  const fmt = (n: number) => n.toLocaleString(t.intl)
   const narrow = useMediaQuery('(max-width: 720px)')
   const count = Math.max(1, Math.ceil(total / pageSize))
+  // Записей стало меньше (фильтр, удаление) - текущая страница не должна оказаться за концом списка.
+  const outOfRange = total > 0 && page > count
+  useEffect(() => {
+    if (outOfRange) onPageChange(count)
+  }, [outOfRange, count, onPageChange])
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(total, page * pageSize)
   return (
     <div className={cx('ev-pagination', className)}>
       <div className="ev-pagination-info ev-num">
-        {total === 0 ? 'Нет записей' : `${fmt(from)}-${fmt(to)} из ${fmt(total)}`}
+        {total === 0 ? t.pagination.noRecords : t.pagination.range(fmt(from), fmt(to), fmt(total))}
       </div>
       {onPageSizeChange ? (
         <div className="ev-pagination-size">
-          <span className="ev-muted">Строк</span>
+          <span className="ev-muted">{t.pagination.rows}</span>
           <Select
             size="sm"
             width={76}
-            aria-label="Строк на странице"
+            aria-label={t.pagination.rowsPerPage}
             value={String(pageSize)}
             options={pageSizeOptions.map((n) => ({ value: String(n), label: String(n) }))}
             onChange={(v) => v && onPageSizeChange(Number(v))}
@@ -396,11 +404,11 @@ export function Pagination({
         </div>
       ) : null}
       {count > 1 ? (
-        <nav className="ev-pagination-pages" aria-label="Страницы">
+        <nav className="ev-pagination-pages" aria-label={t.pagination.pages}>
           {!narrow ? (
-            <Button size="sm" variant="ghost" aria-label="Первая страница" icon={<ChevronsLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(1)} />
+            <Button size="sm" variant="ghost" aria-label={t.pagination.first} icon={<ChevronsLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(1)} />
           ) : null}
-          <Button size="sm" variant="ghost" aria-label="Предыдущая страница" icon={<ChevronLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(page - 1)} />
+          <Button size="sm" variant="ghost" aria-label={t.pagination.prev} icon={<ChevronLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(page - 1)} />
           {narrow ? (
             <span className="ev-pagination-current ev-num">
               {page} / {count}
@@ -418,7 +426,7 @@ export function Pagination({
                   className="ev-pagination-num ev-num"
                   data-active={p === page || undefined}
                   aria-current={p === page ? 'page' : undefined}
-                  aria-label={`Страница ${p}`}
+                  aria-label={t.pagination.page(p)}
                   disabled={disabled}
                   onClick={() => p !== page && onPageChange(p)}
                 >
@@ -427,9 +435,9 @@ export function Pagination({
               ),
             )
           )}
-          <Button size="sm" variant="ghost" aria-label="Следующая страница" icon={<ChevronRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(page + 1)} />
+          <Button size="sm" variant="ghost" aria-label={t.pagination.next} icon={<ChevronRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(page + 1)} />
           {!narrow ? (
-            <Button size="sm" variant="ghost" aria-label="Последняя страница" icon={<ChevronsRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(count)} />
+            <Button size="sm" variant="ghost" aria-label={t.pagination.last} icon={<ChevronsRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(count)} />
           ) : null}
         </nav>
       ) : null}
@@ -451,6 +459,7 @@ export interface FilterBarProps {
 
 /** Строка фильтров над таблицей. На узком экране фильтры прячутся под кнопку. */
 export function FilterBar({ search, children, activeCount = 0, onReset, actions, className }: FilterBarProps) {
+  const t = useMessages()
   const narrow = useMediaQuery('(max-width: 720px)')
   const [expanded, setExpanded] = useState(false)
   const hasFilters = Boolean(children)
@@ -464,8 +473,8 @@ export function FilterBar({ search, children, activeCount = 0, onReset, actions,
             wrapperClassName="ev-filterbar-search"
             value={search.value}
             onChange={search.onChange}
-            placeholder={search.placeholder ?? 'Поиск'}
-            aria-label={search.placeholder ?? 'Поиск'}
+            placeholder={search.placeholder ?? t.common.search}
+            aria-label={search.placeholder ?? t.common.search}
           />
         ) : null}
         {narrow && hasFilters ? (
@@ -475,13 +484,14 @@ export function FilterBar({ search, children, activeCount = 0, onReset, actions,
             aria-expanded={expanded}
             onClick={() => setExpanded((v) => !v)}
           >
-            Фильтры{activeCount > 0 ? ` (${activeCount})` : ''}
+            {t.filters.filters}
+            {activeCount > 0 ? ` (${activeCount})` : ''}
           </Button>
         ) : null}
         {showFilters && hasFilters ? <div className="ev-filterbar-filters">{children}</div> : null}
         {canReset ? (
           <Button variant="ghost" onClick={onReset}>
-            Сбросить
+            {t.common.reset}
           </Button>
         ) : null}
         {actions ? <div className="ev-filterbar-actions">{actions}</div> : null}

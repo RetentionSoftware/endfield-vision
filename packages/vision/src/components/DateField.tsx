@@ -7,13 +7,14 @@ import {
   DEFAULT_RANGE_PRESETS,
   dateDigitsToIso,
   formatDateDigits,
-  formatIsoRu,
+  formatIsoDate,
   isoToDateDigits,
   todayIso,
   type DateRange,
   type DateRangePreset,
 } from '../lib/dates'
-import { useOutsideClick } from '../lib/hooks'
+import { useMounted, useOutsideClick } from '../lib/hooks'
+import { useMessages } from '../lib/i18n'
 import { Portal, useEscapeLayer, useFloating } from '../lib/overlay'
 import { Button } from './Button'
 import { Calendar } from './Calendar'
@@ -49,7 +50,7 @@ export function DateField({
   onChange,
   min,
   max,
-  placeholder = 'дд.мм.гггг',
+  placeholder,
   disabled,
   invalid,
   size = 'md',
@@ -58,6 +59,7 @@ export function DateField({
   calendar = true,
   ...aria
 }: DateFieldProps) {
+  const t = useMessages()
   const f = useFieldProps({ id, invalid, disabled, 'aria-describedby': aria['aria-describedby'] })
   const [open, setOpen] = useState(false)
   const [digits, setDigits] = useState(() => isoToDateDigits(value))
@@ -143,7 +145,7 @@ export function DateField({
           <button
             type="button"
             className="ev-input-action"
-            aria-label="Открыть календарь"
+            aria-label={t.date.openCalendar}
             aria-haspopup="dialog"
             aria-expanded={open}
             disabled={f.disabled}
@@ -155,14 +157,14 @@ export function DateField({
       </div>
       {open ? (
         <Portal>
-          <div ref={popRef} className="ev-popover ev-date-pop" data-ev-layer="" role="dialog" aria-label="Выбор даты" data-side={side} style={style}>
+          <div ref={popRef} className="ev-popover ev-date-pop" data-ev-layer="" role="dialog" aria-label={t.date.dialog} data-side={side} style={style}>
             <Calendar value={value} min={min} max={max} onPick={commit} autoFocus />
             <div className="ev-cal-foot">
               <button type="button" className="ev-cal-foot-btn" onClick={() => commit('')}>
-                Очистить
+                {t.common.clear}
               </button>
               <button type="button" className="ev-cal-foot-btn" data-accent="" disabled={!allowed(todayIso())} onClick={() => commit(todayIso())}>
-                Сегодня
+                {t.date.today}
               </button>
             </div>
           </div>
@@ -199,9 +201,9 @@ function presetFor(value: DateRange | null, presets: DateRangePreset[]): DateRan
 export function DateRangePicker({
   value,
   onChange,
-  presets = DEFAULT_RANGE_PRESETS,
+  presets: presetsProp,
   clearable = false,
-  placeholder = 'Весь период',
+  placeholder: placeholderProp,
   min,
   max,
   disabled = false,
@@ -209,6 +211,14 @@ export function DateRangePicker({
   className,
   ...aria
 }: DateRangePickerProps) {
+  const t = useMessages()
+  const placeholder = placeholderProp ?? t.date.rangePlaceholder
+  // Стандартные периоды - с подписями текущего языка.
+  const presets = (presetsProp ?? DEFAULT_RANGE_PRESETS).map((p) =>
+    DEFAULT_RANGE_PRESETS.includes(p) ? { ...p, label: t.date.presetLabels[p.id as keyof typeof t.date.presetLabels] } : p,
+  )
+  // Пресеты считают «сегодня»: сверка только после гидрации, иначе сервер и браузер разойдутся.
+  const mounted = useMounted()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<{ from: string; to: string }>({ from: value?.from ?? '', to: value?.to ?? '' })
   const triggerRef = useRef<HTMLButtonElement | null>(null)
@@ -244,8 +254,8 @@ export function DateRangePicker({
     apply({ from, to })
   }
 
-  const active = presetFor(value, presets)
-  const label = value ? (active ? active.label : `${formatIsoRu(value.from)} - ${formatIsoRu(value.to)}`) : null
+  const active = mounted ? presetFor(value, presets) : undefined
+  const label = value ? (active ? active.label : `${formatIsoDate(value.from)} - ${formatIsoDate(value.to)}`) : null
   const draftValid = Boolean(draft.from && draft.to && draft.from <= draft.to)
 
   return (
@@ -266,15 +276,15 @@ export function DateRangePicker({
         <span className={cx('ev-select-value', !label && 'is-placeholder')}>{label ?? placeholder}</span>
         {value && active ? (
           <span className="ev-range-dates ev-num">
-            {formatIsoRu(value.from)} - {formatIsoRu(value.to)}
+            {formatIsoDate(value.from)} - {formatIsoDate(value.to)}
           </span>
         ) : null}
         <ChevronDown size={15} className="ev-select-caret" aria-hidden="true" />
       </button>
       {open ? (
         <Portal>
-          <div ref={popRef} className="ev-popover ev-range-pop" data-ev-layer="" role="dialog" aria-label="Выбор периода" data-side={side} style={style}>
-            <div className="ev-range-presets" role="listbox" aria-label="Готовые периоды">
+          <div ref={popRef} className="ev-popover ev-range-pop" data-ev-layer="" role="dialog" aria-label={t.date.rangeDialog} data-side={side} style={style}>
+            <div className="ev-range-presets" role="listbox" aria-label={t.date.presets}>
               {presets.map((p) => {
                 const on = active?.id === p.id
                 return (
@@ -298,7 +308,7 @@ export function DateRangePicker({
               <div className="ev-range-inputs">
                 <DateField
                   size="sm"
-                  aria-label="Начало периода"
+                  aria-label={t.date.rangeStart}
                   calendar={false}
                   value={draft.from}
                   max={max}
@@ -310,7 +320,7 @@ export function DateRangePicker({
                 </span>
                 <DateField
                   size="sm"
-                  aria-label="Конец периода"
+                  aria-label={t.date.rangeEnd}
                   calendar={false}
                   value={draft.to}
                   max={max}
@@ -321,13 +331,13 @@ export function DateRangePicker({
               <div className="ev-range-foot">
                 {clearable ? (
                   <Button size="sm" variant="ghost" onClick={() => apply(null)}>
-                    Весь период
+                    {t.date.rangePlaceholder}
                   </Button>
                 ) : (
                   <span />
                 )}
                 <Button size="sm" variant="primary" disabled={!draftValid} onClick={() => apply({ from: draft.from, to: draft.to })}>
-                  Применить
+                  {t.common.apply}
                 </Button>
               </div>
             </div>

@@ -12,6 +12,7 @@ import {
   type Ref,
   type TextareaHTMLAttributes,
 } from 'react'
+import { useMessages } from '../lib/i18n'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { useFieldProps } from './Field'
@@ -48,6 +49,7 @@ export function Input({
   value,
   ...rest
 }: InputProps) {
+  const t = useMessages()
   const f = useFieldProps({ id, invalid, disabled, required, 'aria-describedby': rest['aria-describedby'] })
   const showClear = onClear && !f.disabled && value !== undefined && value !== null && String(value) !== ''
   return (
@@ -69,7 +71,7 @@ export function Input({
         className={cx('ev-input-el', className)}
       />
       {showClear ? (
-        <button type="button" className="ev-input-clear" aria-label="Очистить" onClick={onClear} tabIndex={-1}>
+        <button type="button" className="ev-input-clear" aria-label={t.common.clear} onClick={onClear} tabIndex={-1}>
           <X size={14} />
         </button>
       ) : null}
@@ -84,7 +86,8 @@ export interface SearchInputProps extends Omit<InputProps, 'value' | 'onChange' 
 }
 
 /** Поиск: иконка, очистка, Escape очищает поле. */
-export function SearchInput({ value, onChange, placeholder = 'Поиск', onKeyDown, ...rest }: SearchInputProps) {
+export function SearchInput({ value, onChange, placeholder, onKeyDown, ...rest }: SearchInputProps) {
+  const t = useMessages()
   return (
     <Input
       {...rest}
@@ -93,7 +96,7 @@ export function SearchInput({ value, onChange, placeholder = 'Поиск', onKey
       autoComplete="off"
       spellCheck={false}
       value={value}
-      placeholder={placeholder}
+      placeholder={placeholder ?? t.common.search}
       prefix={<Search size={15} aria-hidden="true" />}
       onChange={(e) => onChange(e.target.value)}
       onClear={() => onChange('')}
@@ -112,6 +115,7 @@ export function SearchInput({ value, onChange, placeholder = 'Поиск', onKey
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'>
 
 export function PasswordInput(props: PasswordInputProps) {
+  const t = useMessages()
   const [visible, setVisible] = useState(false)
   return (
     <Input
@@ -121,7 +125,7 @@ export function PasswordInput(props: PasswordInputProps) {
         <button
           type="button"
           className="ev-input-action"
-          aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
+          aria-label={visible ? t.input.hidePassword : t.input.showPassword}
           aria-pressed={visible}
           onClick={() => setVisible((v) => !v)}
         >
@@ -246,6 +250,7 @@ export function NumberInput({
   disabled,
   ...rest
 }: NumberInputProps) {
+  const t = useMessages()
   const [text, setText] = useState(() => formatNumber(value, decimals))
   const lastEmitted = useRef<number | null>(value)
 
@@ -328,7 +333,7 @@ export function NumberInput({
                 <button
                   type="button"
                   tabIndex={-1}
-                  aria-label="Уменьшить"
+                  aria-label={t.input.decrease}
                   disabled={disabled || (min !== undefined && value !== null && value <= min)}
                   onClick={() => stepBy(-1)}
                 >
@@ -337,7 +342,7 @@ export function NumberInput({
                 <button
                   type="button"
                   tabIndex={-1}
-                  aria-label="Увеличить"
+                  aria-label={t.input.increase}
                   disabled={disabled || (max !== undefined && value !== null && value >= max)}
                   onClick={() => stepBy(1)}
                 >

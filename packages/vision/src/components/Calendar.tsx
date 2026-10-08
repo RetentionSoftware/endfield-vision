@@ -3,16 +3,15 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { cx } from '../lib/cx'
+import { useMounted } from '../lib/hooks'
+import { useMessages } from '../lib/i18n'
 import {
   addMonths,
   daysInMonth,
-  MONTHS,
-  MONTHS_SHORT,
   mondayFirstDow,
   parseIso,
   toIso,
   todayIso,
-  WEEKDAYS_SHORT,
   type DateRange,
 } from '../lib/dates'
 
@@ -33,7 +32,11 @@ export interface CalendarProps {
 
 /** Календарь: дни -> месяцы -> годы, неделя с понедельника, управление с клавиатуры. */
 export function Calendar({ value, range, min, max, onPick, autoFocus = false, initialMonth, className }: CalendarProps) {
+  const t = useMessages()
+  const { months: MONTHS, monthsShort: MONTHS_SHORT, weekdaysShort: WEEKDAYS_SHORT } = t.calendar
   const today = todayIso()
+  // Отметка «сегодня» - после гидрации: дата сервера и браузера может различаться.
+  const mounted = useMounted()
   const anchor = parseIso(value) ?? parseIso(range?.from) ?? parseIso(initialMonth) ?? parseIso(today)!
   const [viewY, setViewY] = useState(anchor.y)
   const [viewM, setViewM] = useState(anchor.m)
@@ -111,13 +114,13 @@ export function Calendar({ value, range, min, max, onPick, autoFocus = false, in
     return (
       <div className={cx('ev-cal', className)}>
         <div className="ev-cal-head">
-          <button type="button" className="ev-cal-nav" aria-label="Предыдущий год" onClick={() => setViewY((y) => y - 1)}>
+          <button type="button" className="ev-cal-nav" aria-label={t.calendar.prevYear} onClick={() => setViewY((y) => y - 1)}>
             <ChevronLeft size={16} />
           </button>
           <button type="button" className="ev-cal-title" onClick={() => setView('years')}>
             {viewY}
           </button>
-          <button type="button" className="ev-cal-nav" aria-label="Следующий год" onClick={() => setViewY((y) => y + 1)}>
+          <button type="button" className="ev-cal-nav" aria-label={t.calendar.nextYear} onClick={() => setViewY((y) => y + 1)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -149,13 +152,13 @@ export function Calendar({ value, range, min, max, onPick, autoFocus = false, in
     return (
       <div className={cx('ev-cal', className)}>
         <div className="ev-cal-head">
-          <button type="button" className="ev-cal-nav" aria-label="Предыдущие годы" onClick={() => setViewY((y) => y - 12)}>
+          <button type="button" className="ev-cal-nav" aria-label={t.calendar.prevYears} onClick={() => setViewY((y) => y - 12)}>
             <ChevronLeft size={16} />
           </button>
           <span className="ev-cal-title" data-static="">
             {start} - {start + 11}
           </span>
-          <button type="button" className="ev-cal-nav" aria-label="Следующие годы" onClick={() => setViewY((y) => y + 12)}>
+          <button type="button" className="ev-cal-nav" aria-label={t.calendar.nextYears} onClick={() => setViewY((y) => y + 12)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -197,13 +200,13 @@ export function Calendar({ value, range, min, max, onPick, autoFocus = false, in
   return (
     <div className={cx('ev-cal', className)}>
       <div className="ev-cal-head">
-        <button type="button" className="ev-cal-nav" aria-label="Предыдущий месяц" onClick={() => step(-1)}>
+        <button type="button" className="ev-cal-nav" aria-label={t.calendar.prevMonth} onClick={() => step(-1)}>
           <ChevronLeft size={16} />
         </button>
         <button type="button" className="ev-cal-title" onClick={() => setView('months')}>
           {MONTHS[viewM]} {viewY}
         </button>
-        <button type="button" className="ev-cal-nav" aria-label="Следующий месяц" onClick={() => step(1)}>
+        <button type="button" className="ev-cal-nav" aria-label={t.calendar.nextMonth} onClick={() => step(1)}>
           <ChevronRight size={16} />
         </button>
       </div>
@@ -236,7 +239,7 @@ export function Calendar({ value, range, min, max, onPick, autoFocus = false, in
               className="ev-cal-cell"
               aria-selected={c.iso === value || isStart || isEnd || undefined}
               data-outside={c.outside || undefined}
-              data-today={c.iso === today || undefined}
+              data-today={(mounted && c.iso === today) || undefined}
               data-focused={c.iso === focused || undefined}
               data-selected={c.iso === value || isStart || isEnd || undefined}
               data-in-range={inRange(c.iso) || undefined}
