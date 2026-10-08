@@ -97,9 +97,9 @@ export function LoginScreen() {
             label="Пароль"
             error={errors.password}
             labelAside={
-              <button type="button" className={s.linkBtn} onClick={() => switchMode('reset')}>
+              <Button variant="link" onClick={() => switchMode('reset')}>
                 Забыли пароль?
-              </button>
+              </Button>
             }
           >
             <PasswordInput name="password" autoComplete="current-password" size="lg" value={password} onChange={(e) => setPassword(e.target.value)} />

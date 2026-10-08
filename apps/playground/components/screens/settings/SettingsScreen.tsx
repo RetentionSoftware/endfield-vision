@@ -49,25 +49,23 @@ export function SettingsScreen() {
       </PageHeader>
 
       {/* Все разделы смонтированы: несохранённый ввод и изменения не теряются при переключении вкладок. */}
-      <TabPanel idBase={ID_BASE} value={tab}>
-        <div hidden={tab !== 'profile'}>
-          <ProfileTab />
-        </div>
-        <div hidden={tab !== 'appearance'}>
-          <AppearanceTab />
-        </div>
-        <div hidden={tab !== 'notifications'}>
-          <NotificationsTab />
-        </div>
-        <div hidden={tab !== 'security'}>
-          <SecurityTab />
-        </div>
-        <div hidden={tab !== 'api'}>
-          <ApiKeysTab />
-        </div>
-        <div hidden={tab !== 'danger'}>
-          <DangerTab />
-        </div>
+      <TabPanel idBase={ID_BASE} value="profile" activeValue={tab} keepMounted>
+        <ProfileTab />
+      </TabPanel>
+      <TabPanel idBase={ID_BASE} value="appearance" activeValue={tab} keepMounted>
+        <AppearanceTab />
+      </TabPanel>
+      <TabPanel idBase={ID_BASE} value="notifications" activeValue={tab} keepMounted>
+        <NotificationsTab />
+      </TabPanel>
+      <TabPanel idBase={ID_BASE} value="security" activeValue={tab} keepMounted>
+        <SecurityTab />
+      </TabPanel>
+      <TabPanel idBase={ID_BASE} value="api" activeValue={tab} keepMounted>
+        <ApiKeysTab />
+      </TabPanel>
+      <TabPanel idBase={ID_BASE} value="danger" activeValue={tab} keepMounted>
+        <DangerTab />
       </TabPanel>
     </>
   )

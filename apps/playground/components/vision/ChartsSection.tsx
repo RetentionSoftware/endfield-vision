@@ -46,7 +46,8 @@ export function ChartsSection() {
       <p className={s.text}>
         Графики на SVG без сторонних библиотек: цвета серий - токены <code>--ev-chart-1..8</code>, подсказка по наведению и с
         клавиатуры (фокус на графике, стрелки), ширина подстраивается под контейнер. Деньги - в копейках, форматирование - через{' '}
-        <code>format</code> и <code>formatAxis</code>.
+        <code>format</code> и <code>formatAxis</code>. <code>Sparkline</code> - ширина в px или <code>width=&quot;auto&quot;</code>{' '}
+        по контейнеру (плитка «Отгрузок»).
       </p>
       <div className="ev-grid" style={{ '--ev-grid-min': '220px', '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
         <StatTile
@@ -62,7 +63,7 @@ export function ChartsSection() {
           value={formatNum(DAYS.reduce((a, d) => a + d.shipped, 0))}
           icon={<Truck size={16} />}
           tone="info"
-          trend={<Sparkline values={DAYS.slice(-14).map((d) => d.shipped)} color="var(--ev-chart-3)" />}
+          trend={<Sparkline width="auto" values={DAYS.slice(-14).map((d) => d.shipped)} color="var(--ev-chart-3)" aria-label="Отгрузки за 14 дней" />}
         />
         <StatTile
           label="Потребление, МВт·ч"

@@ -31,6 +31,7 @@ export function SubscribePopover({ subscription, onSubscribe, onUnsubscribe }: S
       onOpenChange={setOpen}
       placement="bottom-end"
       label="Подписка на уведомления"
+      padded
       trigger={
         <Button variant={subscription ? 'secondary' : 'primary'} icon={subscription ? <BellRing size={15} /> : <Bell size={15} />}>
           {subscription ? 'Подписка оформлена' : 'Подписаться на уведомления'}

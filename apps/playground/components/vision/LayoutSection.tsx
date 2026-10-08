@@ -7,10 +7,13 @@ import {
   Card,
   DataTable,
   Divider,
+  Field,
   IconButton,
-  KeyValueList,
+  Input,
+  normalizeSearch,
   PageHeader,
   Panel,
+  SearchInput,
   SectionTitle,
   Sidebar,
   SidebarCollapseButton,
@@ -18,17 +21,15 @@ import {
   SidebarSection,
   StatTile,
   StatusPill,
+  TabPanel,
   Tabs,
+  Textarea,
   Topbar,
-  UiLink,
-  useElementWidth,
-  useMediaQuery,
-  useMounted,
-  type Column,
 } from 'endfield-vision'
 import { Bell, Boxes, ClipboardList, Download, Factory, LayoutDashboard, Pencil, Plus, Search, Settings, Users } from 'lucide-react'
-import { useRef, useState, type CSSProperties } from 'react'
-import { CodeBlock, Subhead } from './parts'
+import { useState, type CSSProperties } from 'react'
+import { HooksCard, UtilitiesCard } from './LayoutUtilities'
+import { CodeBlock } from './parts'
 import s from './vision.module.css'
 
 const SHELL_CODE = `'use client'
@@ -64,30 +65,78 @@ const SHELL_PARTS: Array<{ name: string; text: string }> = [
   { name: 'useAppShell()', text: 'Состояние каркаса: mobile, collapsed, navOpen и сеттеры - например, компактный логотип в свёрнутом меню.' },
 ]
 
-interface HookRow {
-  name: string
-  text: string
+const STORES = [
+  { n: 'Долина-1', q: 1204 },
+  { n: 'Долина-2', q: 877 },
+  { n: 'Хребет', q: 986 },
+  { n: 'Застава', q: 412 },
+  { n: 'Логистический узел', q: 2310 },
+]
+
+/** Слот toolbar: строка между шапкой и телом; у flush-карточки - с отступами карточки. */
+function ToolbarCard() {
+  const [q, setQ] = useState('')
+  const needle = normalizeSearch(q)
+  const rows = STORES.filter((r) => !needle || normalizeSearch(r.n).includes(needle))
+  return (
+    <Card
+      title="toolbar"
+      description="Поиск или фильтры между шапкой и телом карточки. У flush-карточки строка сохраняет отступы."
+      flush
+      toolbar={<SearchInput size="sm" value={q} onChange={setQ} placeholder="Склад" aria-label="Поиск склада" />}
+    >
+      <DataTable
+        aria-label="Склады с поиском"
+        dense
+        mobile="scroll"
+        columns={[
+          { key: 'n', header: 'Склад', primary: true, cell: (r: { n: string; q: number }) => r.n },
+          { key: 'q', header: 'Позиций', numeric: true, cell: (r: { n: string; q: number }) => r.q },
+        ]}
+        rows={rows}
+        rowKey={(r) => r.n}
+        empty="Склады не найдены"
+      />
+    </Card>
+  )
 }
 
-const LOW_LEVEL: HookRow[] = [
-  { name: 'useControllable', text: 'Управляемое или внутреннее состояние компонента' },
-  { name: 'useEventCallback', text: 'Стабильный обработчик со свежим замыканием' },
-  { name: 'useIsoLayoutEffect', text: 'useLayoutEffect в браузере, useEffect на сервере' },
-  { name: 'useOutsideClick', text: 'Клик вне элементов с учётом вложенных слоёв' },
-  { name: 'useDebouncedValue', text: 'Значение с задержкой для поиска (пример - на вкладке «Формы»)' },
-  { name: 'Portal', text: 'Рендер в document.body после гидрации' },
-  { name: 'useFloating', text: 'Позиция всплывающего слоя у якоря с переворотом у края' },
-  { name: 'useFocusTrap', text: 'Ловушка фокуса окна с возвратом на инициатора' },
-  { name: 'useScrollLock', text: 'Блокировка прокрутки страницы под окном' },
-  { name: 'useEscapeLayer', text: 'Escape закрывает только верхний слой' },
-  { name: 'UiLink / useLinkComponent', text: 'Ссылка через компонент из LinkProvider (next/link)' },
-  { name: 'useFieldContext / useFieldProps', text: 'Связка своего контрола с Field (пример - «Код партии»)' },
-]
+const KEEP_ID = 'vision-demo-keep'
 
-const HOOK_COLUMNS: Column<HookRow>[] = [
-  { key: 'name', header: 'Экспорт', primary: true, cell: (r) => <code>{r.name}</code> },
-  { key: 'text', header: 'Назначение', wrap: true, cell: (r) => <span className="ev-secondary">{r.text}</span> },
-]
+/** TabPanel keepMounted: неактивная панель скрыта, но не размонтирована - черновик формы сохраняется. */
+function KeepMountedCard() {
+  const [tab, setTab] = useState('act')
+  return (
+    <Card
+      title="TabPanel keepMounted"
+      description="С activeValue и keepMounted панели всех вкладок остаются в DOM скрытыми (hidden): введите текст, переключите вкладку и вернитесь - черновик на месте. Без keepMounted рендерится только выбранная панель."
+    >
+      <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+        <Tabs
+          variant="pill"
+          aria-label="Разделы акта"
+          idBase={KEEP_ID}
+          value={tab}
+          onChange={setTab}
+          items={[
+            { value: 'act', label: 'Акт' },
+            { value: 'note', label: 'Замечания' },
+          ]}
+        />
+        <TabPanel idBase={KEEP_ID} value="act" activeValue={tab} keepMounted>
+          <Field label="Номер акта">
+            <Input placeholder="АКТ-0000" />
+          </Field>
+        </TabPanel>
+        <TabPanel idBase={KEEP_ID} value="note" activeValue={tab} keepMounted>
+          <Field label="Замечания приёмки">
+            <Textarea rows={3} placeholder="Что не совпало с накладной" />
+          </Field>
+        </TabPanel>
+      </div>
+    </Card>
+  )
+}
 
 /** Статичная миниатюра каркаса: настоящие Sidebar и Topbar без AppShell, недоступна для фокуса (inert). */
 function ShellMiniature() {
@@ -139,107 +188,6 @@ function ShellMiniature() {
   )
 }
 
-function HooksCard() {
-  const narrow = useMediaQuery('(max-width: 1023px)')
-  const mounted = useMounted()
-  const ref = useRef<HTMLDivElement | null>(null)
-  const width = useElementWidth(ref)
-  return (
-    <Card title="Хуки и низкоуровневое API" description="То, на чём построены компоненты: пригодится для своих контролов и оверлеев." flush>
-      <div className="ev-stack" style={{ padding: 'var(--ev-space-6)' }}>
-        <KeyValueList
-          labelWidth={200}
-          items={[
-            { key: 'mq', label: 'useMediaQuery', value: narrow ? 'Узкий экран (меню - шторкой)' : 'Широкий экран (меню закреплено)', hint: '(max-width: 1023px), на сервере - false' },
-            { key: 'mounted', label: 'useMounted', value: mounted ? 'Клиент, после гидрации' : 'Серверный рендер' },
-            { key: 'width', label: 'useElementWidth', value: `${Math.round(width)} px`, hint: 'Ширина блока ниже: потяните за правый нижний угол' },
-          ]}
-        />
-        <div ref={ref} className={s.resizable}>
-          ResizeObserver следит за этим блоком.
-        </div>
-      </div>
-      <DataTable aria-label="Низкоуровневые экспорты" columns={HOOK_COLUMNS} rows={LOW_LEVEL} rowKey={(r) => r.name} dense mobile="scroll" />
-    </Card>
-  )
-}
-
-function UtilitiesCard() {
-  return (
-    <Card title="Утилиты" description="Классы ev-* в слое ev.utilities: раскладка без своих стилей. Отступ задаётся переменной --ev-gap, минимальная ширина колонки сетки - --ev-grid-min.">
-      <div className={s.cols}>
-        <div className="ev-stack">
-          <Subhead>ev-stack</Subhead>
-          <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-2)' } as CSSProperties}>
-            <span className={s.demoBox}>Первый</span>
-            <span className={s.demoBox}>Второй</span>
-            <span className={s.demoBox}>--ev-gap: var(--ev-space-2)</span>
-          </div>
-        </div>
-        <div className="ev-stack">
-          <Subhead>ev-row и ev-spacer</Subhead>
-          <div className="ev-row">
-            <span className={s.demoBox}>Слева</span>
-            <span className={s.demoBox}>Рядом</span>
-            <span className="ev-spacer" />
-            <span className={s.demoBox}>Справа</span>
-          </div>
-          <div className="ev-row" data-nowrap="">
-            <span className={`${s.demoBox} ev-truncate`}>data-nowrap: ряд не переносится, длинный текст обрезается</span>
-            <span className={s.demoBox}>OK</span>
-          </div>
-        </div>
-        <div className="ev-stack">
-          <Subhead>ev-grid</Subhead>
-          <div className="ev-grid" style={{ '--ev-grid-min': '90px', '--ev-gap': 'var(--ev-space-2)' } as CSSProperties}>
-            {['A', 'B', 'C', 'D', 'E'].map((x) => (
-              <span key={x} className={s.demoBox}>
-                {x}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-      <Divider label="Текст" />
-      <KeyValueList
-        labelWidth={170}
-        items={[
-          { key: 'mono', label: <code>ev-mono</code>, value: <span className="ev-mono">SKU-40217 · VAL-01</span> },
-          { key: 'num', label: <code>ev-num</code>, value: <span className="ev-num">1 111 111 / 8 808 808</span>, hint: 'Цифры одной ширины: колонки чисел не пляшут' },
-          { key: 'muted', label: <code>ev-muted</code>, value: <span className="ev-muted">Обновлено 5 минут назад</span> },
-          { key: 'secondary', label: <code>ev-secondary</code>, value: <span className="ev-secondary">Вторичный текст</span> },
-          {
-            key: 'truncate',
-            label: <code>ev-truncate</code>,
-            value: <span className={`ev-truncate ${s.truncateBox}`}>Фильтр гидравлический высокого давления, партия 3, стеллаж B-14</span>,
-          },
-          {
-            key: 'link',
-            label: <code>ev-link</code>,
-            value: (
-              <UiLink href="/team" className="ev-link">
-                Команда объекта
-              </UiLink>
-            ),
-            hint: 'UiLink - ссылка через next/link из LinkProvider',
-          },
-          { key: 'empty', label: <code>ev-empty-value</code>, value: <span className="ev-empty-value">-</span> },
-          {
-            key: 'vh',
-            label: <code>ev-visually-hidden</code>,
-            value: (
-              <span>
-                Иконка без подписи
-                <span className="ev-visually-hidden"> (текст только для скринридера)</span>
-              </span>
-            ),
-          },
-        ]}
-      />
-    </Card>
-  )
-}
-
 export function LayoutSection() {
   const [tab, setTab] = useState('summary')
   return (
@@ -259,10 +207,11 @@ export function LayoutSection() {
         </div>
       </Card>
 
-      <Card title="PageHeader и Breadcrumbs" description="Шапка страницы: цепочка, заголовок с бейджами статуса, описание, действия справа, вкладки или фильтры снизу. Breadcrumbs - отдельно, для вложенных экранов.">
+      <Card title="PageHeader и Breadcrumbs" description="Шапка страницы: цепочка, заголовок с бейджами статуса, описание, действия справа, вкладки или фильтры снизу. headingLevel - уровень заголовка, если h1 на странице уже есть (как здесь: пример - h2). Breadcrumbs - отдельно, для вложенных экранов.">
         <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
           <Panel>
             <PageHeader
+              headingLevel={2}
               title="Долина-1"
               subtitle="Производственная площадка, Северный сектор. Руководитель - Глеб Сорокин."
               breadcrumbs={[
@@ -372,6 +321,8 @@ export function LayoutSection() {
             </div>
           </div>
         </Card>
+        <ToolbarCard />
+        <KeepMountedCard />
       </div>
 
       <UtilitiesCard />

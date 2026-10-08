@@ -11,9 +11,11 @@ import {
   formatSnils,
   Input,
   isCompletePhone,
+  isValidTime,
   MaskedDigitsInput,
   MoneyInput,
   NumberInput,
+  parseTime,
   PasswordInput,
   PhoneInput,
   PlateInput,
@@ -21,8 +23,9 @@ import {
   SearchInput,
   SnilsInput,
   Textarea,
+  TimeInput,
   useDebouncedValue,
-  useFieldProps,
+  useFieldContext,
   type ColorSwatch,
 } from 'endfield-vision'
 import { AtSign, Hash } from 'lucide-react'
@@ -50,18 +53,19 @@ function formatBatch(d: string): string {
   return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6)}`
 }
 
-/** Своё поле на MaskedDigitsInput: обёртка ev-input и связка с Field через useFieldProps. */
+/**
+ * Своё поле на MaskedDigitsInput: обёртка ev-input даёт рамку. id, aria-invalid,
+ * aria-describedby, disabled и required поле само берёт из Field; контекст
+ * нужен только обёртке - для состояния ошибки.
+ */
 function BatchInput({ value, onChange }: { value: string; onChange: (digits: string) => void }) {
-  const f = useFieldProps({})
+  const field = useFieldContext()
   return (
-    <div className="ev-input" data-size="md" data-invalid={f.invalid || undefined}>
+    <div className="ev-input" data-size="md" data-invalid={field?.invalid || undefined}>
       <MaskedDigitsInput
         className="ev-input-el ev-num"
         inputMode="numeric"
         autoComplete="off"
-        id={f.id}
-        aria-describedby={f['aria-describedby']}
-        aria-invalid={f['aria-invalid']}
         digits={value}
         onDigits={onChange}
         maxDigits={8}
@@ -127,6 +131,9 @@ function NumberFields() {
   const [pass, setPass] = useState('')
   const [batch, setBatch] = useState('03104226')
   const [color, setColor] = useState('#1BAF7A')
+  const [start, setStart] = useState('08:00')
+  const [end, setEnd] = useState('')
+  const startParts = parseTime(start)
   return (
     <Card title="Числа, деньги и маски" description="Поля хранят «сырое» значение: число, копейки, цифры или E.164. Маска - только при показе, каретка не прыгает при правке в середине.">
       <FormSection title="Числа">
@@ -154,11 +161,23 @@ function NumberFields() {
         <Field label="Номер пропуска" hint="DigitsInput: только цифры, своя маска.">
           <DigitsInput value={pass} onChange={setPass} maxDigits={8} format={(d) => (d.length > 4 ? `${d.slice(0, 4)} ${d.slice(4)}` : d)} placeholder="0000 0000" />
         </Field>
-        <Field label="Код партии" hint="MaskedDigitsInput в своей обёртке, связь с Field - useFieldProps.">
+        <Field label="Код партии" hint="MaskedDigitsInput в своей обёртке: подпись и подсказку берёт из Field сам.">
           <BatchInput value={batch} onChange={setBatch} />
         </Field>
         <Field label="Цвет участка" hint={`#RRGGBB или образец палитры. Значение: ${color}`}>
           <ColorField value={color} onChange={setColor} palette={ZONE_PALETTE} />
+        </Field>
+      </FormSection>
+      <Divider />
+      <FormSection title="Время" description="TimeInput: «ЧЧ:ММ», 24 часа. Значение фиксируется только на полном корректном времени в пределах min/max; недописанное откатывается при потере фокуса.">
+        <Field label="Начало смены" hint={startParts ? `parseTime: ${startParts.hours} ч ${startParts.minutes} мин. Допустимо 06:00 - 12:00` : 'Допустимо 06:00 - 12:00'}>
+          <TimeInput value={start} onChange={setStart} min="06:00" max="12:00" />
+        </Field>
+        <Field label="Конец смены" hint={`min - начало смены: более раннее время не принимается. isValidTime('${end}'): ${isValidTime(end)}`}>
+          <TimeInput value={end} onChange={setEnd} min={start || undefined} />
+        </Field>
+        <Field label="Перерыв" labelAside='size="sm"' disabled>
+          <TimeInput size="sm" value="12:30" onChange={() => undefined} />
         </Field>
       </FormSection>
     </Card>

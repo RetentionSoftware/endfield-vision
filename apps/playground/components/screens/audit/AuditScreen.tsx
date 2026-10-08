@@ -238,7 +238,6 @@ export function AuditScreen() {
 
       <div className={s.page}>
         <FilterBar
-          className={s.filters}
           search={{
             value: q,
             onChange: withReset(setQ),
@@ -309,9 +308,9 @@ export function AuditScreen() {
             rows={pageRows}
             rowKey={(e) => e.id}
             sort={sort}
+            sortClearable={false}
             onSortChange={(next) => {
-              // Журнал всегда отсортирован по времени: третий клик не снимает сортировку.
-              setSort(next ?? { key: 'at', dir: 'asc' })
+              setSort(next)
               setPage(1)
             }}
             onRowClick={(e) => setOpenId(e.id)}

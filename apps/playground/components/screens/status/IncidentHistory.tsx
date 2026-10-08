@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge, Button, Card, CopyButton, EmptyState, KeyValueList, SegmentedControl, StatusPill } from 'endfield-vision'
+import { Badge, Button, Card, CopyButton, EmptyState, KeyValueList, SegmentedControl, StatusPill, Timeline } from 'endfield-vision'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { INCIDENT_SEVERITY, INCIDENT_STATE, serviceName, type StatusIncident } from '@/lib/demo/status'
@@ -116,20 +116,16 @@ function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusI
               },
             ]}
           />
-          <ol className={s.updates}>
-            {inc.updates.map((u) => (
-              <li key={u.id} className={s.update} data-state={u.state}>
-                <span className={s.updateDot} aria-hidden="true" />
-                <div className={s.updateBody}>
-                  <div className={s.updateMeta}>
-                    <span className="ev-num">{u.at}</span>
-                    <span>{INCIDENT_STATE[u.state].label}</span>
-                  </div>
-                  <div>{u.text}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <Timeline
+            aria-label={`Ход инцидента ${inc.id}`}
+            items={inc.updates.map((u) => ({
+              id: u.id,
+              tone: INCIDENT_STATE[u.state].tone,
+              title: INCIDENT_STATE[u.state].label,
+              time: u.at,
+              description: u.text,
+            }))}
+          />
           <div className={s.incidentFoot}>
             <CopyButton text={`https://status.endfield.example/incidents/${inc.id}`} label="Скопировать ссылку" />
           </div>

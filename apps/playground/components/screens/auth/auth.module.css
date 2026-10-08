@@ -69,24 +69,6 @@
   margin-top: var(--ev-space-2);
 }
 
-/* Кнопка-ссылка «Забыли пароль?». */
-.linkBtn {
-  padding: 0;
-  font-size: var(--ev-fs-xs);
-  color: var(--ev-accent-text);
-  border-radius: var(--ev-radius-xs);
-}
-
-.linkBtn:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.linkBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--ev-focus-ring);
-}
-
 .hint {
   display: flex;
   align-items: center;

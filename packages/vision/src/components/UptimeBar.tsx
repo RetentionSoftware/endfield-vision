@@ -79,7 +79,8 @@ export function UptimeBar({ days, height = 32, showLegend = false, showRange = f
 
   const first = visible[0]
   const last = visible[visible.length - 1]
-  const span = first && last ? (daysBetween(first.date, last.date) ?? visible.length - 1) : 0
+  // Как на статус-страницах: полоса из 90 дней подписана «90 дней назад» (охват включительно).
+  const span = first && last ? (daysBetween(first.date, last.date) ?? visible.length - 1) + 1 : 0
   const present = new Set(visible.map((d) => d.status))
   const legend = present.has('none') ? [...LEGEND, 'none' as const] : LEGEND
 
@@ -126,7 +127,7 @@ export function UptimeBar({ days, height = 32, showLegend = false, showRange = f
       </div>
       {showRange && visible.length > 0 ? (
         <div className="ev-uptime-range" aria-hidden="true">
-          <span>{span > 0 ? t.uptime.daysAgo(span) : null}</span>
+          <span>{span > 1 ? t.uptime.daysAgo(span) : null}</span>
           <span>{t.uptime.today}</span>
         </div>
       ) : null}

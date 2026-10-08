@@ -174,7 +174,7 @@ describe('UptimeBar', () => {
     expect(count(out, 'tabindex="-1"')).toBe(4)
     // Активный по умолчанию - последний день.
     expect(out).toMatch(/aria-label="05\.10\.2026: No data" tabindex="0"/)
-    expect(out).toContain('4 days ago')
+    expect(out).toContain('5 days ago')
     expect(out).toContain('Today')
     expect(out).toContain('Maintenance')
   })
@@ -183,7 +183,7 @@ describe('UptimeBar', () => {
     const out = renderRu(<UptimeBar days={DAYS} showRange />)
     expect(out).toContain('aria-label="Доступность за 5 дней"')
     expect(out).toContain('aria-label="03.10.2026: Сбой"')
-    expect(out).toContain('4 дня назад')
+    expect(out).toContain('5 дней назад')
     expect(out).toContain('Сегодня')
   })
 

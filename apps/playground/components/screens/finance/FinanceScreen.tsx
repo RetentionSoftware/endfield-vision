@@ -317,7 +317,7 @@ export function FinanceScreen() {
             icon={<TrendingUp size={16} />}
             delta={stats.revenueDelta}
             deltaLabel="к прошлому периоду"
-            trend={<Sparkline values={days.map((d) => d.revenue)} aria-label="Выручка по дням" />}
+            trend={<Sparkline values={days.map((d) => d.revenue)} width="auto" aria-label="Выручка по дням" />}
           />
           <StatTile
             label="Расходы"
@@ -327,7 +327,7 @@ export function FinanceScreen() {
             delta={stats.expensesDelta}
             positiveIsGood={false}
             deltaLabel="к прошлому периоду"
-            trend={<Sparkline values={days.map(dayExpenses)} color="var(--ev-warning)" aria-label="Расходы по дням" />}
+            trend={<Sparkline values={days.map(dayExpenses)} width="auto" color="var(--ev-warning)" aria-label="Расходы по дням" />}
           />
           <StatTile
             label="Маржа"
@@ -340,6 +340,7 @@ export function FinanceScreen() {
             trend={
               <Sparkline
                 values={days.map((d) => ((d.revenue - dayExpenses(d)) / d.revenue) * 100)}
+                width="auto"
                 color="var(--ev-success)"
                 aria-label="Маржа по дням"
               />
@@ -354,7 +355,7 @@ export function FinanceScreen() {
             positiveIsGood={false}
             deltaLabel="за неделю"
             hint={receivables.overdue > 0 ? `Просрочено: ${formatRub(receivables.overdue)}` : 'Просроченных счетов нет'}
-            trend={<Sparkline values={RECEIVABLES_TREND} color="var(--ev-danger)" aria-label="Задолженность за 8 недель" />}
+            trend={<Sparkline values={RECEIVABLES_TREND} width="auto" color="var(--ev-danger)" aria-label="Задолженность за 8 недель" />}
           />
         </div>
 
@@ -379,25 +380,17 @@ export function FinanceScreen() {
             <div className={s.budgets}>
               {BUDGETS.map((b) => {
                 const pct = Math.round((b.spent / b.limit) * 100)
-                const tone = pct > 100 ? 'danger' : pct >= 90 ? 'warning' : 'accent'
                 return (
                   <Progress
                     key={b.facilityId}
                     size="sm"
-                    tone={tone}
+                    tone={pct >= 90 ? 'warning' : 'accent'}
                     value={b.spent}
                     max={b.limit}
-                    label={
-                      <span className={s.budgetLabel}>
-                        {facilityName(b.facilityId)}
-                        {pct > 100 ? (
-                          <Badge tone="danger" size="sm">
-                            +{pct - 100}%
-                          </Badge>
-                        ) : null}
-                      </span>
+                    label={facilityName(b.facilityId)}
+                    showValue={(spent, limit) =>
+                      `${formatRubShort(spent)} из ${formatRubShort(limit)}${spent > limit ? ` (+${pct - 100}%)` : ''}`
                     }
-                    showValue={() => `${formatRubShort(b.spent)} из ${formatRubShort(b.limit)}`}
                   />
                 )
               })}

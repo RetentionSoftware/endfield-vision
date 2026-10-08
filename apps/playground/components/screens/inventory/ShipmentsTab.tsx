@@ -13,12 +13,14 @@ import {
   KeyValueList,
   Select,
   StatusPill,
+  Timeline,
   normalizeSearch,
   toast,
   type Column,
   type DateRange,
   type DateRangePreset,
   type SortState,
+  type Tone,
 } from 'endfield-vision'
 import { Check, FileText, PhoneCall } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -28,6 +30,7 @@ import {
   warehouseName,
   type Shipment,
   type ShipmentStatus,
+  type TimelineStep,
 } from '@/lib/demo/inventory'
 import { formatDate, formatNum, formatRub } from '@/lib/format'
 import s from './inventory.module.css'
@@ -43,9 +46,10 @@ const PRESETS: DateRangePreset[] = [
   { id: 'oct', label: 'Октябрь', range: () => ({ from: '2026-10-01', to: '2026-10-31' }) },
 ]
 
-const STEP_STATE = { done: 'выполнено', current: 'текущий шаг', pending: 'впереди', problem: 'проблема' } as const
+const STEP_STATE = { current: 'текущий шаг', problem: 'проблема' } as const
+const STEP_TONE: Record<TimelineStep['state'], Tone> = { done: 'success', current: 'accent', pending: 'neutral', problem: 'warning' }
 
-const STATUS_OPTIONS =(Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]).map((k) => ({ value: k, label: SHIPMENT_STATUS[k].label }))
+const STATUS_OPTIONS = (Object.keys(SHIPMENT_STATUS) as ShipmentStatus[]).map((k) => ({ value: k, label: SHIPMENT_STATUS[k].label }))
 
 interface ShipmentsTabProps {
   shipments: Shipment[]
@@ -110,20 +114,23 @@ export function ShipmentsTab({ shipments, onAccept }: ShipmentsTabProps) {
 
   return (
     <div className={s.tab}>
-      <FilterBar
-        search={{ value: query, onChange: setQuery, placeholder: 'Номер, поставщик, перевозчик' }}
-        activeCount={(range ? 1 : 0) + (status ? 1 : 0)}
-        onReset={() => {
-          setQuery('')
-          setRange(null)
-          setStatus(null)
-        }}
+      <Card
+        flush
+        toolbar={
+          <FilterBar
+            search={{ value: query, onChange: setQuery, placeholder: 'Номер, поставщик, перевозчик' }}
+            activeCount={(range ? 1 : 0) + (status ? 1 : 0)}
+            onReset={() => {
+              setQuery('')
+              setRange(null)
+              setStatus(null)
+            }}
+          >
+            <DateRangePicker aria-label="Период прибытия" value={range} onChange={setRange} presets={PRESETS} clearable placeholder="Любая дата прибытия" />
+            <Select aria-label="Статус поставки" width={200} placeholder="Все статусы" clearable value={status} onChange={setStatus} options={STATUS_OPTIONS} />
+          </FilterBar>
+        }
       >
-        <DateRangePicker aria-label="Период прибытия" value={range} onChange={setRange} presets={PRESETS} clearable placeholder="Любая дата прибытия" />
-        <Select aria-label="Статус поставки" width={200} placeholder="Все статусы" clearable value={status} onChange={setStatus} options={STATUS_OPTIONS} />
-      </FilterBar>
-
-      <Card flush>
         <DataTable
           aria-label="Поставки"
           columns={columns}
@@ -216,18 +223,25 @@ function ShipmentDetails({ shipment: sh }: { shipment: Shipment }) {
 
       <section className={s.timelineWrap}>
         <h3 className={s.sectionTitle}>Ход поставки</h3>
-        <ol className={s.timeline}>
-          {steps.map((st) => (
-            <li key={st.id} className={s.step} data-state={st.state}>
-              <span className={s.stepDot} aria-hidden="true" />
-              <span className={s.stepLabel}>
-                {st.label}
-                <span className="ev-visually-hidden">{`, ${STEP_STATE[st.state]}`}</span>
-              </span>
-              <span className={s.stepAt}>{st.at || 'ожидается'}</span>
-            </li>
-          ))}
-        </ol>
+        <Timeline
+          variant="compact"
+          aria-label={`Ход поставки ${sh.id}`}
+          items={steps.map((st) => ({
+            id: st.id,
+            tone: STEP_TONE[st.state],
+            pending: st.state === 'pending',
+            title:
+              st.state === 'current' || st.state === 'problem' ? (
+                <>
+                  {st.label}
+                  <span className="ev-visually-hidden">{`, ${STEP_STATE[st.state]}`}</span>
+                </>
+              ) : (
+                st.label
+              ),
+            time: st.at || 'ожидается',
+          }))}
+        />
       </section>
     </div>
   )

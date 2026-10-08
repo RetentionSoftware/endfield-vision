@@ -16,15 +16,8 @@ export const SERVICE_STATUS: Record<ServiceStatus, { label: string; tone: 'succe
 
 export type DayState = 'ok' | 'minor' | 'major' | 'maint'
 
-export const DAY_STATE: Record<DayState, string> = {
-  ok: 'без сбоев',
-  minor: 'частичный сбой',
-  major: 'серьёзный сбой',
-  maint: 'плановые работы',
-}
-
 export interface DayRecord {
-  /** ДД.ММ.ГГГГ */
+  /** ГГГГ-ММ-ДД */
   date: string
   state: DayState
   /** Минут простоя или деградации. */
@@ -46,9 +39,8 @@ export const STATUS_DAYS = 90
 const START = Date.UTC(2026, 6, 11) // 11.07.2026, последний день - 08.10.2026
 const DAY_MS = 86_400_000
 
-function dayLabel(i: number): string {
-  const d = new Date(START + i * DAY_MS)
-  return `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${d.getUTCFullYear()}`
+function dayIso(i: number): string {
+  return new Date(START + i * DAY_MS).toISOString().slice(0, 10)
 }
 
 /** Номер дня в окне 90 дней по дате ДД.ММ. */
@@ -100,7 +92,7 @@ function buildDays(s: ServiceSeed): DayRecord[] {
   const days: DayRecord[] = Array.from({ length: STATUS_DAYS }, (_, i) => {
     // Редкие короткие деградации - детерминированно по номеру дня и сервису.
     const blip = (i * 31 + s.seed * 17) % 89 === 0
-    return { date: dayLabel(i), state: blip ? 'minor' : 'ok', minutes: blip ? 6 + (s.seed % 9) : 0 }
+    return { date: dayIso(i), state: blip ? 'minor' : 'ok', minutes: blip ? 6 + (s.seed % 9) : 0 }
   })
   for (const [id, ddmm, state, minutes] of MARKS) {
     if (id !== s.id) continue

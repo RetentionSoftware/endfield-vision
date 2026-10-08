@@ -8,7 +8,6 @@ import {
   Card,
   CopyButton,
   EmptyState,
-  IconButton,
   normalizeSearch,
   PageHeader,
   SearchInput,
@@ -333,7 +332,7 @@ export function TeamScreen() {
             positiveIsGood={false}
             deltaLabel="за неделю"
             trend={
-              <Sparkline values={[61, 63, 62, 66, 64, 67, avgLoad]} aria-label="Средняя загрузка за неделю" />
+              <Sparkline values={[61, 63, 62, 66, 64, 67, avgLoad]} width="auto" aria-label="Средняя загрузка за неделю" />
             }
           />
         </div>
@@ -368,22 +367,15 @@ export function TeamScreen() {
               ]}
             />
             <span className="ev-spacer" />
-            <div className={s.viewToggle} role="group" aria-label="Вид списка">
-              <IconButton
-                label="Таблица"
-                icon={<Rows3 size={16} />}
-                pressed={view === 'table'}
-                variant={view === 'table' ? 'secondary' : 'ghost'}
-                onClick={() => setView('table')}
-              />
-              <IconButton
-                label="Карточки"
-                icon={<LayoutGrid size={16} />}
-                pressed={view === 'cards'}
-                variant={view === 'cards' ? 'secondary' : 'ghost'}
-                onClick={() => setView('cards')}
-              />
-            </div>
+            <SegmentedControl
+              aria-label="Вид списка"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: 'table', icon: <Rows3 size={16} />, 'aria-label': 'Таблица' },
+                { value: 'cards', icon: <LayoutGrid size={16} />, 'aria-label': 'Карточки' },
+              ]}
+            />
           </div>
 
           {view === 'table' ? (

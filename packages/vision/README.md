@@ -131,14 +131,15 @@ import { LocaleProvider } from 'endfield-vision'
 
 ## Компоненты
 
-- **Действия:** `Button` (`primary | secondary | ghost | danger | danger-ghost`, `sm | md | lg`, `loading`, `icon`, `iconRight`, `block`), `LinkButton`, `IconButton` (обязательный `label` = aria-label + подсказка), `Menu`, `Popover`.
-- **Формы:** `Field` (подпись, подсказка, ошибка; сам связывает `id`, `aria-invalid`, `aria-describedby`), `FormSection`, `Input`, `SearchInput`, `PasswordInput`, `Textarea` (`autoResize`), `NumberInput` (`min/max/step`, `decimals`, `unit`, `stepper`), `MoneyInput` (значение в копейках), `PhoneInput` (+7/+998/+992, E.164), `SnilsInput`, `PlateInput`, `DigitsInput`, `MaskedDigitsInput`, `ColorField`.
+- **Действия:** `Button` (`primary | secondary | ghost | danger | danger-ghost | link`, `sm | md | lg`, `loading`, `icon`, `iconRight`, `block`), `LinkButton`, `IconButton` (обязательный `label` = aria-label + подсказка), `Menu`, `Popover`.
+- **Формы:** `Field` (подпись, подсказка, ошибка; сам связывает `id`, `aria-invalid`, `aria-describedby`), `FormSection`, `Input`, `SearchInput`, `PasswordInput`, `Textarea` (`autoResize`), `NumberInput` (`min/max/step`, `decimals`, `unit`, `stepper`), `MoneyInput` (значение в копейках), `PhoneInput` (+7/+998/+992, E.164), `SnilsInput`, `PlateInput`, `DigitsInput`, `MaskedDigitsInput`, `TimeInput` (`ЧЧ:ММ`, `min/max`), `ColorField`.
 - **Выбор:** `Select` (поиск при > 7 опций, группы, `clearable`, серверный поиск `onSearch`), `MultiSelect`, `DateField` (`YYYY-MM-DD`), `DateRangePicker`, `Calendar`, `Checkbox` (`indeterminate`), `Switch`, `RadioGroup` (`variant="card"`), `SegmentedControl`, `Tabs` (кнопки или ссылки `href`), `TabPanel`.
-- **Данные:** `DataTable` (колонки конфигом, сортировка, выбор строк, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, на узком экране - карточки), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar`, `Progress`, `CopyButton`, `CopyValue`.
+- **Данные:** `DataTable` (колонки конфигом, сортировка, выбор строк, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, на узком экране - карточки), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar` (инициалы или фото), `Progress` (в том числе перерасход), `Timeline` (лента событий, будущие шаги, «показать ещё»), `UptimeBar` (доступность по дням с подсказками), `CopyButton`, `CopyValue`.
 - **Графики:** `BarChart` (рядом или `stacked`), `LineChart`, `AreaChart`, `Sparkline`. Подсказка по наведению и стрелками, легенда при 2+ сериях, скрытая таблица для скринридера.
 - **Состояния и окна:** `Callout`, `EmptyState`, `ErrorState`, `Skeleton`, `SkeletonText`, `Spinner`, `LoadingBlock`, `Modal`, `useModals()` (`open`, `confirm`, `alert`), `Drawer`, `toast.*` / `useToast()` (вызов и вне React), `FileDrop`.
 - **Каркас:** `AppShell`, `Topbar`, `Sidebar`, `SidebarSection`, `SidebarItem`, `SidebarCollapseButton`, `useAppShell()`, `PageHeader`, `Breadcrumbs`, `SectionTitle`, `Card`, `Panel`, `Divider`, `Kbd`.
-- **Тема:** `ThemeScript`, `themeBootstrap`, `useTheme`, `setTheme`, `setAccent`, `ACCENTS`.
+- **Язык:** `LocaleProvider`, `useMessages`, `useLocale`, `useNumberFormat`, словари `ru`, `en`.
+- **Тема:** `ThemeScript` (`nonce` для CSP), `themeBootstrap`, `useTheme`, `setTheme`, `setAccent`, `ACCENTS`.
 - **Утилиты:** `cx`, `normalizeSearch`, `formatPhone`, `isCompletePhone`, `normalizePlate`, `normalizeHexColor`, `useMediaQuery`, `useDebouncedValue`, `useControllable`, `LinkProvider`. Классы раскладки: `ev-stack`, `ev-row`, `ev-grid` (`--ev-gap`, `--ev-grid-min`), `ev-mono`, `ev-num`, `ev-muted`, `ev-truncate`, `ev-link`, `ev-visually-hidden`.
 
 ## Доработка под себя

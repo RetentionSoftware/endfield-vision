@@ -31,6 +31,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { formatNum, formatRub } from '@/lib/format'
 import { HelpersCard } from './HelpersCard'
 import { Subhead } from './parts'
+import { TimelineCard, UptimeCard } from './StatusCards'
 import s from './vision.module.css'
 
 type StockStatus = 'ok' | 'low' | 'out' | 'reserved'
@@ -47,6 +48,16 @@ interface StockItem {
   status: StockStatus
   keeper: string
 }
+
+/*
+ * «Фото» для Avatar: SVG, собранный в коде, как data URI - без внешних загрузок.
+ * Цвета здесь - содержимое картинки, а не стили экрана.
+ */
+const PHOTO = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2b3a55"/><circle cx="32" cy="25" r="12" fill="#c9d4e8"/><path d="M10 64c2-14 11-21 22-21s20 7 22 21z" fill="#c9d4e8"/></svg>',
+)}`
+/** Битый data URI: картинка не декодируется - Avatar показывает инициалы. */
+const BROKEN_PHOTO = 'data:image/png;base64,AAAA'
 
 const STOCK_STATUS: Record<StockStatus, { label: string; tone: Tone }> = {
   ok: { label: 'В наличии', tone: 'success' },
@@ -121,6 +132,7 @@ function TableCard() {
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   const [dense, setDense] = useState(false)
+  const [clearable, setClearable] = useState(true)
 
   const filtered = useMemo(() => {
     const needle = normalizeSearch(q)
@@ -151,63 +163,66 @@ function TableCard() {
   return (
     <Card
       title="DataTable, FilterBar и Pagination"
-      description="Список сущностей: поиск и фильтры над таблицей, сортировка, выбор строк, клик по строке, загрузка, ошибка и пустой результат. На узком экране строки становятся карточками."
+      description="Список сущностей: поиск и фильтры над таблицей (слот toolbar карточки), сортировка, выбор строк, клик по строке, загрузка, ошибка и пустой результат. sortClearable={false} - третий клик по заголовку не снимает сортировку. На узком экране строки становятся карточками."
       flush
-    >
-      <div className="ev-stack" style={{ padding: 'var(--ev-space-6) var(--ev-space-6) 0' }}>
-        <FilterBar
-          search={{ value: q, onChange: resetPage(setQ), placeholder: 'Название или артикул' }}
-          activeCount={(status ? 1 : 0) + (warehouse ? 1 : 0)}
-          onReset={() => {
-            setQ('')
-            setStatus(null)
-            setWarehouse(null)
-            setPage(1)
-          }}
-          actions={
-            <>
-              <Switch size="sm" checked={loading} onChange={setLoading} label="Загрузка" />
-              <Switch size="sm" checked={failed} onChange={setFailed} label="Ошибка" />
-              <Switch size="sm" checked={dense} onChange={setDense} label="Плотно" />
-            </>
-          }
-        >
-          <Select<StockStatus>
-            aria-label="Статус"
-            placeholder="Любой статус"
-            value={status}
-            onChange={resetPage(setStatus)}
-            clearable
-            options={(Object.keys(STOCK_STATUS) as StockStatus[]).map((k) => ({ value: k, label: STOCK_STATUS[k].label }))}
-          />
-          <Select
-            aria-label="Склад"
-            placeholder="Все склады"
-            value={warehouse}
-            onChange={resetPage(setWarehouse)}
-            clearable
-            options={WAREHOUSES.map((w) => ({ value: w, label: w }))}
-          />
-        </FilterBar>
-        {selected.length > 0 ? (
-          <Callout
-            tone="info"
-            icon={false}
+      toolbar={
+        <div className="ev-stack">
+          <FilterBar
+            search={{ value: q, onChange: resetPage(setQ), placeholder: 'Название или артикул' }}
+            activeCount={(status ? 1 : 0) + (warehouse ? 1 : 0)}
+            onReset={() => {
+              setQ('')
+              setStatus(null)
+              setWarehouse(null)
+              setPage(1)
+            }}
             actions={
               <>
-                <Button size="sm" variant="primary" icon={<Truck size={14} />} onClick={() => toast.success('Заявка на перемещение создана', { description: `Позиций: ${selected.length}` })}>
-                  Переместить
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
-                  Снять выбор
-                </Button>
+                <Switch size="sm" checked={loading} onChange={setLoading} label="Загрузка" />
+                <Switch size="sm" checked={failed} onChange={setFailed} label="Ошибка" />
+                <Switch size="sm" checked={dense} onChange={setDense} label="Плотно" />
+                <Switch size="sm" checked={clearable} onChange={setClearable} label="Снимать сортировку" />
               </>
             }
           >
-            Выбрано позиций: {selected.length}
-          </Callout>
-        ) : null}
-      </div>
+            <Select<StockStatus>
+              aria-label="Статус"
+              placeholder="Любой статус"
+              value={status}
+              onChange={resetPage(setStatus)}
+              clearable
+              options={(Object.keys(STOCK_STATUS) as StockStatus[]).map((k) => ({ value: k, label: STOCK_STATUS[k].label }))}
+            />
+            <Select
+              aria-label="Склад"
+              placeholder="Все склады"
+              value={warehouse}
+              onChange={resetPage(setWarehouse)}
+              clearable
+              options={WAREHOUSES.map((w) => ({ value: w, label: w }))}
+            />
+          </FilterBar>
+          {selected.length > 0 ? (
+            <Callout
+              tone="info"
+              icon={false}
+              actions={
+                <>
+                  <Button size="sm" variant="primary" icon={<Truck size={14} />} onClick={() => toast.success('Заявка на перемещение создана', { description: `Позиций: ${selected.length}` })}>
+                    Переместить
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
+                    Снять выбор
+                  </Button>
+                </>
+              }
+            >
+              Выбрано позиций: {selected.length}
+            </Callout>
+          ) : null}
+        </div>
+      }
+    >
       <DataTable
         aria-label="Складские позиции"
         columns={COLUMNS}
@@ -218,6 +233,7 @@ function TableCard() {
         onRetry={() => setFailed(false)}
         sort={sort}
         onSortChange={setSort}
+        sortClearable={clearable}
         selected={selected}
         onSelectedChange={setSelected}
         rowMuted={(r) => r.status === 'out'}
@@ -254,7 +270,7 @@ function BadgesCard() {
     { tone: 'violet', label: 'Проект' },
   ]
   return (
-    <Card title="Badge, StatusPill и Avatar" description="Badge - метка категории или счётчик; StatusPill - статус сущности: точка и подпись, цвет не единственный носитель смысла. Avatar - инициалы, тон по имени.">
+    <Card title="Badge, StatusPill и Avatar" description="Badge - метка категории или счётчик; StatusPill - статус сущности: точка и подпись, цвет не единственный носитель смысла. Avatar - фото (src) или инициалы, тон по имени.">
       <div className="ev-stack">
         <Subhead>Badge</Subhead>
         <div className={s.row}>
@@ -295,6 +311,11 @@ function BadgesCard() {
           ))}
           <Avatar name="admin" tone="neutral" />
         </div>
+        <div className={s.row}>
+          <Avatar name="Ирина Лебедева" src={PHOTO} alt="Ирина Лебедева" size={40} />
+          <Avatar name="Тимур Рахимов" src={BROKEN_PHOTO} size={40} />
+          <span className="ev-muted">src - фото; не загрузилось - инициалы. alt - подпись для скринридера, без неё аватар декоративный.</span>
+        </div>
       </div>
     </Card>
   )
@@ -324,13 +345,15 @@ function CopyCard() {
 
 function ProgressCard() {
   return (
-    <Card title="Progress" description="Заполненность, выполнение плана, ход загрузки. value=null - неопределённый прогресс, когда объём заранее неизвестен.">
+    <Card title="Progress" description="Заполненность, выполнение плана, ход загрузки. value=null - неопределённый прогресс, когда объём заранее неизвестен. value больше max - перерасход: полоса во всю ширину тоном overTone, значение - реальное.">
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
         <Progress value={68} label="План смены" showValue />
         <Progress value={92} tone="warning" label="Заполненность склада Хребет" showValue />
         <Progress value={3} max={4} tone="success" label="Чек-лист допуска" showValue={(v, max) => `${v} из ${max}`} />
         <Progress value={null} label="Синхронизация остатков" />
         <Progress value={40} size="sm" tone="danger" aria-label="Износ фильтра" />
+        <Progress value={118} label="Расход реагента к лимиту месяца" showValue />
+        <Progress value={13} max={12} tone="success" overTone="warning" label="Смен за месяц" showValue={(v, max) => `${v} из ${max}`} />
       </div>
     </Card>
   )
@@ -346,7 +369,7 @@ export function DataSection() {
           icon={<Boxes size={16} />}
           delta={4.2}
           deltaLabel="к прошлому месяцу"
-          trend={<Sparkline values={[3920, 3985, 4010, 4102, 4150, 4233, 4318]} aria-label="Позиции за 7 недель" />}
+          trend={<Sparkline width="auto" values={[3920, 3985, 4010, 4102, 4150, 4233, 4318]} aria-label="Позиции за 7 недель" />}
         />
         <StatTile label="Отгрузок в срок" value="96,4%" icon={<CircleCheck size={16} />} tone="success" delta={-1.1} deltaLabel="за неделю" />
         <StatTile label="Стоимость запасов" value={formatRub(1_284_500_000)} icon={<Wallet size={16} />} tone="violet" hint="По ценам последней закупки" />
@@ -355,6 +378,11 @@ export function DataSection() {
       </div>
 
       <TableCard />
+
+      <div className={`${s.grid} ${s.gridWide}`}>
+        <TimelineCard />
+        <UptimeCard />
+      </div>
 
       <div className={s.grid}>
         <Card title="KeyValueList" description="Карточка сущности: подпись слева, значение справа, подсказка под значением. Пустое значение - приглушённый дефис.">

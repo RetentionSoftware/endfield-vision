@@ -16,7 +16,7 @@ import {
 } from 'endfield-vision'
 import { Camera, RotateCcw, Save } from 'lucide-react'
 import { useState } from 'react'
-import { LANGUAGES, PROFILE, TIMEZONES, WORKSPACE_NAME, type Profile } from '@/lib/demo/settings'
+import { LANGUAGES, PROFILE, PROFILE_PHOTO, TIMEZONES, WORKSPACE_NAME, type Profile } from '@/lib/demo/settings'
 import s from './settings.module.css'
 
 type Errors = Partial<Record<keyof Profile, string>>
@@ -130,7 +130,7 @@ export function ProfileTab() {
       <Card title="Учётная запись">
         <div className="ev-stack">
           <div className={s.identity}>
-            <Avatar name={saved.name} size={64} />
+            <Avatar name={saved.name} size={64} src={PROFILE_PHOTO} />
             <div className={s.identityText}>
               <span className={s.identityName}>{saved.name}</span>
               <span className="ev-muted">{saved.position || 'Должность не указана'}</span>

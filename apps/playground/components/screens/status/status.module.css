@@ -63,8 +63,14 @@
 
 .serviceMeta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--ev-space-4);
+  gap: var(--ev-space-2) var(--ev-space-4);
+}
+
+.badDays {
+  font-size: var(--ev-fs-xs);
+  color: var(--ev-text-muted);
 }
 
 .uptime {
@@ -76,97 +82,6 @@
 
 .uptime[data-low] {
   color: var(--ev-warning);
-}
-
-/* Полоса 90 дней: один столбик - один день. */
-.bars {
-  display: grid;
-  grid-template-columns: repeat(90, minmax(0, 1fr));
-  gap: 2px;
-  height: 30px;
-}
-
-.bar {
-  border-radius: 2px;
-  background: var(--ev-success);
-  opacity: 0.85;
-  transition:
-    opacity var(--ev-dur-fast) var(--ev-ease),
-    transform var(--ev-dur-fast) var(--ev-ease);
-}
-
-.bar[data-state='minor'] {
-  background: var(--ev-warning);
-}
-
-.bar[data-state='major'] {
-  background: var(--ev-danger);
-}
-
-.bar[data-state='maint'] {
-  background: var(--ev-info);
-}
-
-.bars:hover .bar {
-  opacity: 0.55;
-}
-
-.bars:hover .bar[data-active] {
-  opacity: 1;
-  transform: scaleY(1.12);
-}
-
-.stripFoot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ev-space-3);
-  font-size: var(--ev-fs-xs);
-  color: var(--ev-text-muted);
-}
-
-.footShort {
-  display: none;
-}
-
-.readout {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--ev-text-secondary);
-}
-
-.readout[data-state='minor'] {
-  color: var(--ev-warning);
-}
-
-.readout[data-state='major'] {
-  color: var(--ev-danger);
-}
-
-.readout[data-state='maint'] {
-  color: var(--ev-info);
-}
-
-@media (max-width: 640px) {
-  .bars {
-    grid-template-columns: repeat(30, minmax(0, 1fr));
-  }
-
-  .bar:nth-child(-n + 60) {
-    display: none;
-  }
-
-  .footLong {
-    display: none;
-  }
-
-  .footShort {
-    display: inline;
-  }
 }
 
 .legend {
@@ -192,15 +107,15 @@
   background: var(--ev-success);
 }
 
-.legendItem[data-state='minor']::before {
+.legendItem[data-state='degraded']::before {
   background: var(--ev-warning);
 }
 
-.legendItem[data-state='major']::before {
+.legendItem[data-state='outage']::before {
   background: var(--ev-danger);
 }
 
-.legendItem[data-state='maint']::before {
+.legendItem[data-state='maintenance']::before {
   background: var(--ev-info);
 }
 
@@ -363,71 +278,6 @@
   gap: var(--ev-space-1);
 }
 
-.updates {
-  display: flex;
-  flex-direction: column;
-}
-
-.update {
-  position: relative;
-  display: flex;
-  gap: var(--ev-space-4);
-  padding-bottom: var(--ev-space-4);
-}
-
-.update::before {
-  content: '';
-  position: absolute;
-  top: 14px;
-  bottom: 0;
-  left: 4px;
-  width: 1px;
-  background: var(--ev-border);
-}
-
-.update:last-child {
-  padding-bottom: 0;
-}
-
-.update:last-child::before {
-  display: none;
-}
-
-.updateDot {
-  flex: 0 0 auto;
-  width: 9px;
-  height: 9px;
-  margin-top: 6px;
-  border-radius: var(--ev-radius-pill);
-  background: var(--ev-danger);
-}
-
-.update[data-state='identified'] .updateDot {
-  background: var(--ev-warning);
-}
-
-.update[data-state='monitoring'] .updateDot {
-  background: var(--ev-info);
-}
-
-.update[data-state='resolved'] .updateDot {
-  background: var(--ev-success);
-}
-
-.updateBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.updateMeta {
-  display: flex;
-  gap: var(--ev-space-3);
-  font-size: var(--ev-fs-xs);
-  color: var(--ev-text-muted);
-}
-
 .incidentFoot {
   display: flex;
   justify-content: flex-end;
@@ -444,8 +294,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ev-space-4);
-  width: min(360px, calc(100vw - 32px));
-  padding: var(--ev-space-5);
+  width: min(336px, calc(100vw - 16px - 2 * var(--ev-space-5)));
 }
 
 .subscribeHead {

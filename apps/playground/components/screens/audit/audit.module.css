@@ -4,10 +4,6 @@
   gap: var(--ev-space-5);
 }
 
-.filters {
-  margin-bottom: 0;
-}
-
 /* --- Ячейки таблицы --- */
 .actor {
   display: inline-flex;

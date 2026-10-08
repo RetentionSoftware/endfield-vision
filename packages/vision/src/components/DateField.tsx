@@ -128,7 +128,7 @@ export function DateField({
           className="ev-input-el ev-num"
           inputMode="numeric"
           autoComplete="off"
-          placeholder={placeholder}
+          placeholder={placeholder ?? t.date.placeholder}
           digits={digits}
           onDigits={onDigits}
           format={formatDateDigits}

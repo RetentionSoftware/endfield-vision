@@ -8,6 +8,7 @@ import { ChartsSection } from './ChartsSection'
 import { DataSection } from './DataSection'
 import { FeedbackSection } from './FeedbackSection'
 import { FormsSection } from './FormsSection'
+import { I18nSection } from './I18nSection'
 import { IntroSection } from './IntroSection'
 import { LayoutSection } from './LayoutSection'
 import { LIBRARY_VERSION, VISION_TAB_META, VISION_TABS, type VisionTab } from './parts'
@@ -44,6 +45,7 @@ export function VisionScreen() {
         {tab === 'intro' ? <IntroSection /> : null}
         {tab === 'tokens' ? <TokensSection /> : null}
         {tab === 'theme' ? <ThemeSection /> : null}
+        {tab === 'i18n' ? <I18nSection /> : null}
         {tab === 'actions' ? <ActionsSection /> : null}
         {tab === 'forms' ? <FormsSection /> : null}
         {tab === 'data' ? <DataSection /> : null}

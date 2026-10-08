@@ -15,6 +15,7 @@ import {
   TabPanel,
   Tabs,
   Textarea,
+  Timeline,
   toast,
 } from 'endfield-vision'
 import { FileDown, Phone, Play, Send, Wrench } from 'lucide-react'
@@ -194,20 +195,10 @@ function DrawerBody({ facility: f, profile }: { facility: Facility; profile: Fac
               toast.success('Запись добавлена в журнал')
             }}
           />
-          <ol className={s.journal}>
-            {journal.map((j) => (
-              <li key={j.id} className={s.journalItem} data-kind={j.kind}>
-                <span className={s.journalDot} aria-hidden="true" />
-                <div className={s.journalBody}>
-                  <div className={s.journalMeta}>
-                    <span className="ev-num">{j.at}</span>
-                    <span>{j.who}</span>
-                  </div>
-                  <div>{j.text}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <Timeline
+            aria-label="Журнал объекта"
+            items={journal.map((j) => ({ id: j.id, tone: j.kind, title: j.who, time: j.at, description: j.text }))}
+          />
         </TabPanel>
       ) : null}
     </div>

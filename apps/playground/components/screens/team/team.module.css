@@ -24,11 +24,6 @@
   max-width: 320px;
 }
 
-.viewToggle {
-  display: inline-flex;
-  gap: var(--ev-space-1);
-}
-
 @media (max-width: 720px) {
   .search {
     max-width: none;

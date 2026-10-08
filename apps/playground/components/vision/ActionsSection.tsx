@@ -9,6 +9,7 @@ import {
   LinkButton,
   Menu,
   Popover,
+  SegmentedControl,
   Select,
   Switch,
   TabPanel,
@@ -22,16 +23,20 @@ import {
   Archive,
   ArrowRight,
   Ban,
+  CalendarDays,
   ClipboardList,
   Copy,
   Download,
   Ellipsis,
   ExternalLink,
   Funnel,
+  LayoutGrid,
+  List,
   Pencil,
   Plus,
   RefreshCw,
   Send,
+  SquareKanban,
   Star,
   Trash2,
   Truck,
@@ -58,7 +63,7 @@ const SIZES: Array<{ size: ButtonSize; label: string }> = [
 function ButtonsCard() {
   const [loading, setLoading] = useState(false)
   return (
-    <Card title="Button и LinkButton" description="primary - одно главное действие на экране; secondary - остальные; ghost - второстепенные в тулбарах; danger - необратимые. LinkButton - переход, оформленный кнопкой.">
+    <Card title="Button и LinkButton" description="primary - одно главное действие на экране; secondary - остальные; ghost - второстепенные в тулбарах; danger - необратимые; link - действие внутри текста. LinkButton - переход, оформленный кнопкой.">
       <div className="ev-stack">
         <Subhead>Варианты</Subhead>
         <div className={s.row}>
@@ -88,6 +93,14 @@ function ButtonsCard() {
           </Button>
           <Button iconRight={<ArrowRight size={15} />}>Далее</Button>
         </div>
+        <Subhead>variant=&quot;link&quot;</Subhead>
+        <span className="ev-secondary">
+          Пропуск не сканируется?{' '}
+          <Button variant="link" onClick={() => toast.info('Код отправлен на почту')}>
+            Получить код вручную
+          </Button>
+          . Без фона и высоты контрола - для действий внутри текста.
+        </span>
         <Subhead>Ссылка-кнопка и кнопка на всю ширину</Subhead>
         <div className={s.row}>
           <LinkButton href="/tasks" icon={<ClipboardList size={15} />}>
@@ -142,6 +155,9 @@ function TooltipCard() {
         <Tooltip content="Подсказка справа" placement="right">
           <Button size="sm">Справа</Button>
         </Tooltip>
+        <Tooltip content="Подсказка слева" placement="left">
+          <Button size="sm">Слева</Button>
+        </Tooltip>
         <Tooltip content="Место выбирается по свободному пространству">
           <Button size="sm">Авто</Button>
         </Tooltip>
@@ -162,7 +178,7 @@ function MenuPopoverCard() {
   const [status, setStatus] = useState<string | null>(null)
   const [urgent, setUrgent] = useState(false)
   return (
-    <Card title="Menu и Popover" description="Menu - список действий над объектом: стрелки, Home/End, Enter, Escape с возвратом фокуса. Popover - произвольное содержимое: фильтры, мини-форма.">
+    <Card title="Menu и Popover" description="Menu - список действий над объектом: стрелки, Home/End, Enter, Escape с возвратом фокуса, переход по первым буквам подписи. Popover - произвольное содержимое: фильтры, мини-форма; padded - стандартный отступ.">
       <div className={s.row}>
         <Menu
           label="Действия с задачей"
@@ -188,9 +204,15 @@ function MenuPopoverCard() {
             { id: 'assignee', label: 'Исполнителю', checked: group === 'assignee', onSelect: () => setGroup('assignee') },
           ]}
         />
-        <Popover label="Фильтры задач" trigger={<Button icon={<Funnel size={14} />}>Фильтры</Button>}>
+        <Menu
+          label="Перевести на склад"
+          placement="bottom-start"
+          trigger={<Button variant="ghost">Перевести на склад</Button>}
+          items={WAREHOUSE_MENU.map((w) => ({ id: w, label: w, onSelect: () => toast.info('Перевод оформлен', { description: w }) }))}
+        />
+        <Popover padded label="Фильтры задач" trigger={<Button icon={<Funnel size={14} />}>Фильтры</Button>}>
           {({ close }) => (
-            <div className="ev-stack" style={{ padding: 'var(--ev-space-6)', width: 'min(320px, 100vw - 32px)' }}>
+            <div className="ev-stack" style={{ width: 'min(288px, 100vw - 64px)' }}>
               <Field label="Статус">
                 <Select
                   value={status}
@@ -223,6 +245,65 @@ function MenuPopoverCard() {
             </div>
           )}
         </Popover>
+      </div>
+      <p className={s.text} style={{ marginTop: 'var(--ev-space-5)' }}>
+        В меню «Перевести на склад» наберите <Kbd>Л</Kbd>: фокус перейдёт на «Лаборатория Сигма», повтор буквы - на «Логистический
+        узел». Несколько букв подряд (<Kbd>Д</Kbd> <Kbd>О</Kbd> <Kbd>Л</Kbd>) уточняют поиск; пауза 0,5 секунды сбрасывает набор.
+      </p>
+    </Card>
+  )
+}
+
+const WAREHOUSE_MENU = ['Долина-1', 'Долина-2', 'Застава', 'Лаборатория Сигма', 'Логистический узел', 'Хребет']
+
+function SegmentedCard() {
+  const [view, setView] = useState<'list' | 'grid' | 'board' | 'calendar'>('list')
+  const [period, setPeriod] = useState('w2')
+  return (
+    <Card title="SegmentedControl: иконки и прокрутка" description="Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области.">
+      <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+        <div className={s.row}>
+          <SegmentedControl
+            aria-label="Вид списка задач"
+            value={view}
+            onChange={setView}
+            options={[
+              { value: 'list', icon: <List size={16} />, 'aria-label': 'Список' },
+              { value: 'grid', icon: <LayoutGrid size={16} />, 'aria-label': 'Плитки' },
+              { value: 'board', icon: <SquareKanban size={16} />, 'aria-label': 'Доска' },
+              { value: 'calendar', icon: <CalendarDays size={16} />, 'aria-label': 'Календарь' },
+            ]}
+          />
+          <SegmentedControl
+            size="sm"
+            aria-label="Вид списка задач, компактно"
+            value={view}
+            onChange={setView}
+            options={[
+              { value: 'list', icon: <List size={14} />, 'aria-label': 'Список' },
+              { value: 'grid', icon: <LayoutGrid size={14} />, 'aria-label': 'Плитки' },
+              { value: 'board', icon: <SquareKanban size={14} />, 'aria-label': 'Доска' },
+              { value: 'calendar', icon: <CalendarDays size={14} />, 'aria-label': 'Календарь' },
+            ]}
+          />
+        </div>
+        <div className="ev-stack">
+          <Subhead>Узкий контейнер: 280px</Subhead>
+          <div style={{ maxWidth: 280 }}>
+            <SegmentedControl
+              aria-label="Период отчёта"
+              value={period}
+              onChange={setPeriod}
+              options={[
+                { value: 'd1', label: 'День' },
+                { value: 'w1', label: 'Неделя' },
+                { value: 'w2', label: 'Две недели' },
+                { value: 'm1', label: 'Месяц' },
+                { value: 'q1', label: 'Квартал' },
+              ]}
+            />
+          </div>
+        </div>
       </div>
     </Card>
   )
@@ -287,6 +368,9 @@ function KbdCard() {
           Закрыть окно: <Kbd>Esc</Kbd>
         </span>
         <span className="ev-secondary">
+          Пункт меню по первой букве: <Kbd>А</Kbd>-<Kbd>Я</Kbd>, <Kbd>A</Kbd>-<Kbd>Z</Kbd>
+        </span>
+        <span className="ev-secondary">
           Следующий месяц в календаре: <Kbd>PgDn</Kbd>, следующий год: <Kbd>Shift</Kbd> + <Kbd>PgDn</Kbd>
         </span>
       </div>
@@ -306,7 +390,10 @@ export function ActionsSection() {
       </div>
       <div className={`${s.grid} ${s.gridWide}`}>
         <MenuPopoverCard />
-        <KbdCard />
+        <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+          <SegmentedCard />
+          <KbdCard />
+        </div>
       </div>
       <TabsCard />
     </div>

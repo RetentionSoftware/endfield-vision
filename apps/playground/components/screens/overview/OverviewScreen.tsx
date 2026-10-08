@@ -171,7 +171,7 @@ export function OverviewScreen() {
             icon={<Factory size={16} />}
             delta={6.4}
             deltaLabel="к плану"
-            trend={<Sparkline values={DAYS.map((d) => d.fact)} aria-label="Выпуск за 14 дней" />}
+            trend={<Sparkline values={DAYS.map((d) => d.fact)} width="auto" aria-label="Выпуск за 14 дней" />}
           />
           <StatTile
             label="Энергопотребление"
@@ -181,7 +181,7 @@ export function OverviewScreen() {
             delta={3.1}
             positiveIsGood={false}
             deltaLabel="ко вчера"
-            trend={<Sparkline values={[2310, 2290, 2350, 2380, 2330, 2400, 2409]} color="var(--ev-warning)" aria-label="Энергия за неделю" />}
+            trend={<Sparkline values={[2310, 2290, 2350, 2380, 2330, 2400, 2409]} width="auto" color="var(--ev-warning)" aria-label="Энергия за неделю" />}
           />
           <StatTile label="Персонал на смене" value={formatNum(totals.staff)} icon={<Users size={16} />} tone="info" hint="Три смены, 8 объектов" />
           <StatTile
@@ -287,7 +287,7 @@ function FacilityStrip({ facilities }: { facilities: Facility[] }) {
             <StatusPill tone={FACILITY_STATUS[f.status].tone}>{FACILITY_STATUS[f.status].label}</StatusPill>
           </div>
           <div className={s.stripName}>{f.name}</div>
-          <Sparkline values={f.history} height={28} aria-label={`Выпуск: ${f.name}`} />
+          <Sparkline values={f.history} width="auto" height={28} aria-label={`Выпуск: ${f.name}`} />
         </div>
       ))}
     </div>

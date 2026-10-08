@@ -1,18 +1,23 @@
 'use client'
 
+import * as lib from 'endfield-vision'
 import { ACCENTS, Card, LinkButton, SectionTitle, StatTile } from 'endfield-vision'
-import { Accessibility, ArrowRight, Blocks, Component, Layers, Palette, SquareStack, SwatchBook } from 'lucide-react'
+import { Accessibility, ArrowRight, Blocks, Component, Languages, Layers, Palette, SquareStack, SwatchBook } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { CodeBlock, LIBRARY_VERSION, VISION_TAB_META, VISION_TABS } from './parts'
 import s from './vision.module.css'
 
 /*
- * Счётчики пакета на версию 0.1.0: компоненты - экспортируемые React-компоненты
- * из src/components, токены - уникальные переменные --ev-* в tokens.css и accents.css.
+ * Счётчики считаются по экспортам пакета: компоненты - экспорты-функции
+ * с именем в PascalCase (React-компоненты), хуки - функции use*. Токены из JS
+ * не видны: это число уникальных переменных --ev-* в tokens.css и accents.css.
  */
-const COMPONENTS_COUNT = 74
-const TOKENS_COUNT = 148
-const HOOKS_COUNT = 18
+const EXPORTS = Object.entries(lib as Record<string, unknown>)
+const isComponent = ([name, v]: [string, unknown]) =>
+  /^[A-Z][a-z]/.test(name) && (typeof v === 'function' || (typeof v === 'object' && v !== null && '$$typeof' in v))
+const COMPONENTS_COUNT = EXPORTS.filter(isComponent).length
+const HOOKS_COUNT = EXPORTS.filter(([name, v]) => /^use[A-Z]/.test(name) && typeof v === 'function').length
+const TOKENS_COUNT = 146
 
 const INSTALL = `npm i endfield-vision`
 
@@ -38,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 const PROVIDERS = `// app/providers.tsx
 'use client'
 
-import { LinkProvider, ModalsProvider, Toaster, type LinkComponent } from 'endfield-vision'
+import { LinkProvider, LocaleProvider, ModalsProvider, Toaster, type LinkComponent } from 'endfield-vision'
 import NextLink from 'next/link'
 
 // Ссылки библиотеки идут через next/link: клиентская навигация и basePath.
@@ -46,12 +51,15 @@ const AppLink: LinkComponent = ({ href, ...rest }) => <NextLink href={href} {...
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <LinkProvider component={AppLink}>
-      <ModalsProvider>
-        {children}
-        <Toaster />
-      </ModalsProvider>
-    </LinkProvider>
+    // Язык встроенных текстов; без провайдера - английский.
+    <LocaleProvider locale="ru">
+      <LinkProvider component={AppLink}>
+        <ModalsProvider>
+          {children}
+          <Toaster />
+        </ModalsProvider>
+      </LinkProvider>
+    </LocaleProvider>
   )
 }`
 
@@ -120,6 +128,16 @@ const PRINCIPLES: Array<{ icon: ReactNode; title: string; text: ReactNode }> = [
     ),
   },
   {
+    icon: <Languages size={18} />,
+    title: 'Два языка',
+    text: (
+      <>
+        Встроенные тексты - подписи, aria-label, пустые состояния, календарь - на русском и английском через{' '}
+        <code>LocaleProvider</code>. Любую строку можно переопределить, числа форматируются по правилам языка.
+      </>
+    ),
+  },
+  {
     icon: <Blocks size={18} />,
     title: 'Серверные компоненты',
     text: (
@@ -156,7 +174,7 @@ export function IntroSection() {
         <StatTile label="Компонентов" value={COMPONENTS_COUNT} icon={<Component size={16} />} hint="Формы, данные, окна, графики, каркас" />
         <StatTile label="Токенов" value={TOKENS_COUNT} icon={<SwatchBook size={16} />} tone="info" hint="Переменные --ev-* в двух темах" />
         <StatTile label="Пресетов акцента" value={ACCENTS.length} icon={<Palette size={16} />} tone="violet" hint={ACCENTS.join(', ')} />
-        <StatTile label="Хуков" value={HOOKS_COUNT} icon={<Blocks size={16} />} tone="success" hint="Тема, оверлеи, медиа-запросы, формы" />
+        <StatTile label="Хуков" value={HOOKS_COUNT} icon={<Blocks size={16} />} tone="success" hint="Тема, язык, оверлеи, медиа-запросы, формы" />
       </div>
 
       <div className={`${s.grid} ${s.gridWide}`}>
@@ -171,15 +189,15 @@ export function IntroSection() {
               <span className={s.stepTitle}>Стили и скрипт темы</span>
               <span className={s.text}>
                 <code>styles.css</code> подключается один раз. <code>ThemeScript</code> в <code>&lt;head&gt;</code> ставит{' '}
-                <code>data-theme</code> и <code>data-accent</code> до отрисовки.
+                <code>data-theme</code> и <code>data-accent</code> до отрисовки; при строгой CSP ему передаётся <code>nonce</code>.
               </span>
               <CodeBlock label="app/layout.tsx" code={ROOT_LAYOUT} />
             </li>
             <li className={s.step}>
               <span className={s.stepTitle}>Провайдеры</span>
               <span className={s.text}>
-                <code>LinkProvider</code> с next/link, <code>ModalsProvider</code> для <code>useModals()</code> и{' '}
-                <code>Toaster</code> для уведомлений.
+                <code>LocaleProvider</code> - язык встроенных текстов, <code>LinkProvider</code> с next/link,{' '}
+                <code>ModalsProvider</code> для <code>useModals()</code> и <code>Toaster</code> для уведомлений.
               </span>
               <CodeBlock label="app/providers.tsx" code={PROVIDERS} />
             </li>

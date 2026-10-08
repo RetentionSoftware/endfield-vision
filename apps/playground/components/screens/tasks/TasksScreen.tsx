@@ -288,40 +288,6 @@ export function TasksScreen() {
       </PageHeader>
 
       <div className={s.page}>
-        <FilterBar
-          className={s.filters}
-          search={{
-            value: q,
-            onChange: resetPage(setQ),
-            placeholder: 'Номер, название, объект, исполнитель',
-          }}
-          activeCount={activeFilters}
-          onReset={() => {
-            setQ('')
-            setPriority(null)
-            setFacilities([])
-            setPage(1)
-          }}
-        >
-          <Select
-            aria-label="Приоритет"
-            placeholder="Любой приоритет"
-            value={priority}
-            onChange={resetPage(setPriority)}
-            options={PRIORITY_OPTIONS}
-            clearable
-            searchable={false}
-          />
-          <MultiSelect
-            aria-label="Объекты"
-            placeholder="Все объекты"
-            value={facilities}
-            onChange={resetPage(setFacilities)}
-            options={FACILITY_OPTIONS}
-            dropdownMinWidth={280}
-          />
-        </FilterBar>
-
         {selected.length > 0 ? (
           <Callout
             tone="info"
@@ -364,7 +330,43 @@ export function TasksScreen() {
           </Callout>
         ) : null}
 
-        <Card flush>
+        <Card
+          flush
+          toolbar={
+            <FilterBar
+              search={{
+                value: q,
+                onChange: resetPage(setQ),
+                placeholder: 'Номер, название, объект, исполнитель',
+              }}
+              activeCount={activeFilters}
+              onReset={() => {
+                setQ('')
+                setPriority(null)
+                setFacilities([])
+                setPage(1)
+              }}
+            >
+              <Select
+                aria-label="Приоритет"
+                placeholder="Любой приоритет"
+                value={priority}
+                onChange={resetPage(setPriority)}
+                options={PRIORITY_OPTIONS}
+                clearable
+                searchable={false}
+              />
+              <MultiSelect
+                aria-label="Объекты"
+                placeholder="Все объекты"
+                value={facilities}
+                onChange={resetPage(setFacilities)}
+                options={FACILITY_OPTIONS}
+                dropdownMinWidth={280}
+              />
+            </FilterBar>
+          }
+        >
           <DataTable
             aria-label="Задачи"
             columns={TASK_COLUMNS}

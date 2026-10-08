@@ -264,23 +264,27 @@ export function FacilitiesScreen() {
               placeholder="Все регионы"
               options={REGIONS.map((r) => ({ value: r, label: r }))}
             />
-            <div className={s.segmentWrap}>
-              <SegmentedControl
-                aria-label="Статус объекта"
-                size="sm"
-                value={status}
-                onChange={setStatus}
-                options={[
-                  { value: 'all', label: 'Все', count: counts.all },
-                  ...STATUS_ORDER.map((k) => ({ value: k, label: FACILITY_STATUS[k].label, count: counts[k] })),
-                ]}
-              />
-            </div>
+            <SegmentedControl
+              aria-label="Статус объекта"
+              size="sm"
+              value={status}
+              onChange={setStatus}
+              options={[
+                { value: 'all', label: 'Все', count: counts.all },
+                ...STATUS_ORDER.map((k) => ({ value: k, label: FACILITY_STATUS[k].label, count: counts[k] })),
+              ]}
+            />
           </div>
-          <div className={s.viewToggle} role="group" aria-label="Вид списка">
-            <IconButton label="Карточки" icon={<LayoutGrid size={16} />} pressed={view === 'grid'} onClick={() => setView('grid')} />
-            <IconButton label="Таблица" icon={<List size={16} />} pressed={view === 'table'} onClick={() => setView('table')} />
-          </div>
+          <SegmentedControl
+            aria-label="Вид списка"
+            className={s.viewToggle}
+            value={view}
+            onChange={setView}
+            options={[
+              { value: 'grid', icon: <LayoutGrid size={16} />, 'aria-label': 'Карточки' },
+              { value: 'table', icon: <List size={16} />, 'aria-label': 'Таблица' },
+            ]}
+          />
         </div>
 
         <div className={s.summary}>
@@ -376,7 +380,7 @@ function FacilityCard({ facility: f, onOpen, menu }: { facility: Facility; onOpe
           </div>
           <Sparkline
             values={f.history}
-            width={132}
+            width="auto"
             height={34}
             color={f.status === 'offline' ? 'var(--ev-danger)' : f.status === 'degraded' ? 'var(--ev-warning)' : undefined}
             aria-label={`Выпуск за 14 дней: ${f.name}`}

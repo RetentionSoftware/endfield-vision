@@ -11,12 +11,6 @@
   gap: var(--ev-space-5);
 }
 
-.budgetLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ev-space-2);
-}
-
 /* --- Структура расходов --- */
 .structure {
   display: flex;

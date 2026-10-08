@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Callout, Card, Checkbox, Field, Input, Switch, toast } from 'endfield-vision'
+import { Button, Callout, Card, Checkbox, Field, Switch, TimeInput, toast } from 'endfield-vision'
 import { Moon, RotateCcw, Save } from 'lucide-react'
 import { useState } from 'react'
 import { CHANNELS, LOCKED_RULES, NOTIFICATION_GROUPS, type ChannelId } from '@/lib/demo/settings'
@@ -98,10 +98,10 @@ export function NotificationsTab() {
               <Switch checked={state.quiet.on} onChange={(v) => setQuiet({ on: v })} label="Включить тихие часы" />
               <div className={s.timeRow}>
                 <Field label="С" error={quietInvalid ? 'Интервал не задан' : undefined} disabled={!state.quiet.on}>
-                  <Input type="time" step={300} value={state.quiet.from} onChange={(e) => setQuiet({ from: e.target.value })} />
+                  <TimeInput value={state.quiet.from} onChange={(v) => setQuiet({ from: v })} />
                 </Field>
                 <Field label="До" disabled={!state.quiet.on}>
-                  <Input type="time" step={300} value={state.quiet.to} onChange={(e) => setQuiet({ to: e.target.value })} />
+                  <TimeInput value={state.quiet.to} onChange={(v) => setQuiet({ to: v })} />
                 </Field>
               </div>
               {state.quiet.on && !quietInvalid ? (

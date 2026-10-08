@@ -24,6 +24,27 @@ export const PROFILE: Profile = {
   language: 'ru',
 }
 
+/*
+ * Фото профиля для демо: SVG-портрет, собранный в коде (без внешних картинок).
+ * Картинка в <img> не видит CSS-переменные страницы, поэтому цвета - литералами
+ * внутри data URI. Не загрузилось - Avatar покажет инициалы.
+ */
+const PORTRAIT_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">',
+  '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">',
+  '<stop offset="0" stop-color="#3b5b7a"/><stop offset="1" stop-color="#1f3347"/>',
+  '</linearGradient></defs>',
+  '<rect width="64" height="64" fill="url(#bg)"/>',
+  '<path d="M18 30c0-10 6-17 14-17s14 7 14 17v12H18z" fill="#2a1d18"/>',
+  '<path d="M8 64c2-12 12-18 24-18s22 6 24 18z" fill="#c9d6e2"/>',
+  '<rect x="27" y="38" width="10" height="10" rx="4" fill="#e3b597"/>',
+  '<ellipse cx="32" cy="29" rx="10" ry="12" fill="#efc4a6"/>',
+  '<path d="M21 28c1-9 6-13 12-13 6 0 10 5 10 11-5-1-10-4-12-8-2 5-6 8-10 10z" fill="#2a1d18"/>',
+  '</svg>',
+].join('')
+
+export const PROFILE_PHOTO = `data:image/svg+xml,${encodeURIComponent(PORTRAIT_SVG)}`
+
 export const TIMEZONES = [
   { value: 'Europe/Kaliningrad', label: 'Калининград', hint: 'UTC+2' },
   { value: 'Europe/Moscow', label: 'Москва', hint: 'UTC+3' },

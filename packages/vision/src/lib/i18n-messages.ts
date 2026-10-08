@@ -457,9 +457,9 @@ export const en: Messages = {
 
 export const MESSAGES: Record<Locale, Messages> = { ru, en }
 
-/** Частичное переопределение словаря: любые ветки и строки. */
+/** Частичное переопределение словаря: любые ветки и строки (язык задаётся только через locale). */
 export type MessagesOverride = {
-  [K in keyof Messages]?: Messages[K] extends readonly unknown[] | string | ((...args: never[]) => unknown)
+  [K in Exclude<keyof Messages, 'locale'>]?: Messages[K] extends readonly unknown[] | string | ((...args: never[]) => unknown)
     ? Messages[K]
     : Messages[K] extends object
       ? Partial<Messages[K]>
@@ -472,6 +472,7 @@ export function resolveMessages(locale: Locale, override?: MessagesOverride): Me
   if (!override) return base
   const out: Record<string, unknown> = { ...base }
   for (const [k, v] of Object.entries(override)) {
+    if (k === 'locale') continue
     const b = (base as unknown as Record<string, unknown>)[k]
     out[k] =
       v && typeof v === 'object' && !Array.isArray(v) && b && typeof b === 'object' && !Array.isArray(b)

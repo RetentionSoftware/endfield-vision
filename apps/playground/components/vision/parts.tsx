@@ -4,6 +4,7 @@ import { CopyButton } from 'endfield-vision'
 import {
   ChartColumn,
   BookOpen,
+  Languages,
   LayoutTemplate,
   MessageSquareWarning,
   MousePointerClick,
@@ -20,16 +21,17 @@ import s from './vision.module.css'
 /* Вкладки витрины                                                     */
 /* ------------------------------------------------------------------ */
 
-export const VISION_TABS = ['intro', 'tokens', 'theme', 'actions', 'forms', 'data', 'feedback', 'charts', 'layout'] as const
+export const VISION_TABS = ['intro', 'tokens', 'theme', 'i18n', 'actions', 'forms', 'data', 'feedback', 'charts', 'layout'] as const
 export type VisionTab = (typeof VISION_TABS)[number]
 
 export const VISION_TAB_META: Record<VisionTab, { label: string; description: string; icon: LucideIcon }> = {
   intro: { label: 'Обзор', description: 'Что такое библиотека, установка и принципы.', icon: BookOpen },
   tokens: { label: 'Токены', description: 'Цвета, типографика, отступы, радиусы, тени, слои и движение.', icon: SwatchBook },
   theme: { label: 'Тема и акценты', description: 'Тёмная и светлая тема, пресеты акцента, свой акцент и каскадные слои.', icon: Palette },
-  actions: { label: 'Кнопки и меню', description: 'Кнопки, подсказки, меню, поповер, вкладки и клавиши.', icon: MousePointerClick },
-  forms: { label: 'Формы', description: 'Поля, маски, списки, даты, календарь, переключатели и загрузка файлов.', icon: TextCursorInput },
-  data: { label: 'Данные', description: 'Таблица с фильтрами, показатели, бейджи, статусы, прогресс и копирование.', icon: Table2 },
+  i18n: { label: 'Языки', description: 'LocaleProvider, встроенные тексты на русском и английском, свои формулировки.', icon: Languages },
+  actions: { label: 'Кнопки и меню', description: 'Кнопки, ссылки, подсказки, меню, поповер, переключатели, вкладки и клавиши.', icon: MousePointerClick },
+  forms: { label: 'Формы', description: 'Поля, маски, время, списки, даты, календарь, переключатели и загрузка файлов.', icon: TextCursorInput },
+  data: { label: 'Данные', description: 'Таблица с фильтрами, показатели, лента событий, доступность, бейджи, прогресс и копирование.', icon: Table2 },
   feedback: { label: 'Состояния и окна', description: 'Плашки, уведомления, окна, шторки, пустые состояния и загрузка.', icon: MessageSquareWarning },
   charts: { label: 'Графики', description: 'Столбцы, линии, области, стопки и мини-графики на токенах палитры.', icon: ChartColumn },
   layout: { label: 'Каркас', description: 'AppShell, шапка страницы, карточки, панели и утилиты раскладки.', icon: LayoutTemplate },

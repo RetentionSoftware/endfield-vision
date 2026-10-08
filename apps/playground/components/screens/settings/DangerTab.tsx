@@ -65,8 +65,6 @@ export function DangerTab() {
         variant: 'danger',
         icon: <Trash2 size={15} />,
         disabled: !ok,
-        // Кнопка с autoFocus показывает спиннер при setBusy; фокус остаётся в поле ввода, пока кнопка недоступна.
-        autoFocus: true,
         onClick: async ({ setBusy, close }) => {
           setBusy(true)
           await wait(1200)

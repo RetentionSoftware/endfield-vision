@@ -51,6 +51,23 @@ export function AppearancePicker() {
 const SCRIPT = `// Скрипт для <head>: тема по умолчанию - по ОС, акцент - изумруд
 <ThemeScript defaultTheme="system" defaultAccent="emerald" />`
 
+const NONCE = `// app/layout.tsx - строгая CSP (script-src 'nonce-...')
+import { headers } from 'next/headers'
+import { ThemeScript } from 'endfield-vision'
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // nonce кладёт в заголовок middleware, которое формирует Content-Security-Policy
+  const nonce = (await headers()).get('x-nonce') ?? undefined
+  return (
+    <html lang="ru" suppressHydrationWarning>
+      <head>
+        <ThemeScript nonce={nonce} />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}`
+
 const CUSTOM_ACCENT = `/* app/globals.css - стили приложения вне слоёв сильнее ev.tokens */
 :root {
   --ev-accent-rgb: 255, 122, 41;        /* ссылки, фокус, мягкие фоны */
@@ -192,9 +209,11 @@ export function ThemeSection() {
             <CodeBlock label="AppearancePicker.tsx" code={RUNTIME} />
             <CodeBlock label="app/layout.tsx" code={SCRIPT} />
             <p className={s.text}>
-              <code>ThemeScript</code> вставляет строку из <code>themeBootstrap()</code> - её можно отдать и в свой CSP-совместимый
-              скрипт. Длина для настроек по умолчанию - {themeBootstrap().length} символов.
+              <code>ThemeScript</code> вставляет строку из <code>themeBootstrap()</code> - её можно отдать и в свой скрипт. Длина для
+              настроек по умолчанию - {themeBootstrap().length} символов. При строгой CSP передайте <code>nonce</code> - тот же, что у
+              остальных скриптов страницы.
             </p>
+            <CodeBlock label="app/layout.tsx со строгой CSP" code={NONCE} />
           </div>
         </Card>
 

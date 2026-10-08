@@ -108,7 +108,6 @@ export function SecurityTab() {
           {
             label: 'Подключить',
             variant: 'primary',
-            autoFocus: true,
             onClick: async ({ setBusy, close }) => {
               setBusy(true)
               await wait(700)

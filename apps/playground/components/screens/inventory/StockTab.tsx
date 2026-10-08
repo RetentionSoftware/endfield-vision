@@ -210,35 +210,6 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
 
   return (
     <div className={s.tab}>
-      <FilterBar
-        search={{ value: query, onChange: withReset(setQuery), placeholder: 'Название или артикул' }}
-        activeCount={(categories.length > 0 ? 1 : 0) + (warehouse ? 1 : 0)}
-        onReset={reset}
-        actions={
-          <Button icon={<Download size={15} />} onClick={() => toast.success('Остатки выгружены', { description: `stock-2026-10-08.xlsx, ${filtered.length} строк` })}>
-            Выгрузить
-          </Button>
-        }
-      >
-        <MultiSelect
-          aria-label="Категории"
-          width={220}
-          placeholder="Все категории"
-          value={categories}
-          onChange={withReset(setCategories)}
-          options={CATEGORY_OPTIONS}
-        />
-        <Select
-          aria-label="Склад"
-          width={220}
-          placeholder="Все склады"
-          clearable
-          value={warehouse}
-          onChange={withReset(setWarehouse)}
-          options={WAREHOUSE_OPTIONS}
-        />
-      </FilterBar>
-
       {selected.length > 0 ? (
         <Callout
           tone="info"
@@ -264,7 +235,39 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
         </Callout>
       ) : null}
 
-      <Card flush>
+      <Card
+        flush
+        toolbar={
+          <FilterBar
+            search={{ value: query, onChange: withReset(setQuery), placeholder: 'Название или артикул' }}
+            activeCount={(categories.length > 0 ? 1 : 0) + (warehouse ? 1 : 0)}
+            onReset={reset}
+            actions={
+              <Button icon={<Download size={15} />} onClick={() => toast.success('Остатки выгружены', { description: `stock-2026-10-08.xlsx, ${filtered.length} строк` })}>
+                Выгрузить
+              </Button>
+            }
+          >
+            <MultiSelect
+              aria-label="Категории"
+              width={220}
+              placeholder="Все категории"
+              value={categories}
+              onChange={withReset(setCategories)}
+              options={CATEGORY_OPTIONS}
+            />
+            <Select
+              aria-label="Склад"
+              width={220}
+              placeholder="Все склады"
+              clearable
+              value={warehouse}
+              onChange={withReset(setWarehouse)}
+              options={WAREHOUSE_OPTIONS}
+            />
+          </FilterBar>
+        }
+      >
         <DataTable
           aria-label="Остатки на складах"
           columns={columns}
