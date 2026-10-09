@@ -4,6 +4,9 @@ import { TriangleAlert, CircleCheck, Info, OctagonAlert } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
 import { cx, EMPTY_VALUE } from '../lib/cx'
 import { useMessages } from '../lib/i18n'
+import { useCountUp, useEntranceMotion } from '../lib/motion'
+import { countUpText, roundLike } from '../lib/motion-values'
+import { AnimatedText } from './AnimatedNumber'
 
 /*
  * Простые компоненты отображения без состояния: бейджи, карточки,
@@ -290,6 +293,11 @@ export interface StatTileProps {
   loading?: boolean
   /** Мини-график под значением. */
   trend?: ReactNode
+  /**
+   * Набор числа при появлении (по умолчанию - из MotionProvider). Число ищется
+   * в строке значения («12 845 000 ₽», «96,4%»), формат сохраняется.
+   */
+  animate?: boolean
   className?: string
 }
 
@@ -306,6 +314,7 @@ export function StatTile({
   tone = 'accent',
   loading = false,
   trend,
+  animate,
   className,
 }: StatTileProps) {
   const { intl } = useMessages()
@@ -322,7 +331,7 @@ export function StatTile({
         ) : null}
         <span className="ev-stat-label">{label}</span>
       </div>
-      <div className="ev-stat-value ev-num">{loading ? <Skeleton width={96} height={26} /> : value}</div>
+      <div className="ev-stat-value ev-num">{loading ? <Skeleton width={96} height={26} /> : <AnimatedText animate={animate}>{value}</AnimatedText>}</div>
       {!loading && delta !== undefined && delta !== null ? (
         <div className="ev-stat-delta" data-good={good === null ? undefined : good ? 'true' : 'false'}>
           <span className="ev-num">
@@ -350,6 +359,13 @@ export interface ProgressProps {
   label?: ReactNode
   /** Значение справа над полосой: true - проценты, функция - свой формат (получает реальное значение, в том числе больше max). */
   showValue?: boolean | ((value: number, max: number) => ReactNode)
+  /**
+   * Анимация появления (по умолчанию - из MotionProvider): полоса растёт от
+   * нуля, значение набирается. На неопределённый прогресс не влияет.
+   */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   /** Подпись для скринридера, если видимой подписи нет. */
   'aria-label'?: string
   className?: string
@@ -364,22 +380,43 @@ export function Progress({
   size = 'md',
   label,
   showValue = false,
+  animate,
+  animationDuration,
   className,
   ...aria
 }: ProgressProps) {
   const labelId = useId()
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const motion = useEntranceMotion(rootRef, animate, { duration: animationDuration })
   const clamped = value === null ? null : Math.min(Math.max(value, 0), max)
   const pct = clamped === null || max <= 0 ? 0 : (clamped / max) * 100
   const over = value !== null && max > 0 && value > max
   const realPct = over ? (value / max) * 100 : pct
+  // Значение для подписи: реальное (в том числе больше max). Набирается при появлении и при обновлении.
+  const target = value === null ? 0 : over ? value : (clamped ?? 0)
+  const current = useCountUp(target, motion.phase, motion.duration)
+  // Полосу при появлении растит CSS (data-ev-motion), неопределённый прогресс не трогаем.
+  const motionAttr = value === null ? undefined : motion.attr
+  const formatShown = (v: number): ReactNode =>
+    typeof showValue === 'function' ? showValue(v, max) : `${Math.round(max > 0 ? (v / max) * 100 : 0)}%`
   const shown =
     value === null || !showValue
       ? null
-      : typeof showValue === 'function'
-        ? showValue(over ? value : (clamped ?? 0), max)
-        : `${Math.round(realPct)}%`
+      : countUpText(
+          motionAttr !== undefined,
+          motionAttr !== undefined ? formatShown(roundLike(current, target)) : null,
+          typeof showValue === 'function' ? showValue(target, max) : `${Math.round(realPct)}%`,
+        )
   return (
-    <div className={cx('ev-progress', className)} data-tone={over ? overTone : tone} data-size={size} data-over={over || undefined}>
+    <div
+      ref={rootRef}
+      className={cx('ev-progress', className)}
+      data-tone={over ? overTone : tone}
+      data-size={size}
+      data-over={over || undefined}
+      data-ev-motion={motionAttr}
+      style={motionAttr ? ({ '--ev-motion-dur': `${motion.duration}ms` } as CSSProperties) : undefined}
+    >
       {label || shown !== null ? (
         <div className="ev-progress-head">
           {label ? (

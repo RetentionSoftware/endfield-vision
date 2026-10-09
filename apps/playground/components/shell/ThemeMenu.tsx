@@ -1,8 +1,9 @@
 'use client'
 
 import { ACCENTS, IconButton, Menu, useTheme, type Accent, type ThemePreference } from 'endfield-vision'
-import { Monitor, Moon, Palette, Sun } from 'lucide-react'
+import { Monitor, Moon, Palette, Sparkles, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { setMotionPref, useMotionPref } from '@/lib/motion-pref'
 
 export const ACCENT_LABELS: Record<Accent, string> = {
   indigo: 'Индиго',
@@ -27,6 +28,7 @@ export function AccentDot({ accent }: { accent: Accent }) {
 /** Тема и акцент в шапке. */
 export function ThemeMenu() {
   const { theme, preference, accent, setTheme, setAccent } = useTheme()
+  const motion = useMotionPref()
   return (
     <Menu
       label="Оформление"
@@ -52,6 +54,14 @@ export function ThemeMenu() {
           onSelect: () => setAccent(a),
         })),
         { type: 'separator' as const, id: 's2' },
+        {
+          id: 'motion',
+          label: 'Анимация появления',
+          hint: 'числа и графики',
+          icon: <Sparkles size={15} />,
+          checked: motion,
+          onSelect: () => setMotionPref(!motion),
+        },
         { id: 'more', label: 'Все настройки оформления', icon: <Palette size={15} />, href: '/settings?tab=appearance' },
       ]}
     />

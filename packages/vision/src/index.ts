@@ -244,3 +244,21 @@ export { Chip, ChipGroup, type ChipProps, type ChipGroupProps } from './componen
 export { TagInput, type TagInputProps } from './components/TagInput'
 export { OtpInput, type OtpInputProps, type OtpMode } from './components/OtpInput'
 export { InlineEdit, type InlineEditProps } from './components/InlineEdit'
+
+// --- Анимация появления
+export {
+  easeOutCubic,
+  formatNumericText,
+  MotionProvider,
+  parseNumericText,
+  useCountUp,
+  useEntranceMotion,
+  useMotionProgress,
+  useMotionSettings,
+  useReducedMotion,
+  type EntranceMotion,
+  type MotionPhase,
+  type MotionSettings,
+  type NumericText,
+} from './lib/motion'
+export { AnimatedNumber, AnimatedText, type AnimatedNumberProps } from './components/AnimatedNumber'

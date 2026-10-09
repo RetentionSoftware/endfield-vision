@@ -1084,6 +1084,26 @@
     animation: ev-progress-run 1.4s var(--ev-ease) infinite;
   }
 
+  /*
+   * Появление: до попадания в область видимости анимация стоит на первом кадре
+   * (пустая полоса), затем идёт. Ширина из style при этом не меняется, поэтому
+   * переход width не срабатывает и не перебивает анимацию.
+   */
+  .ev-progress[data-ev-motion] .ev-progress-track:not([data-indeterminate]) .ev-progress-bar {
+    animation: ev-progress-fill var(--ev-motion-dur, 900ms) var(--ev-ease-out) backwards;
+  }
+
+  .ev-progress[data-ev-motion='idle'] .ev-progress-track:not([data-indeterminate]) .ev-progress-bar {
+    animation-play-state: paused;
+  }
+
+  /* Без конечного кадра: полоса идёт до ширины из style. */
+  @keyframes ev-progress-fill {
+    from {
+      width: 0;
+    }
+  }
+
   @keyframes ev-progress-run {
     from {
       transform: translateX(-100%);
@@ -1341,6 +1361,25 @@
 
   .ev-uptime-day:focus-visible {
     box-shadow: var(--ev-focus-ring);
+  }
+
+  /* Появление: сегменты поднимаются слева направо со сдвигом --ev-i * --ev-motion-step. */
+  /* Как у Progress: в 'idle' анимация стоит на первом кадре, переход opacity не срабатывает. */
+  .ev-uptime[data-ev-motion] .ev-uptime-day {
+    transform-origin: 50% 100%;
+    animation: ev-uptime-rise var(--ev-motion-dur, 400ms) var(--ev-ease-out) backwards;
+    animation-delay: calc(var(--ev-i, 0) * var(--ev-motion-step, 0ms));
+  }
+
+  .ev-uptime[data-ev-motion='idle'] .ev-uptime-day {
+    animation-play-state: paused;
+  }
+
+  @keyframes ev-uptime-rise {
+    from {
+      opacity: 0;
+      transform: scaleY(0.2);
+    }
   }
 
   .ev-uptime-swatch {

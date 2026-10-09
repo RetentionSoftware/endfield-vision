@@ -354,6 +354,11 @@
       stroke-dasharray var(--ev-dur-slow) var(--ev-ease-out);
   }
 
+  /* Появление: кадры считает JS, CSS-переход только запаздывал бы за ними. */
+  .ev-ring[data-ev-drawing] .ev-ring-bar {
+    transition: none;
+  }
+
   .ev-ring-bar[data-cap='butt'] {
     stroke-linecap: butt;
   }
@@ -410,6 +415,10 @@
     fill: none;
     stroke: var(--ev-tone);
     transition: stroke-dasharray var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-gauge[data-ev-drawing] .ev-gauge-bar {
+    transition: none;
   }
 
   .ev-gauge[data-tone='accent'] .ev-gauge-bar {

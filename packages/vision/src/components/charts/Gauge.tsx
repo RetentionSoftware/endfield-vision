@@ -1,8 +1,10 @@
 'use client'
 
-import { type CSSProperties, type ReactNode } from 'react'
+import { useRef, type CSSProperties, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { useNumberFormat } from '../../lib/i18n'
+import { useCountUp, useEntranceMotion, useMotionProgress } from '../../lib/motion'
+import { countUpText, roundLike } from '../../lib/motion-values'
 import type { Tone } from '../Display'
 import { toneColor } from '../RingProgress'
 
@@ -12,6 +14,8 @@ import { toneColor } from '../RingProgress'
  * попало; зоны - тонкая дуга снаружи. Доступность - role="meter".
  * Дуги рисуются штрихом с pathLength=100: заполнение анимируется через
  * stroke-dasharray (при prefers-reduced-motion переход гасит базовый слой).
+ * Анимация появления (animate): дуга заполняется от min до значения, число
+ * в центре набирается от min; зоны видны сразу. aria-значения - всегда итоговые.
  */
 
 export interface GaugeThreshold {
@@ -77,6 +81,10 @@ export interface GaugeProps {
   caption?: ReactNode
   /** Подписи min и max под краями дуги. */
   showRange?: boolean
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   'aria-label': string
   className?: string
 }
@@ -95,17 +103,28 @@ export function Gauge({
   format: formatProp,
   caption,
   showRange = true,
+  animate,
+  animationDuration,
   className,
   'aria-label': ariaLabel,
 }: GaugeProps) {
   const fmt = useNumberFormat()
   const format = formatProp ?? ((v: number) => fmt(v))
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const motion = useEntranceMotion(rootRef, animate, { duration: animationDuration })
+  // Дуга - только при появлении (дальше изменения ведёт CSS-переход), число - и при обновлении.
+  const progress = useMotionProgress(motion.phase, motion.duration)
+  const finite = Number.isFinite(value)
+  // Набор от min: в стартовом кадре useCountUp даёт 0, то есть ровно min.
+  const shownOffset = useCountUp(finite ? value - min : 0, motion.phase, motion.duration)
+  const counting = motion.phase !== 'static' && finite
+  const drawing = motion.phase !== 'static' && progress < 1
   const stroke = Math.max(4, thickness ?? Math.round(size * 0.08))
   const c = size / 2
   const rBand = c - BAND_W / 2 - 1
   const r = rBand - BAND_W / 2 - BAND_GAP - stroke / 2
   const arc = (radius: number) => `M${c - radius},${c}A${radius},${radius} 0 0 1 ${c + radius},${c}`
-  const frac = gaugeFraction(value, min, max)
+  const frac = gaugeFraction(value, min, max) * progress
   const valueTone = gaugeTone(value, thresholds, tone)
   const bands = thresholds.length > 0 ? gaugeBands(thresholds, min, max, tone) : []
   const height = c + stroke / 2 + 1
@@ -113,6 +132,7 @@ export function Gauge({
 
   return (
     <div
+      ref={rootRef}
       className={cx('ev-gauge', className)}
       role="meter"
       aria-label={ariaLabel}
@@ -121,6 +141,8 @@ export function Gauge({
       aria-valuenow={Number.isFinite(clamped) ? clamped : undefined}
       aria-valuetext={format(value)}
       data-tone={valueTone}
+      data-ev-motion={motion.attr}
+      data-ev-drawing={drawing || undefined}
       style={{ width: size, '--ev-gauge-inset': `${c - r - stroke / 2}px` } as CSSProperties}
     >
       <div className="ev-gauge-figure" style={{ height }}>
@@ -148,7 +170,7 @@ export function Gauge({
           />
         </svg>
         <div className="ev-gauge-center">
-          <span className="ev-gauge-value ev-num">{format(value)}</span>
+          <span className="ev-gauge-value ev-num">{countUpText(counting, format(roundLike(min + shownOffset, value)), format(value))}</span>
           {caption ? <span className="ev-gauge-caption">{caption}</span> : null}
         </div>
       </div>

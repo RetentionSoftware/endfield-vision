@@ -1,6 +1,17 @@
 'use client'
 
-import { Badge, CopyValue, PageHeader, TabPanel, Tabs, type TabItem } from 'endfield-vision'
+import {
+  Badge,
+  Button,
+  CopyValue,
+  PageHeader,
+  TabPanel,
+  Tabs,
+  useMotionSettings,
+  type TabItem,
+} from 'endfield-vision'
+import { RotateCcw } from 'lucide-react'
+import { useState } from 'react'
 import { crumbs } from '@/lib/nav'
 import { useUrlTab } from '@/lib/use-url-state'
 import { ActionsSection } from './ActionsSection'
@@ -29,6 +40,10 @@ const ID_BASE = 'vision'
 /** ENDFIELD Vision: живая витрина всех элементов библиотеки. Вкладка - в адресе (?tab=). */
 export function VisionScreen() {
   const [tab, setTab] = useUrlTab<VisionTab>(VISION_TABS, 'intro')
+  // Перезапуск анимации появления: новый ключ пересоздаёт содержимое вкладки.
+  const [replay, setReplay] = useState(0)
+  const { animate } = useMotionSettings()
+  const animatedTab = tab === 'data' || tab === 'charts'
   return (
     <>
       <PageHeader
@@ -46,28 +61,40 @@ export function VisionScreen() {
         <Tabs aria-label="Разделы витрины" idBase={ID_BASE} value={tab} onChange={setTab} items={TAB_ITEMS} />
       </PageHeader>
       <TabPanel idBase={ID_BASE} value={tab}>
-        {tab === 'intro' ? <IntroSection /> : null}
-        {tab === 'tokens' ? <TokensSection /> : null}
-        {tab === 'theme' ? <ThemeSection /> : null}
-        {tab === 'i18n' ? <I18nSection /> : null}
-        {tab === 'actions' ? <ActionsSection /> : null}
-        {tab === 'navigation' ? <NavigationCards /> : null}
-        {tab === 'forms' ? (
-          <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
-            <FormsSection />
-            <InputCards />
+        {animatedTab && animate ? (
+          <div className="ev-row" style={{ justifyContent: 'flex-end', marginBottom: 'var(--ev-space-5)' }}>
+            <span className="ev-muted" style={{ fontSize: 'var(--ev-fs-sm)' }}>
+              Числа и графики анимируются при появлении (MotionProvider). Выключить - меню оформления в шапке.
+            </span>
+            <Button size="sm" icon={<RotateCcw size={14} />} onClick={() => setReplay((n) => n + 1)}>
+              Повторить анимацию
+            </Button>
           </div>
         ) : null}
-        {tab === 'data' ? <DataSection /> : null}
-        {tab === 'content' ? <ContentCards /> : null}
-        {tab === 'feedback' ? <FeedbackSection /> : null}
-        {tab === 'charts' ? (
-          <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
-            <ChartsSection />
-            <ChartCards />
-          </div>
-        ) : null}
-        {tab === 'layout' ? <LayoutSection /> : null}
+        <div key={replay}>
+          {tab === 'intro' ? <IntroSection /> : null}
+          {tab === 'tokens' ? <TokensSection /> : null}
+          {tab === 'theme' ? <ThemeSection /> : null}
+          {tab === 'i18n' ? <I18nSection /> : null}
+          {tab === 'actions' ? <ActionsSection /> : null}
+          {tab === 'navigation' ? <NavigationCards /> : null}
+          {tab === 'forms' ? (
+            <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
+              <FormsSection />
+              <InputCards />
+            </div>
+          ) : null}
+          {tab === 'data' ? <DataSection /> : null}
+          {tab === 'content' ? <ContentCards /> : null}
+          {tab === 'feedback' ? <FeedbackSection /> : null}
+          {tab === 'charts' ? (
+            <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
+              <ChartsSection />
+              <ChartCards />
+            </div>
+          ) : null}
+          {tab === 'layout' ? <LayoutSection /> : null}
+        </div>
       </TabPanel>
     </>
   )

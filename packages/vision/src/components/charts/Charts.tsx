@@ -1,9 +1,10 @@
 'use client'
 
-import { useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { useElementWidth } from '../../lib/hooks'
 import { useMessages } from '../../lib/i18n'
+import { useEntranceMotion, type EntranceMotion } from '../../lib/motion'
 
 /*
  * Лёгкие SVG-графики без библиотек. Правила оформления:
@@ -15,6 +16,11 @@ import { useMessages } from '../../lib/i18n'
  * - одна ось Y; подписи и значения - цветом текста, не цветом серии;
  * - подсказка по наведению и с клавиатуры (стрелки), легенда при 2+ сериях,
  *   скрытая таблица с данными для скринридера.
+ *
+ * Анимация появления (проп animate или MotionProvider): столбцы растут от
+ * основания волной слева направо, линии прорисовываются слева направо, заливка
+ * открывается вслед за линией, маркеры появляются в конце. Оси и сетка видны
+ * сразу. Анимация - CSS по data-ev-motion на корне, один раз при появлении.
  */
 
 export interface ChartSeries<D> {
@@ -45,7 +51,60 @@ interface BaseChartProps<D> {
   'aria-label': string
   /** Текст при пустых данных. */
   emptyText?: ReactNode
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   className?: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Анимация появления                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Доля длительности на волну столбцов: последний стартует на 40%. */
+export const BAR_STAGGER = 0.4
+/** Сдвиг между сериями линий. */
+export const LINE_STAGGER = 0.2
+/** Волна клеток тепловой карты по колонкам. */
+export const HEAT_STAGGER = 0.5
+
+/**
+ * Задержка элемента index из count в волне, мс: от 0 у первого до
+ * duration * spread у последнего. Вместе с staggerItemDuration вся волна
+ * укладывается в duration.
+ */
+export function staggerDelay(index: number, count: number, duration: number, spread: number): number {
+  if (count <= 1 || !(duration > 0)) return 0
+  const i = Math.min(Math.max(index, 0), count - 1)
+  return Math.round((duration * Math.min(Math.max(spread, 0), 1) * i) / (count - 1))
+}
+
+/** Длительность одного элемента волны, мс: остаток после последней задержки. */
+export function staggerItemDuration(count: number, duration: number, spread: number): number {
+  const d = Math.max(0, duration)
+  return Math.round(count <= 1 ? d : d * (1 - Math.min(Math.max(spread, 0), 1)))
+}
+
+/**
+ * Атрибут и CSS-переменные корня для анимации появления; на 'static' -
+ * ничего (разметка как без анимации).
+ */
+export function motionRootProps(motion: EntranceMotion, count: number, spread: number): { 'data-ev-motion'?: string; style?: CSSProperties } {
+  if (!motion.attr) return {}
+  return {
+    'data-ev-motion': motion.attr,
+    style: {
+      '--ev-motion-dur': `${Math.round(motion.duration)}ms`,
+      '--ev-motion-item': `${staggerItemDuration(count, motion.duration, spread)}ms`,
+    } as CSSProperties,
+  }
+}
+
+/** Задержка элемента волны (CSS-переменная); без анимации - undefined. */
+export function motionDelayStyle(motion: EntranceMotion, index: number, count: number, spread: number): CSSProperties | undefined {
+  if (!motion.attr) return undefined
+  return { '--ev-motion-delay': `${staggerDelay(index, count, motion.duration, spread)}ms` } as CSSProperties
 }
 
 const PAD_TOP = 12
@@ -249,6 +308,8 @@ export function BarChart<D>({
   integer,
   stacked = false,
   emptyText: emptyTextProp,
+  animate,
+  animationDuration,
   className,
   ...aria
 }: BarChartProps<D>) {
@@ -256,6 +317,7 @@ export function BarChart<D>({
   const format = useDefaultFormat(formatProp)
   const emptyText = emptyTextProp ?? t.charts.empty
   const { wrapRef, width, tip, setTip } = useChartFrame(height)
+  const motion = useEntranceMotion(wrapRef, animate, { duration: animationDuration })
   const titleId = useId()
   const axisFmt = formatAxis ?? format
 
@@ -304,7 +366,7 @@ export function BarChart<D>({
   }
 
   return (
-    <div className={cx('ev-chart', className)}>
+    <div className={cx('ev-chart', className)} {...motionRootProps(motion, n, BAR_STAGGER)}>
       <div ref={wrapRef} className="ev-chart-frame" style={{ height }}>
         {n === 0 || maxValue === 0 ? (
           <div className="ev-chart-empty">{emptyText}</div>
@@ -348,13 +410,13 @@ export function BarChart<D>({
                   ) : null
                 })
                 return (
-                  <g key={i} opacity={dim ? 0.55 : 1} className="ev-chart-bar">
+                  <g key={i} opacity={dim ? 0.55 : 1} className="ev-chart-bar" style={motionDelayStyle(motion, i, n, BAR_STAGGER)}>
                     {segs}
                   </g>
                 )
               }
               return (
-                <g key={i} opacity={dim ? 0.55 : 1} className="ev-chart-bar">
+                <g key={i} opacity={dim ? 0.55 : 1} className="ev-chart-bar" style={motionDelayStyle(motion, i, n, BAR_STAGGER)}>
                   {series.map((s, si) => {
                     const v = Math.max(0, s.value(d))
                     const y = yOf(v)
@@ -399,6 +461,8 @@ export function LineChart<D>({
   integer,
   area = false,
   emptyText: emptyTextProp,
+  animate,
+  animationDuration,
   className,
   ...aria
 }: LineChartProps<D>) {
@@ -406,6 +470,7 @@ export function LineChart<D>({
   const format = useDefaultFormat(formatProp)
   const emptyText = emptyTextProp ?? t.charts.empty
   const { wrapRef, width, tip, setTip } = useChartFrame(height)
+  const motion = useEntranceMotion(wrapRef, animate, { duration: animationDuration })
   const titleId = useId()
   const axisFmt = formatAxis ?? format
 
@@ -452,8 +517,12 @@ export function LineChart<D>({
     return { line, fill }
   })
 
+  const k = series.length
+  // Линия прорисовывается штрихом во весь путь: длина пути нормирована к 1.
+  const pathLength = motion.attr ? 1 : undefined
+
   return (
-    <div className={cx('ev-chart', className)}>
+    <div className={cx('ev-chart', className)} {...motionRootProps(motion, k, LINE_STAGGER)}>
       <div ref={wrapRef} className="ev-chart-frame" style={{ height }}>
         {n === 0 ? (
           <div className="ev-chart-empty">{emptyText}</div>
@@ -481,7 +550,14 @@ export function LineChart<D>({
             ))}
             {area
               ? series.map((s, si) => (
-                  <path key={`a${s.key}`} d={paths[si]!.fill} fill={seriesColor(s, si)} opacity={0.1} className="ev-chart-area" />
+                  <path
+                    key={`a${s.key}`}
+                    d={paths[si]!.fill}
+                    fill={seriesColor(s, si)}
+                    opacity={0.1}
+                    className="ev-chart-area"
+                    style={motionDelayStyle(motion, si, k, LINE_STAGGER)}
+                  />
                 ))
               : null}
             {series.map((s, si) => (
@@ -493,6 +569,9 @@ export function LineChart<D>({
                 strokeWidth={2}
                 strokeLinejoin="round"
                 strokeLinecap="round"
+                className="ev-chart-line"
+                pathLength={pathLength}
+                style={motionDelayStyle(motion, si, k, LINE_STAGGER)}
               />
             ))}
             {tip ? <line className="ev-chart-crosshair" x1={xOf(tip.index)} x2={xOf(tip.index)} y1={PAD_TOP} y2={PAD_TOP + innerH} /> : null}
@@ -510,6 +589,8 @@ export function LineChart<D>({
                   fill={seriesColor(s, si)}
                   stroke="var(--ev-surface-1)"
                   strokeWidth={2}
+                  className="ev-chart-marker"
+                  style={motionDelayStyle(motion, si, k, LINE_STAGGER)}
                 />
               )
             })}
@@ -548,17 +629,32 @@ export interface SparklineProps {
   width?: number | 'auto'
   color?: string
   'aria-label'?: string
+  /** Анимация появления: линия прорисовывается, точка появляется в конце (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
 }
 
 const SPARKLINE_FALLBACK_W = 120
 
 /** Мини-график для плиток показателей: без осей и подсказок. */
-export function Sparkline({ values, height = 32, width = SPARKLINE_FALLBACK_W, color = 'var(--ev-chart-1)', 'aria-label': label }: SparklineProps) {
+export function Sparkline({
+  values,
+  height = 32,
+  width = SPARKLINE_FALLBACK_W,
+  color = 'var(--ev-chart-1)',
+  'aria-label': label,
+  animate,
+  animationDuration,
+}: SparklineProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const measured = useElementWidth(wrapRef)
   const fluid = width === 'auto'
   const w = fluid ? (measured > 0 ? measured : SPARKLINE_FALLBACK_W) : width
-  const svg = values.length < 2 ? null : <SparklineSvg values={values} width={w} height={height} color={color} label={label} />
+  const svg =
+    values.length < 2 ? null : (
+      <SparklineSvg values={values} width={w} height={height} color={color} label={label} animate={animate} animationDuration={animationDuration} />
+    )
   if (!fluid) return svg
   // Обёртка есть и без данных: высота зарезервирована, замер не теряет элемент.
   return (
@@ -568,7 +664,27 @@ export function Sparkline({ values, height = 32, width = SPARKLINE_FALLBACK_W, c
   )
 }
 
-function SparklineSvg({ values, width, height, color, label }: { values: number[]; width: number; height: number; color: string; label?: string }) {
+function SparklineSvg({
+  values,
+  width,
+  height,
+  color,
+  label,
+  animate,
+  animationDuration,
+}: {
+  values: number[]
+  width: number
+  height: number
+  color: string
+  label?: string
+  animate?: boolean
+  animationDuration?: number
+}) {
+  // Наблюдается сам svg: у фиксированной ширины другого корня нет, а svg
+  // появляется только при двух и более значениях.
+  const ref = useRef<SVGSVGElement | null>(null)
+  const motion = useEntranceMotion(ref, animate, { duration: animationDuration })
   const max = Math.max(...values)
   const min = Math.min(...values)
   const span = max - min || 1
@@ -576,8 +692,17 @@ function SparklineSvg({ values, width, height, color, label }: { values: number[
   const d = pts.map(([px, py], i) => `${i === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`).join('')
   const last = pts[pts.length - 1]!
   return (
-    <svg width={width} height={height} className="ev-sparkline" role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
-      <path d={d} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+    <svg
+      ref={ref}
+      width={width}
+      height={height}
+      className="ev-sparkline"
+      role={label ? 'img' : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+      {...motionRootProps(motion, 1, 0)}
+    >
+      <path d={d} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" pathLength={motion.attr ? 1 : undefined} />
       <circle cx={last[0]} cy={last[1]} r={3} fill={color} stroke="var(--ev-surface-1)" strokeWidth={1.5} />
     </svg>
   )

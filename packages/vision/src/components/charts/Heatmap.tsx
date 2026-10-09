@@ -4,7 +4,9 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type F
 import { cx } from '../../lib/cx'
 import { addDaysIso, formatIsoDate, parseIso } from '../../lib/dates'
 import { useMessages, useNumberFormat } from '../../lib/i18n'
+import { useEntranceMotion } from '../../lib/motion'
 import type { Tone } from '../Display'
+import { HEAT_STAGGER, motionDelayStyle, motionRootProps } from './Charts'
 
 /*
  * Тепловые карты: календарь активности (недели - колонки, дни недели с
@@ -14,6 +16,8 @@ import type { Tone } from '../Display'
  * стрелки, Home/End (Ctrl - по всей сетке); у каждой клетки aria-label с датой
  * или заголовками и значением; подсказка - по наведению и фокусу.
  * На узком экране сетка прокручивается по горизонтали внутри своей обёртки.
+ * Анимация появления (animate или MotionProvider): клетки проявляются
+ * волной по колонкам слева направо, легенда и подписи видны сразу.
  */
 
 /* ------------------------------------------------------------------ */
@@ -186,6 +190,8 @@ function HeatGrid({
   kind,
   style,
   scrollToEnd,
+  animate,
+  animationDuration,
 }: {
   rows: HeatRow[]
   head: ReactNode
@@ -194,8 +200,12 @@ function HeatGrid({
   kind: 'calendar' | 'matrix'
   style: CSSProperties
   scrollToEnd: boolean
+  animate?: boolean
+  animationDuration?: number
 }) {
   const frameRef = useRef<HTMLDivElement>(null)
+  const motion = useEntranceMotion(frameRef, animate, { duration: animationDuration })
+  const cols = rows[0]?.cells.length ?? 0
   const scrollRef = useRef<HTMLDivElement>(null)
   const cellRefs = useRef(new Map<string, HTMLElement>())
   const [focusRaw, setFocus] = useState<Pos | null>(null)
@@ -263,7 +273,7 @@ function HeatGrid({
   const tipCell = tip ? rows[tip.r]?.cells[tip.c] : null
 
   return (
-    <div ref={frameRef} className="ev-heatmap-frame">
+    <div ref={frameRef} className="ev-heatmap-frame" {...motionRootProps(motion, cols, HEAT_STAGGER)}>
       <div ref={scrollRef} className="ev-heatmap-scroll">
         <div
           role="grid"
@@ -297,6 +307,7 @@ function HeatGrid({
                     data-pos={`${r}:${c}`}
                     aria-label={`${cell.title}: ${cell.valueText}`}
                     tabIndex={focus && focus.r === r && focus.c === c ? 0 : -1}
+                    style={motionDelayStyle(motion, c, cols, HEAT_STAGGER)}
                     onFocus={(e) => {
                       setFocus({ r, c })
                       showTip({ r, c }, e.currentTarget)
@@ -347,6 +358,10 @@ interface HeatmapCommonProps {
   format?: (v: number) => string
   /** Легенда «Меньше - Больше» под сеткой. */
   showLegend?: boolean
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   'aria-label': string
   /** Текст, когда строить нечего. */
   emptyText?: ReactNode
@@ -376,6 +391,8 @@ export function Heatmap({
   format: formatProp,
   showLegend = true,
   emptyText,
+  animate,
+  animationDuration,
   className,
   'aria-label': ariaLabel,
 }: HeatmapProps) {
@@ -437,7 +454,17 @@ export function Heatmap({
 
   return (
     <div className={cx('ev-heatmap', className)} data-tone={tone}>
-      <HeatGrid rows={rows} head={head} initial={lastCell(rows)} ariaLabel={ariaLabel} kind="calendar" style={style} scrollToEnd />
+      <HeatGrid
+        rows={rows}
+        head={head}
+        initial={lastCell(rows)}
+        ariaLabel={ariaLabel}
+        kind="calendar"
+        style={style}
+        scrollToEnd
+        animate={animate}
+        animationDuration={animationDuration}
+      />
       {showLegend ? <HeatLegend /> : null}
     </div>
   )
@@ -473,6 +500,8 @@ export function HeatmapMatrix({
   format: formatProp,
   showLegend = true,
   emptyText,
+  animate,
+  animationDuration,
   className,
   'aria-label': ariaLabel,
 }: HeatmapMatrixProps) {
@@ -528,7 +557,17 @@ export function HeatmapMatrix({
 
   return (
     <div className={cx('ev-heatmap', className)} data-tone={tone}>
-      <HeatGrid rows={rows} head={head} initial={firstCell(rows)} ariaLabel={ariaLabel} kind="matrix" style={style} scrollToEnd={false} />
+      <HeatGrid
+        rows={rows}
+        head={head}
+        initial={firstCell(rows)}
+        ariaLabel={ariaLabel}
+        kind="matrix"
+        style={style}
+        scrollToEnd={false}
+        animate={animate}
+        animationDuration={animationDuration}
+      />
       {showLegend ? <HeatLegend /> : null}
     </div>
   )

@@ -142,4 +142,132 @@
     width: 100%;
     min-width: 0;
   }
+
+  /*
+   * Анимация появления. data-ev-motion на корне: idle - стартовое состояние
+   * (элемент ещё не виден), run - анимация, один раз. Длительности - из
+   * инлайн-переменных: --ev-motion-dur (вся анимация), --ev-motion-item
+   * (один элемент волны), --ev-motion-delay (задержка элемента).
+   * Заполнение backwards: после конца действуют обычные стили (затемнение
+   * столбцов, наведение на клетки), а не последний кадр.
+   */
+
+  /* Столбцы растут от основания; стопка столбца - целиком. */
+  .ev-chart[data-ev-motion] .ev-chart-bar {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  .ev-chart[data-ev-motion='idle'] .ev-chart-bar {
+    transform: scaleY(0);
+  }
+
+  .ev-chart[data-ev-motion='run'] .ev-chart-bar {
+    animation: ev-chart-grow var(--ev-motion-item) var(--ev-ease-out) var(--ev-motion-delay, 0ms) backwards;
+  }
+
+  /*
+   * Линии прорисовываются слева направо: длина пути нормирована к 1
+   * (pathLength), штрих 1 и пропуск 2. Смещение чуть больше 1, чтобы
+   * скруглённый конец пустого штриха не рисовал точку.
+   */
+  .ev-chart[data-ev-motion] .ev-chart-line,
+  .ev-sparkline[data-ev-motion] path {
+    stroke-dasharray: 1 2;
+  }
+
+  .ev-chart[data-ev-motion='idle'] .ev-chart-line,
+  .ev-sparkline[data-ev-motion='idle'] path {
+    stroke-dashoffset: 1.01;
+  }
+
+  .ev-chart[data-ev-motion='run'] .ev-chart-line,
+  .ev-sparkline[data-ev-motion='run'] path {
+    animation: ev-chart-draw var(--ev-motion-item) var(--ev-ease-out) var(--ev-motion-delay, 0ms) backwards;
+  }
+
+  /* Заливка открывается вслед за линией. */
+  .ev-chart[data-ev-motion='idle'] .ev-chart-area {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .ev-chart[data-ev-motion='run'] .ev-chart-area {
+    animation: ev-chart-reveal var(--ev-motion-item) var(--ev-ease-out) var(--ev-motion-delay, 0ms) backwards;
+  }
+
+  /* Маркер и точка спарклайна - в конце линии. */
+  .ev-chart[data-ev-motion] .ev-chart-marker,
+  .ev-sparkline[data-ev-motion] circle {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .ev-chart[data-ev-motion='idle'] .ev-chart-marker,
+  .ev-sparkline[data-ev-motion='idle'] circle {
+    opacity: 0;
+  }
+
+  .ev-chart[data-ev-motion='run'] .ev-chart-marker,
+  .ev-sparkline[data-ev-motion='run'] circle {
+    animation: ev-chart-pop calc(var(--ev-motion-dur) * 0.3) var(--ev-ease-out) calc(var(--ev-motion-delay, 0ms) + var(--ev-motion-item) * 0.7) backwards;
+  }
+
+  /* Тепловая карта: клетки проявляются волной по колонкам, легенда видна сразу. */
+  .ev-heatmap-frame[data-ev-motion='idle'] .ev-heatmap-cell:not([data-void]) {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  .ev-heatmap-frame[data-ev-motion='run'] .ev-heatmap-cell:not([data-void]) {
+    animation: ev-heat-in var(--ev-motion-item) var(--ev-ease-out) var(--ev-motion-delay, 0ms) backwards;
+  }
+
+  @keyframes ev-chart-grow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes ev-chart-draw {
+    from {
+      stroke-dashoffset: 1.01;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes ev-chart-reveal {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes ev-chart-pop {
+    from {
+      opacity: 0;
+      transform: scale(0);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes ev-heat-in {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }

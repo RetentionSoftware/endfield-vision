@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { formatIsoDate, parseIso } from '../lib/dates'
 import { useMediaQuery } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
+import { useEntranceMotion } from '../lib/motion'
 import type { Messages } from '../lib/i18n-messages'
 import { Tooltip } from './Tooltip'
 
@@ -13,6 +14,8 @@ import { Tooltip } from './Tooltip'
  * Полоса - одна остановка Tab, стрелки, Home и End переходят между днями,
  * подсказка с датой, статусом и примечанием - по наведению и фокусу.
  * На узком экране (до 720px) - последние 30 дней.
+ * Анимация появления (animate): сегменты поднимаются слева направо с быстрым
+ * сдвигом по времени; только при первом показе.
  */
 
 export type UptimeStatus = 'operational' | 'degraded' | 'outage' | 'maintenance' | 'none'
@@ -34,11 +37,24 @@ export interface UptimeBarProps {
   showLegend?: boolean
   /** Подписи «N дней назад» и «Сегодня» под краями полосы. */
   showRange?: boolean
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   'aria-label'?: string
   className?: string
 }
 
 const NARROW_DAYS = 30
+/** Доля общей длительности на подъём одного сегмента; остальное - сдвиг между сегментами. */
+const RISE_SHARE = 0.45
+
+/** Тайминги появления: подъём сегмента и шаг сдвига между соседними, мс. */
+export function uptimeStagger(count: number, duration: number): { rise: number; step: number } {
+  const rise = Math.round(duration * RISE_SHARE)
+  const step = count > 1 ? Math.round(((duration - rise) / (count - 1)) * 100) / 100 : 0
+  return { rise, step }
+}
 const LEGEND: UptimeStatus[] = ['operational', 'degraded', 'outage', 'maintenance']
 
 function statusLabel(t: Messages, status: UptimeStatus): string {
@@ -53,10 +69,30 @@ function daysBetween(from: string, to: string): number | null {
   return Math.round((Date.UTC(b.y, b.m, b.d) - Date.UTC(a.y, a.m, a.d)) / 86_400_000)
 }
 
-export function UptimeBar({ days, height = 32, showLegend = false, showRange = false, 'aria-label': ariaLabel, className }: UptimeBarProps) {
+export function UptimeBar({
+  days,
+  height = 32,
+  showLegend = false,
+  showRange = false,
+  animate,
+  animationDuration,
+  'aria-label': ariaLabel,
+  className,
+}: UptimeBarProps) {
   const t = useMessages()
   const narrow = useMediaQuery('(max-width: 720px)')
   const visible = narrow && days.length > NARROW_DAYS ? days.slice(-NARROW_DAYS) : days
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const motion = useEntranceMotion(rootRef, animate, { duration: animationDuration })
+  // После появления атрибут снимается: новые дни и смена ширины не переигрывают анимацию.
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    if (motion.phase !== 'run') return
+    const id = window.setTimeout(() => setSettled(true), motion.duration + 50)
+    return () => window.clearTimeout(id)
+  }, [motion.phase, motion.duration])
+  const motionAttr = settled ? undefined : motion.attr
+  const stagger = uptimeStagger(visible.length, motion.duration)
   const [activeRaw, setActive] = useState<number | null>(null)
   const active = Math.min(activeRaw ?? visible.length - 1, visible.length - 1)
   const refs = useRef<Array<HTMLElement | null>>([])
@@ -85,12 +121,16 @@ export function UptimeBar({ days, height = 32, showLegend = false, showRange = f
   const legend = present.has('none') ? [...LEGEND, 'none' as const] : LEGEND
 
   return (
-    <div className={cx('ev-uptime', className)}>
+    <div ref={rootRef} className={cx('ev-uptime', className)} data-ev-motion={motionAttr}>
       <div
         className="ev-uptime-strip"
         role="group"
         aria-label={ariaLabel ?? t.uptime.label(visible.length)}
-        style={{ height }}
+        style={
+          motionAttr
+            ? ({ height, '--ev-motion-dur': `${stagger.rise}ms`, '--ev-motion-step': `${stagger.step}ms` } as CSSProperties)
+            : { height }
+        }
         onKeyDown={onKeyDown}
       >
         {visible.map((d, i) => {
@@ -120,6 +160,7 @@ export function UptimeBar({ days, height = 32, showLegend = false, showRange = f
                 aria-label={`${date}: ${label}`}
                 tabIndex={i === active ? 0 : -1}
                 onFocus={() => setActive(i)}
+                style={motionAttr ? ({ '--ev-i': i } as CSSProperties) : undefined}
               />
             </Tooltip>
           )

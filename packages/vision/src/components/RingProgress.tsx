@@ -1,8 +1,11 @@
 'use client'
 
-import { useId, type CSSProperties, type ReactNode } from 'react'
+import { useId, useRef, type CSSProperties, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { useNumberFormat } from '../lib/i18n'
+import { useCountUp, useEntranceMotion, useMotionProgress, useMotionSettings } from '../lib/motion'
+import { countUpText } from '../lib/motion-values'
+import { AnimatedText } from './AnimatedNumber'
 import type { Tone } from './Display'
 
 /*
@@ -11,6 +14,9 @@ import type { Tone } from './Display'
  * несколько сегментов - role="img" с перечислением сегментов в подписи.
  * Изменение значения анимируется через stroke-dashoffset; при
  * prefers-reduced-motion переходы гасит базовый слой.
+ * Анимация появления (animate): кольцо заполняется по часовой от 12 часов
+ * (сегменты - по очереди, одним проходом), процент в центре набирается.
+ * Тон и превышение - сразу итоговые, aria-значения - всегда итоговые.
  */
 
 export interface RingSection {
@@ -37,6 +43,10 @@ export interface RingProgressProps {
   label?: ReactNode
   /** Несколько сегментов на одном кольце (доли от max). */
   sections?: RingSection[]
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   'aria-label'?: string
   'aria-labelledby'?: string
   className?: string
@@ -72,6 +82,21 @@ export function ringSegments(values: readonly number[], max: number, circumferen
   })
 }
 
+/**
+ * Кадр анимации появления: кольцо открывается по часовой до доли t (0..1) от
+ * конца последнего сегмента; сегменты заполняются по очереди, зазоры между
+ * ними не меняются. При t >= 1 - исходные сегменты.
+ */
+export function revealSegments(segments: readonly RingSegment[], t: number): RingSegment[] {
+  if (t >= 1) return [...segments]
+  const end = segments.reduce((a, s) => (s.length > 0 ? Math.max(a, s.offset + s.length) : a), 0)
+  const front = Math.max(0, t) * end
+  return segments.map((s) => ({
+    offset: s.offset,
+    length: Math.round(Math.min(s.length, Math.max(0, front - s.offset)) * 100) / 100,
+  }))
+}
+
 export function RingProgress({
   value = 0,
   max = 100,
@@ -81,12 +106,20 @@ export function RingProgress({
   overTone = 'danger',
   label,
   sections,
+  animate,
+  animationDuration,
   className,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
 }: RingProgressProps) {
   const fmt = useNumberFormat()
   const partsId = useId()
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const settings = useMotionSettings()
+  const motion = useEntranceMotion(rootRef, animate, { duration: animationDuration })
+  // Кольцо - только при появлении (дальше изменения ведёт CSS-переход), число - и при обновлении.
+  const progress = useMotionProgress(motion.phase, motion.duration)
+  const drawing = motion.phase !== 'static' && progress < 1
   const stroke = Math.max(2, Math.min(thickness ?? Math.max(4, Math.round(size * 0.1)), size / 2))
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
@@ -99,17 +132,34 @@ export function RingProgress({
   const over = max > 0 && sum > max
   const pct = max > 0 ? (clamped / max) * 100 : 0
   const realPct = max > 0 ? (Math.max(0, sum) / max) * 100 : 0
-  const center = label === undefined ? percent(realPct) : label
+  const shownSum = useCountUp(Math.max(0, sum), motion.phase, motion.duration)
+  const counting = motion.phase !== 'static'
+  const shownPct = (v: number) => percent(max > 0 ? (v / max) * 100 : 0)
+  const center =
+    label === undefined ? (
+      countUpText(counting, shownPct(shownSum), percent(realPct))
+    ) : (typeof label === 'string' || typeof label === 'number') && (animate ?? settings.animate) ? (
+      // Своя подпись с числом («7/10», «42 ГБ») набирается с сохранением формата.
+      <AnimatedText animate={animate} duration={animationDuration}>
+        {label}
+      </AnimatedText>
+    ) : (
+      label
+    )
+  const drawnPct = pct * progress
 
   const ring = (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="ev-ring-svg" aria-hidden="true">
       <circle cx={c} cy={c} r={r} className="ev-ring-track" strokeWidth={stroke} />
       {multi ? (
-        ringSegments(
-          sections.map((s) => s.value),
-          max,
-          circ,
-          Math.min(2, stroke / 2),
+        revealSegments(
+          ringSegments(
+            sections.map((s) => s.value),
+            max,
+            circ,
+            Math.min(2, stroke / 2),
+          ),
+          progress,
         ).map((seg, i) => {
           const s = sections[i]!
           return seg.length > 0 ? (
@@ -127,7 +177,7 @@ export function RingProgress({
             />
           ) : null
         })
-      ) : pct > 0 ? (
+      ) : drawnPct > 0 ? (
         <circle
           cx={c}
           cy={c}
@@ -135,8 +185,8 @@ export function RingProgress({
           className="ev-ring-bar"
           strokeWidth={stroke}
           strokeDasharray={circ}
-          strokeDashoffset={circ * (1 - pct / 100)}
-          data-cap={pct >= 100 ? 'butt' : undefined}
+          strokeDashoffset={circ * (1 - drawnPct / 100)}
+          data-cap={drawnPct >= 100 ? 'butt' : undefined}
         />
       ) : null}
     </svg>
@@ -155,6 +205,9 @@ export function RingProgress({
         aria-label={ariaLabelledBy ? undefined : ariaLabel ? `${ariaLabel}. ${parts}` : parts}
         aria-labelledby={ariaLabelledBy ? `${ariaLabelledBy} ${partsId}` : undefined}
         data-over={over || undefined}
+        data-ev-motion={motion.attr}
+        data-ev-drawing={drawing || undefined}
+        ref={rootRef}
       >
         {ring}
         {centerNode}
@@ -180,6 +233,9 @@ export function RingProgress({
       aria-valuetext={over ? percent(realPct) : undefined}
       aria-label={ariaLabelledBy ? undefined : ariaLabel}
       aria-labelledby={ariaLabelledBy}
+      data-ev-motion={motion.attr}
+      data-ev-drawing={drawing || undefined}
+      ref={rootRef}
     >
       {ring}
       {centerNode}

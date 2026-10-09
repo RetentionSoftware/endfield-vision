@@ -1,8 +1,10 @@
 'use client'
 
-import { useId, useMemo, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
+import { useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { useMessages, useNumberFormat } from '../../lib/i18n'
+import { useCountUp, useEntranceMotion, useMotionProgress } from '../../lib/motion'
+import { roundLike } from '../../lib/motion-values'
 
 /*
  * Кольцевая диаграмма: доля частей в целом. Правила - как у BarChart/LineChart:
@@ -10,6 +12,8 @@ import { useMessages, useNumberFormat } from '../../lib/i18n'
  * (фокус на диаграмме, стрелки), скрытая таблица для скринридера.
  * Зазор между секторами - геометрический (параллельные края постоянной
  * ширины), поэтому не зависит от цвета поверхности под диаграммой.
+ * Анимация появления (animate): сектора разворачиваются по часовой от 12 часов
+ * (углы масштабируются прогрессом), сумма в центре набирается.
  */
 
 /* ------------------------------------------------------------------ */
@@ -70,6 +74,25 @@ export function donutArcs(values: readonly number[]): DonutArc[] {
     acc += Math.max(0, v)
     const end = total > 0 ? (acc / total) * TAU : 0
     return { start, end }
+  })
+}
+
+/** Сектор уже этого угла (радианы) в кадре анимации не рисуется. */
+const MIN_SWEEP = 0.004
+
+/**
+ * Кадр анимации появления: все углы умножены на t (0..1), диаграмма
+ * разворачивается по часовой от 12 часов. Слишком узкие в этом кадре сектора
+ * схлопываются (start = end) и не рисуются - иначе зазоры превращаются в
+ * щепки. При t >= 1 - исходные дуги.
+ */
+export function donutArcsAt(arcs: readonly DonutArc[], t: number, minSweep = MIN_SWEEP): DonutArc[] {
+  if (t >= 1) return [...arcs]
+  const k = Math.max(0, t)
+  return arcs.map((a) => {
+    const start = a.start * k
+    const end = a.end * k
+    return end - start < minSweep ? { start, end: start } : { start, end }
   })
 }
 
@@ -144,6 +167,10 @@ export interface DonutChartProps<D> {
   'aria-label': string
   /** Текст при нулевой сумме. */
   emptyText?: ReactNode
+  /** Анимация появления (по умолчанию - из MotionProvider). */
+  animate?: boolean
+  /** Длительность анимации появления, мс (по умолчанию - из MotionProvider). */
+  animationDuration?: number
   className?: string
 }
 
@@ -172,6 +199,8 @@ export function DonutChart<D>({
   maxSlices,
   legend = 'right',
   emptyText,
+  animate,
+  animationDuration,
   className,
   'aria-label': ariaLabel,
 }: DonutChartProps<D>) {
@@ -181,6 +210,10 @@ export function DonutChart<D>({
   const formatShare = (share: number) => fmt(share, { style: 'percent', maximumFractionDigits: share > 0 && share < 0.1 ? 1 : 0 })
   const titleId = useId()
   const [active, setActive] = useState<number | null>(null)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const motion = useEntranceMotion(rootRef, animate, { duration: animationDuration })
+  // Геометрия - только при появлении (обновление данных не переигрывает), число - и при обновлении.
+  const progress = useMotionProgress(motion.phase, motion.duration)
 
   const slices = useMemo<Slice[]>(() => {
     const indexed = data.map((d, i) => ({ d, i }))
@@ -205,7 +238,8 @@ export function DonutChart<D>({
   }, [data, label, value, color, maxSlices, t.donut.other])
 
   const total = slices.reduce((a, s) => a + s.value, 0)
-  const arcs = donutArcs(slices.map((s) => s.value))
+  const arcs = donutArcsAt(donutArcs(slices.map((s) => s.value)), progress)
+  const shownTotal = useCountUp(total, motion.phase, motion.duration)
   const nonZero = slices.filter((s) => s.value > 0).length
   const ring = Math.max(2, Math.min(thickness ?? Math.round(size * 0.14), size / 2 - LIFT))
   const c = size / 2
@@ -263,13 +297,13 @@ export function DonutChart<D>({
       <span className="ev-donut-center-caption">{emptyText ?? t.charts.empty}</span>
     ) : (
       <>
-        <span className="ev-donut-center-value ev-num">{format(total)}</span>
+        <span className="ev-donut-center-value ev-num">{format(motion.phase === 'static' ? total : roundLike(shownTotal, total))}</span>
         <span className="ev-donut-center-caption">{t.donut.total}</span>
       </>
     )
 
   return (
-    <div className={cx('ev-donut', className)} data-legend={!empty && legend ? legend : undefined}>
+    <div ref={rootRef} className={cx('ev-donut', className)} data-legend={!empty && legend ? legend : undefined} data-ev-motion={motion.attr}>
       <div className="ev-donut-figure" style={{ width: size, height: size, '--ev-donut-hole': `${rInner * 2}px` } as CSSProperties}>
         <svg
           width={size}
