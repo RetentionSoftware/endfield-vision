@@ -78,6 +78,10 @@ for (const file of READMES) {
   })
 }
 update(INTRO, (text) => text.replace(/(const TOKENS_COUNT = )\d+/, `$1${tokens}`))
+// Ссылка на архив пакета в релизе GitHub (установка без npm) - на текущую версию.
+const tarball = /(releases\/download\/v)[^/\s]+(\/endfield-vision-)[^/\s]+?(\.tgz)/g
+for (const file of [...READMES, ...READMES.map((f) => `packages/vision/${f}`)])
+  update(file, (text) => text.replace(tarball, `$1${version}$2${version}$3`))
 // Версия на витрине и на экранах входа плейграунда - из package.json библиотеки.
 for (const file of VERSIONED) update(file, (text) => text.replace(/((?:LIBRARY_)?VERSION = ')[^']+(')/, `$1${version}$2`))
 

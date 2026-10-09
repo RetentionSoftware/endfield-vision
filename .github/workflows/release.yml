@@ -1,0 +1,33 @@
+name: Release
+
+# К каждому опубликованному релизу прикладывается собранный пакет
+# endfield-vision-<версия>.tgz: из него ставят библиотеку без npm.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  tarball:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Check tag matches package version
+        run: |
+          version=$(node -p "require('./packages/vision/package.json').version")
+          test "${GITHUB_REF_NAME}" = "v${version}" || { echo "Tag ${GITHUB_REF_NAME} != v${version}"; exit 1; }
+      - name: Pack library
+        run: npm pack -w endfield-vision
+      - name: Check packed build
+        run: npm run check:dist -w endfield-vision
+      - name: Attach tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" endfield-vision-*.tgz --clobber

@@ -10,6 +10,7 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.0.0-4263eb)](packages/vision/package.json)
+[![npm](https://img.shields.io/badge/npm-coming%20soon-lightgrey)](#installation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
@@ -60,20 +61,25 @@ Endfield Vision is built for the screens people stare at all day: admin panels, 
 
 ## Installation
 
+> [!NOTE]
+> The package is on its way to the npm registry. Until it lands, install it from the [GitHub release](https://github.com/RetentionSoftware/endfield-vision/releases/latest): it is the same build that will be published to npm, and the imports are the same (`from 'endfield-vision'`).
+
 ```bash
-npm install endfield-vision
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
 ```
 
 <details>
 <summary>pnpm, yarn, bun</summary>
 
 ```bash
-pnpm add endfield-vision
-yarn add endfield-vision
-bun add endfield-vision
+pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
 ```
 
 </details>
+
+Every release has its `endfield-vision-<version>.tgz` attached; swap the version in the link to pin another one. Once the package is on npm, `npm install endfield-vision` will be enough.
 
 Requires `react` and `react-dom` 19. Next.js is optional: the library works in any React app (Vite and others).
 

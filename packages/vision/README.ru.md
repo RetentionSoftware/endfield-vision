@@ -12,6 +12,12 @@
 npm i endfield-vision
 ```
 
+Пока пакет готовится к публикации в npm, ставьте его из релиза на GitHub (та же сборка, те же импорты):
+
+```bash
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+```
+
 Нужны `react` и `react-dom` 19.
 
 ## Подключение (Next.js App Router)

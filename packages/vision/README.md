@@ -12,6 +12,12 @@ The live catalog is the **ENDFIELD Vision** section of the playground in the [re
 npm i endfield-vision
 ```
 
+While the package is on its way to npm, install it from the GitHub release (same build, same imports):
+
+```bash
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+```
+
 Requires `react` and `react-dom` 19.
 
 ## Setup (Next.js App Router)

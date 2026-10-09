@@ -10,6 +10,7 @@
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.0.0-4263eb)](packages/vision/package.json)
+[![npm](https://img.shields.io/badge/npm-coming%20soon-lightgrey)](#установка)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
@@ -60,20 +61,25 @@ Endfield Vision - для экранов, за которыми работают 
 
 ## Установка
 
+> [!NOTE]
+> Пакет готовится к публикации в npm. Пока его там нет, ставьте из [релиза на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases/latest): это та же сборка, что уйдёт в npm, и импорты те же (`from 'endfield-vision'`).
+
 ```bash
-npm install endfield-vision
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
 ```
 
 <details>
 <summary>pnpm, yarn, bun</summary>
 
 ```bash
-pnpm add endfield-vision
-yarn add endfield-vision
-bun add endfield-vision
+pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
 ```
 
 </details>
+
+К каждому релизу приложен архив `endfield-vision-<версия>.tgz`: чтобы закрепить другую версию, поменяйте её в ссылке. Когда пакет появится в npm, хватит `npm install endfield-vision`.
 
 Нужны `react` и `react-dom` 19. Next.js не обязателен: библиотека работает в любом React-приложении (Vite и т. п.).
 

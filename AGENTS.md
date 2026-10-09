@@ -44,3 +44,9 @@ npm test
 npm run build        # dist библиотеки + сборка плейграунда
 npm run stats        # счётчики для README (компоненты, хуки, токены, тесты); нужен build:lib
 ```
+
+
+## Релиз
+
+1. Версия в `packages/vision/package.json`, затем `npm install` (обновит lock) и `npm run build:lib && npm run stats` - бейджи, ссылки на архив в README и версия в плейграунде.
+2. Коммит, тег `v<версия>`, релиз на GitHub. Workflow `release.yml` сам приложит к релизу `endfield-vision-<версия>.tgz` (установка без npm).
