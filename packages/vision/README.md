@@ -101,11 +101,18 @@ import { LocaleProvider } from 'endfield-vision'
 
 Числа набираются, графики строятся, когда элемент впервые попадает в видимую область. По умолчанию выключено.
 
-\
-- Поддерживают:  (число ищется в строке значения, формат сохраняется), , , , , , , , , , , , . Проп  - своя длительность.
+```tsx
+import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
+
+<MotionProvider>{children}</MotionProvider>                  // для всего приложения (duration - длительность, мс)
+<StatTile label="Запасы" value="12 845 000 ₽" animate />      // или на отдельном компоненте
+<BarChart animate={false} ... />                              // проп сильнее провайдера
+```
+
+- Поддерживают: `StatTile` (число ищется в строке значения, формат сохраняется), `AnimatedNumber`, `Progress`, `BarChart`, `LineChart`, `AreaChart`, `Sparkline`, `DonutChart`, `Heatmap`, `HeatmapMatrix`, `RingProgress`, `Gauge`, `UptimeBar`. Проп `animationDuration` - своя длительность.
 - Анимация проигрывается один раз; при обновлении данных числа плавно переходят к новому значению, графики не перерисовываются заново.
--  выключает анимацию. Серверная разметка - итоговое состояние; скринридер всегда получает итоговые значения.
-- Для своих компонентов:  (фазы  /  / , атрибут  для CSS), , .
+- `prefers-reduced-motion` выключает анимацию. Серверная разметка - итоговое состояние; скринридер всегда получает итоговые значения.
+- Для своих компонентов: `useEntranceMotion(ref, animate)` (фазы `static` / `idle` / `run`, атрибут `data-ev-motion` для CSS), `useMotionProgress`, `useCountUp`.
 
 ## Слои и префиксы
 
