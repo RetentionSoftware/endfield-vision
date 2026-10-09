@@ -9,7 +9,7 @@
 Tokens, dark and light themes, accent presets and accessible components with no third-party UI kit underneath.
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.1.0-4263eb)](packages/vision/package.json)
+[![Version](https://img.shields.io/badge/version-2.0.0-4263eb)](packages/vision/package.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)

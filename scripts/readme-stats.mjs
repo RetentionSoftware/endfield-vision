@@ -1,4 +1,5 @@
 // Числа для бейджей README и витрины: компоненты, хуки, токены, версия, тесты.
+// Заодно - версия библиотеки в плейграунде (витрина, экраны входа).
 //
 //   node scripts/readme-stats.mjs          - пересчитать и записать (тесты прогоняются)
 //   node scripts/readme-stats.mjs --check  - сверить без записи, тесты не трогать (для CI)
@@ -17,6 +18,7 @@ const check = process.argv.includes('--check')
 
 const READMES = ['README.md', 'README.ru.md']
 const INTRO = 'apps/playground/components/vision/IntroSection.tsx'
+const VERSIONED = ['apps/playground/components/vision/parts.tsx', 'apps/playground/app/(auth)/layout.tsx']
 
 const dist = join(pkgDir, 'dist/index.js')
 if (!existsSync(dist)) {
@@ -76,6 +78,8 @@ for (const file of READMES) {
   })
 }
 update(INTRO, (text) => text.replace(/(const TOKENS_COUNT = )\d+/, `$1${tokens}`))
+// Версия на витрине и на экранах входа плейграунда - из package.json библиотеки.
+for (const file of VERSIONED) update(file, (text) => text.replace(/((?:LIBRARY_)?VERSION = ')[^']+(')/, `$1${version}$2`))
 
 console.log(Object.entries(stats).map(([k, v]) => `${k}: ${v}`).join(', '))
 if (stale.length) {

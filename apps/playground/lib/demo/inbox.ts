@@ -342,7 +342,7 @@ export const MESSAGES: InboxMessage[] = [
     kind: 'system',
     from: P.vision,
     fromRole: bi('Обновление консоли', 'Console update'),
-    subject: bi('Версия 0.1.0: новые разделы консоли', 'Version 0.1.0: new console sections'),
+    subject: bi('Версия 2.0.0: новые разделы консоли', 'Version 2.0.0: new console sections'),
     time: '01.10',
     unread: false,
     mention: false,
