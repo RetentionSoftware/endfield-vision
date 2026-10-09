@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type RefObject,
 } from 'react'
+import { toDate, type DateInput } from './relative-time'
 
 /** useLayoutEffect без предупреждения при серверном рендере. */
 export const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
@@ -55,6 +56,26 @@ export function useMounted(): boolean {
 
 function noopSubscribe(): () => void {
   return () => undefined
+}
+
+/*
+ * Опорное «сейчас» для подписей дней. Заданный now - всегда он (серверный и
+ * клиентский рендер совпадают). Без now на сервере и при гидрации - null
+ * (подписи - даты), после монтирования - часы браузера с шагом в минуту.
+ */
+let clientNow = 0
+function readClientNow(): number {
+  const n = Date.now()
+  if (n - clientNow > 60_000) clientNow = n
+  return clientNow
+}
+const getServerNow = () => null
+
+/** Опорное «сейчас»: now или часы браузера после монтирования (на сервере - null). */
+export function useReferenceNow(now?: DateInput): Date | null {
+  const client = useSyncExternalStore<number | null>(noopSubscribe, readClientNow, getServerNow)
+  if (now !== undefined) return toDate(now)
+  return client === null ? null : new Date(client)
 }
 
 /** Медиа-запрос; на сервере - false. */

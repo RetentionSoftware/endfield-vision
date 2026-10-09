@@ -6,16 +6,16 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type ClipboardEvent,
   type DragEvent,
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
-import { cx, EMPTY_VALUE } from '../lib/cx'
-import { useIsoLayoutEffect } from '../lib/hooks'
+import { cx } from '../lib/cx'
+import { dayKey, formatDayLabel } from '../lib/dates'
+import { acceptMatches, formatSize } from '../lib/files'
+import { useIsoLayoutEffect, useReferenceNow } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
-import type { Messages } from '../lib/i18n-messages'
 import { toDate, type DateInput } from '../lib/relative-time'
 import { Button, IconButton } from './Button'
 import { Avatar, type Tone } from './Display'
@@ -29,113 +29,9 @@ import { Lightbox } from './Lightbox'
  * снаружи; компоненты отвечают за разметку, группировку и клавиатуру.
  */
 
-/* ------------------------------------------------------------------ */
-/* Дни: ключ, подпись «Сегодня / Вчера / 8 октября», группировка       */
-/* ------------------------------------------------------------------ */
-
-/** Ключ календарного дня 'YYYY-MM-DD' в часовом поясе timeZone (по умолчанию - пояс среды); некорректная дата - ''. */
-export function dayKey(date: DateInput, timeZone?: string): string {
-  const d = toDate(date)
-  if (!d) return ''
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(d)
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '00'
-  return `${get('year')}-${get('month')}-${get('day')}`
-}
-
-function shiftDayKey(key: string, days: number): string {
-  const [y = 0, m = 1, d = 1] = key.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
-}
-
-export interface DayLabelOptions {
-  /** Опорное «сейчас»: без него нет «Сегодня» и «Вчера», только дата с годом. */
-  now?: DateInput | null
-  /** Локаль Intl (t.intl). */
-  intl: string
-  today: string
-  yesterday: string
-  timeZone?: string
-}
-
-/** Подпись дня: «Сегодня», «Вчера», «8 октября» (год - если не текущий). */
-export function formatDayLabel(
-  date: DateInput,
-  { now, intl, today, yesterday, timeZone }: DayLabelOptions,
-): string {
-  const d = toDate(date)
-  if (!d) return EMPTY_VALUE
-  const key = dayKey(d, timeZone)
-  const n = now === undefined || now === null ? null : toDate(now)
-  const nowKey = n ? dayKey(n, timeZone) : null
-  if (nowKey !== null) {
-    if (key === nowKey) return today
-    if (key === shiftDayKey(nowKey, -1)) return yesterday
-  }
-  const sameYear = nowKey !== null && nowKey.slice(0, 4) === key.slice(0, 4)
-  return new Intl.DateTimeFormat(intl, {
-    day: 'numeric',
-    month: 'long',
-    year: sameYear ? undefined : 'numeric',
-    timeZone,
-  }).format(d)
-}
-
-export interface DayGroup<T> {
-  /** 'YYYY-MM-DD'. */
-  key: string
-  /** Дата первого элемента группы. */
-  date: Date
-  items: T[]
-}
-
-/** Группы по календарным дням в порядке первого появления; элементы с некорректной датой пропускаются. */
-export function groupByDay<T>(
-  items: readonly T[],
-  getDate: (item: T) => DateInput,
-  timeZone?: string,
-): DayGroup<T>[] {
-  const groups: DayGroup<T>[] = []
-  const byKey = new Map<string, DayGroup<T>>()
-  for (const item of items) {
-    const d = toDate(getDate(item))
-    if (!d) continue
-    const key = dayKey(d, timeZone)
-    let g = byKey.get(key)
-    if (!g) {
-      g = { key, date: d, items: [] }
-      byKey.set(key, g)
-      groups.push(g)
-    }
-    g.items.push(item)
-  }
-  return groups
-}
-
-/*
- * Опорное «сейчас» для подписей дней. Заданный now - всегда он (серверный и
- * клиентский рендер совпадают). Без now на сервере и при гидрации - null
- * (подписи - даты), после монтирования - часы браузера с шагом в минуту.
- */
-let clientNow = 0
-function readClientNow(): number {
-  const n = Date.now()
-  if (n - clientNow > 60_000) clientNow = n
-  return clientNow
-}
-const noopSubscribe = () => () => undefined
-const getServerNow = () => null
-
-/** Опорное «сейчас»: now или часы браузера после монтирования (на сервере - null). */
-export function useReferenceNow(now?: DateInput): Date | null {
-  const client = useSyncExternalStore<number | null>(noopSubscribe, readClientNow, getServerNow)
-  if (now !== undefined) return toDate(now)
-  return client === null ? null : new Date(client)
-}
+/* Дни: помощники живут в lib/dates (без 'use client'), хук - в lib/hooks; реэкспорт для публичного API. */
+export { dayKey, formatDayLabel, groupByDay, type DayGroup, type DayLabelOptions } from '../lib/dates'
+export { useReferenceNow } from '../lib/hooks'
 
 /* ------------------------------------------------------------------ */
 /* Данные                                                              */
@@ -255,13 +151,6 @@ function isImage(a: ChatAttachment): boolean {
   return IMAGE_EXT.test(a.name) || a.url.startsWith('data:image/')
 }
 
-function formatSize(bytes: number, t: Messages): string {
-  const { b, kb, mb } = t.file.units
-  if (bytes < 1024) return `${bytes} ${b}`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024).toLocaleString(t.intl)} ${kb}`
-  return `${(bytes / 1024 / 1024).toLocaleString(t.intl, { maximumFractionDigits: 1 })} ${mb}`
-}
-
 export interface ChatAttachmentsProps {
   attachments: ChatAttachment[]
   /** Свой просмотр изображений; без него открывается встроенный Lightbox. */
@@ -285,7 +174,7 @@ export function ChatAttachments({ attachments, onImageClick, className }: ChatAt
               key={a.id}
               type="button"
               className="ev-chat-image"
-              aria-label={`${t.lightbox.label}: ${a.alt ?? a.name}`}
+              aria-label={t.chat.openImage(a.alt ?? a.name)}
               onClick={() => (onImageClick ? onImageClick(i, images) : setViewer(i))}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -428,8 +317,9 @@ export function ChatMessage({
                 <span className="ev-visually-hidden">{t.chat.sending}</span>
               </span>
             ) : status === 'sent' ? (
-              <span className="ev-chat-status" data-status="sent" aria-hidden="true">
-                <Check size={12} />
+              <span className="ev-chat-status" data-status="sent">
+                <Check size={12} aria-hidden="true" />
+                <span className="ev-visually-hidden">{t.chat.sent}</span>
               </span>
             ) : failed ? (
               <span className="ev-chat-status" data-status="failed" aria-hidden="true">
@@ -662,21 +552,6 @@ interface PendingFile {
   file: File
   /** Object URL превью изображения; освобождается при удалении и размонтировании. */
   url: string | null
-}
-
-function acceptMatches(file: File, accept?: string): boolean {
-  if (!accept) return true
-  const rules = accept
-    .split(',')
-    .map((r) => r.trim().toLowerCase())
-    .filter(Boolean)
-  const name = file.name.toLowerCase()
-  const type = file.type.toLowerCase()
-  return rules.some((r) => {
-    if (r.startsWith('.')) return name.endsWith(r)
-    if (r.endsWith('/*')) return type.startsWith(r.slice(0, -1))
-    return type === r
-  })
 }
 
 function hasFiles(e: DragEvent): boolean {

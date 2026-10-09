@@ -298,6 +298,7 @@ export function PermissionMatrix<M extends string = PermissionMode>({
                             </span>
                           ) : null}
                           <span className="ev-perm-cell-label">{opt?.label}</span>
+                          {isChanged ? <span className="ev-visually-hidden">, {t.permissions.changed}</span> : null}
                         </button>
                       </td>
                     )

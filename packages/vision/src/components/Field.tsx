@@ -79,18 +79,36 @@ export interface FieldProps {
   id?: string
   /** Справа от подписи: счётчик, ссылка «Сбросить». */
   labelAside?: ReactNode
+  /**
+   * Дополнительные id описаний вне поля (через пробел): контрол получает их
+   * в aria-describedby перед подсказкой или ошибкой. Например, описание строки
+   * настройки, в которую вложено поле.
+   */
+  describedBy?: string
   className?: string
   children: ReactNode
 }
 
-export function Field({ label, hint, error, required = false, disabled = false, id, labelAside, className, children }: FieldProps) {
+export function Field({
+  label,
+  hint,
+  error,
+  required = false,
+  disabled = false,
+  id,
+  labelAside,
+  describedBy: extraDescribedBy,
+  className,
+  children,
+}: FieldProps) {
   const auto = useId()
   const controlId = id ?? `f${auto}`
   const labelId = controlId + '-label'
   const hintId = `${controlId}-hint`
   const errorId = `${controlId}-error`
   const hasError = Boolean(error)
-  const describedBy = hasError ? errorId : hint ? hintId : undefined
+  const own = hasError ? errorId : hint ? hintId : undefined
+  const describedBy = [extraDescribedBy, own].filter(Boolean).join(' ') || undefined
   return (
     <FieldContext.Provider value={{ id: controlId, labelId: label ? labelId : undefined, describedBy, invalid: hasError, required, disabled }}>
       <div className={cx('ev-field', className)} data-invalid={hasError || undefined} data-disabled={disabled || undefined}>

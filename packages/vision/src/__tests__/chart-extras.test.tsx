@@ -335,9 +335,28 @@ describe('Gauge', () => {
     expect(out).toContain('aria-valuenow="7.2"')
     expect(out).toContain('aria-valuemin="0"')
     expect(out).toContain('aria-valuemax="10"')
-    expect(out).toContain('aria-valuetext="7,2"')
+    // Содержимое meter не читается: подпись-строка - часть aria-valuetext.
+    expect(out).toContain('aria-valuetext="7,2 бар"')
+    expect(out).not.toContain('aria-describedby')
     expect(out).toContain('data-tone="warning"')
     expect(count(out, 'class="ev-gauge-band"')).toBe(3)
     expect(out).toContain('бар')
+  })
+
+  it('без подписи - только значение', () => {
+    const out = renderRu(<Gauge aria-label="Давление" value={7.2} max={10} />)
+    expect(out).toContain('aria-valuetext="7,2"')
+    expect(out).not.toContain('aria-describedby')
+    expect(out).not.toContain('ev-gauge-caption')
+  })
+
+  it('подпись-разметка связана через aria-describedby', () => {
+    const out = renderRu(
+      <Gauge aria-label="Выработка" value={78} format={(v) => `${v}%`} caption={<span>4 680 из 6 000 ед.</span>} />,
+    )
+    expect(out).toContain('aria-valuetext="78%"')
+    const id = /aria-describedby="([^"]+)"/.exec(out)?.[1]
+    expect(id).toBeTruthy()
+    expect(out).toContain(`<span id="${id}" class="ev-gauge-caption">`)
   })
 })

@@ -71,8 +71,11 @@ type KanbanMoveProps<T> =
   | {
       /** Перенос карточек: включает перетаскивание и меню переноса. */
       onMove: KanbanMoveHandler
-      /** Подпись кнопки меню переноса («Переместить»); функция - с названием карточки. */
-      moveLabel: string | ((item: T) => string)
+      /**
+       * Подпись кнопки меню переноса (по умолчанию «Переместить» из словаря);
+       * функция - с названием карточки, чтобы кнопки различались для скринридера.
+       */
+      moveLabel?: string | ((item: T) => string)
     }
 
 export type KanbanBoardProps<T> = KanbanBoardBaseProps<T> & KanbanMoveProps<T>
@@ -305,7 +308,7 @@ export function KanbanBoard<T>(props: KanbanBoardProps<T>) {
   /* --- Меню переноса: доступная альтернатива перетаскиванию --- */
 
   const moveMenu = (item: T, column: KanbanColumn<T>) => {
-    if (!onMove || !moveLabel) return null
+    if (!onMove) return null
     const id = getId(item)
     const entries: MenuEntry[] = columns
       .filter((c) => c.id !== column.id)
@@ -318,7 +321,7 @@ export function KanbanBoard<T>(props: KanbanBoardProps<T>) {
           onMove(id, column.id, c.id, 0)
         },
       }))
-    const label = typeof moveLabel === 'function' ? moveLabel(item) : moveLabel
+    const label = typeof moveLabel === 'function' ? moveLabel(item) : (moveLabel ?? t.kanban.move)
     return (
       <Menu
         label={label}

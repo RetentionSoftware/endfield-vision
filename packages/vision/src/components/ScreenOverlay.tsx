@@ -1,7 +1,7 @@
 'use client'
 
 import { RefreshCw, Wrench, X } from 'lucide-react'
-import { useId, useRef, type ReactNode, type Ref } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode, type Ref } from 'react'
 import { cx } from '../lib/cx'
 import { useMessages } from '../lib/i18n'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
@@ -15,6 +15,8 @@ import { Button } from './Button'
  *    разработчика или администратора).
  *  - update: неблокирующее окно в углу «Доступна новая версия» с кнопками
  *    «Обновить» и «Позже». Фокус не перехватывает, Escape = «Позже».
+ *    Окно - внутри вежливой живой области (role="status"): скринридер
+ *    объявляет его появление, не прерывая пользователя.
  *  - custom: блокирующий слой со своим заголовком, текстом и действиями
  *    (blocking={false} - неблокирующее окно в углу, как update).
  * Когда показывать (опрос сервера, сравнение версий) - решает приложение.
@@ -36,7 +38,7 @@ export interface ScreenOverlayProps {
   text?: ReactNode
   /** Ожидаемое окончание работ (maintenance), например «14:30» или <RelativeTime />. */
   until?: ReactNode
-  /** Подпись перед until, например «Окончание»; без неё until выводится один. */
+  /** Подпись перед until (по умолчанию «Ориентировочное окончание» из словаря); null - until выводится один. */
   untilLabel?: ReactNode
   /** Иконка вместо стандартной. */
   icon?: ReactNode
@@ -106,7 +108,7 @@ function BlockingOverlay({ variant, onDismiss, title, text, until, untilLabel, i
   )
 }
 
-/** Разметка блокирующего слоя без портала (серверный рендер в тестах). */
+/** Разметка блокирующего слоя без портала (серверный рендер в тестах). untilLabel по умолчанию - из словаря. */
 export function ScreenOverlayView({
   ref,
   variant,
@@ -138,6 +140,8 @@ export function ScreenOverlayView({
   closeLabel: string
   onDismiss?: () => void
 }) {
+  const t = useMessages()
+  const label = untilLabel === undefined ? t.screenOverlay.until : untilLabel
   return (
     <div
       ref={ref}
@@ -173,7 +177,7 @@ export function ScreenOverlayView({
         ) : null}
         {until !== undefined && until !== null ? (
           <p className="ev-screen-overlay-until">
-            {untilLabel ? <span className="ev-screen-overlay-until-label">{untilLabel}</span> : null}
+            {label ? <span className="ev-screen-overlay-until-label">{label}</span> : null}
             <span className="ev-screen-overlay-until-value">{until}</span>
           </p>
         ) : null}
@@ -189,6 +193,13 @@ function OverlayNotice({ variant, onDismiss, title, text, icon, children, action
   const titleId = useId()
   const textId = useId()
   useEscapeLayer(Boolean(onDismiss), () => onDismiss?.())
+  // Живая область объявляет только изменения: сначала она появляется пустой,
+  // содержимое - кадром позже (иначе часть скринридеров промолчит).
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
   const reload = () => {
     if (onReload) onReload()
     else window.location.reload()
@@ -196,6 +207,7 @@ function OverlayNotice({ variant, onDismiss, title, text, icon, children, action
   return (
     <Portal>
       <ScreenNoticeView
+        ready={ready}
         variant={variant}
         titleId={titleId}
         textId={textId}
@@ -229,8 +241,12 @@ function OverlayNotice({ variant, onDismiss, title, text, icon, children, action
   )
 }
 
-/** Разметка неблокирующего окна без портала (серверный рендер в тестах). */
+/**
+ * Разметка неблокирующего окна без портала (серверный рендер в тестах).
+ * Окно - внутри вежливой живой области; ready={false} - область пока пустая.
+ */
 export function ScreenNoticeView({
+  ready = true,
   variant,
   titleId,
   textId,
@@ -241,6 +257,7 @@ export function ScreenNoticeView({
   children,
   className,
 }: {
+  ready?: boolean
   variant: ScreenOverlayVariant
   titleId: string
   textId: string
@@ -252,36 +269,40 @@ export function ScreenNoticeView({
   className?: string
 }) {
   return (
-    <section
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby={heading ? titleId : undefined}
-      aria-describedby={body ? textId : undefined}
-      className={cx('ev-screen-notice ev-corners', className)}
-      data-variant={variant}
-      data-ev-layer=""
-    >
-      <div className="ev-screen-notice-head">
-        {mark ? (
-          <span className="ev-screen-notice-mark" aria-hidden="true">
-            {mark}
-          </span>
-        ) : null}
-        <div className="ev-screen-notice-titles">
-          {heading ? (
-            <h2 id={titleId} className="ev-screen-notice-title">
-              {heading}
-            </h2>
-          ) : null}
-          {body ? (
-            <p id={textId} className="ev-screen-notice-text">
-              {body}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      {children ? <div className="ev-screen-notice-extra">{children}</div> : null}
-      {actions ? <div className="ev-screen-notice-actions">{actions}</div> : null}
-    </section>
+    <div className="ev-screen-notice-live" role="status" aria-live="polite" aria-atomic="true">
+      {ready ? (
+        <section
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={heading ? titleId : undefined}
+          aria-describedby={body ? textId : undefined}
+          className={cx('ev-screen-notice ev-corners', className)}
+          data-variant={variant}
+          data-ev-layer=""
+        >
+          <div className="ev-screen-notice-head">
+            {mark ? (
+              <span className="ev-screen-notice-mark" aria-hidden="true">
+                {mark}
+              </span>
+            ) : null}
+            <div className="ev-screen-notice-titles">
+              {heading ? (
+                <h2 id={titleId} className="ev-screen-notice-title">
+                  {heading}
+                </h2>
+              ) : null}
+              {body ? (
+                <p id={textId} className="ev-screen-notice-text">
+                  {body}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {children ? <div className="ev-screen-notice-extra">{children}</div> : null}
+          {actions ? <div className="ev-screen-notice-actions">{actions}</div> : null}
+        </section>
+      ) : null}
+    </div>
   )
 }

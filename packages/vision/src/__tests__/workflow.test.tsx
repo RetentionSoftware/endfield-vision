@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { KanbanBoard, KanbanCard, resolveKanbanDrop, type KanbanColumn } from '../components/KanbanBoard'
 import { diffPermissions, PermissionMatrix, type PermissionValue } from '../components/PermissionMatrix'
 import { isEqualValue, SaveBar, SettingRow, SettingsList, SettingsSection } from '../components/SettingsList'
+import { Switch } from '../components/Choice'
 import { formatDuration, SlaTimer, timerTickInterval, timerTone } from '../components/SlaTimer'
 import { LocaleProvider } from '../lib/i18n'
 import { en as enMessages, ru as ruMessages } from '../lib/i18n-messages'
@@ -174,6 +175,13 @@ describe('KanbanBoard', () => {
     expect(out).toContain('aria-haspopup="menu"')
   })
 
+  it('с onMove без moveLabel: подпись меню из словаря ru и en', () => {
+    const ruOut = ru(<KanbanBoard columns={COLUMNS} getId={(x) => x.id} renderCard={renderTask} onMove={noop} />)
+    expect(count(ruOut, 'aria-label="Переместить"')).toBe(3)
+    const enOut = en(<KanbanBoard columns={COLUMNS} getId={(x) => x.id} renderCard={renderTask} onMove={noop} />)
+    expect(count(enOut, 'aria-label="Move"')).toBe(3)
+  })
+
   it('загрузка пустой колонки - скелетоны, кнопка занята', () => {
     const cols: KanbanColumn<Task>[] = [{ id: 'a', title: 'A', items: [], total: 4, loading: true, onLoadMore: noop }]
     const out = ru(<KanbanBoard columns={cols} getId={(x) => x.id} renderCard={renderTask} />)
@@ -272,6 +280,8 @@ describe('PermissionMatrix', () => {
     expect(count(out, 'data-changed="true"')).toBe(2)
     expect(count(out, 'data-corners="diagonal"')).toBe(2)
     expect(out).toContain('Изменений: 2')
+    // Изменённые ячейки - пометка для скринридера внутри кнопки.
+    expect(count(out, '<span class="ev-visually-hidden">, изменено</span></button>')).toBe(2)
     expect(out).toContain('Сбросить изменения')
     expect(out).toContain('role="status"')
   })
@@ -282,10 +292,17 @@ describe('PermissionMatrix', () => {
     expect(out).not.toContain('ev-perm-foot')
   })
 
+  it('пометка изменённой ячейки на английском', () => {
+    const value: PermissionValue = { ...BASE, users: { ...BASE.users, viewer: 'view' } }
+    const out = en(<PermissionMatrix rows={ROWS} columns={ROLES} value={value} baseline={BASE} onChange={noop} />)
+    expect(count(out, '<span class="ev-visually-hidden">, changed</span>')).toBe(1)
+  })
+
   it('английские подписи и только чтение', () => {
     const out = en(<PermissionMatrix rows={ROWS} columns={ROLES} value={BASE} onChange={noop} readOnly />)
     expect(out).toContain('>Section</th>')
     expect(out).toContain('Full access')
+    expect(out).not.toContain(', changed')
     expect(count(out, 'aria-disabled="true"')).toBe(9)
     expect(out).not.toContain('aria-haspopup')
   })
@@ -316,12 +333,33 @@ describe('SettingsList', () => {
     expect(out).toContain('class="ev-settings"')
     expect(out).toMatch(/<section class="ev-settings-section" aria-labelledby="[^"]+">/)
     expect(out).toContain('<h3 id=')
-    expect(out).toContain('<label id="digest-label" class="ev-setting-label" for="digest">Ежедневная сводка</label>')
+    // Изменённая строка: пометка для скринридера в подписи.
+    expect(out).toContain(
+      '<label id="digest-label" class="ev-setting-label" for="digest">Ежедневная сводка<span class="ev-visually-hidden">, изменено</span></label>',
+    )
     expect(out).toContain('<p id="digest-desc" class="ev-setting-desc">Письмо в 9:00</p>')
     expect(out).toContain('class="ev-setting ev-corners" data-changed="true"')
     expect(out).toContain('ev-setting-hint')
     // Функция-контрол получает id и aria-атрибуты.
     expect(out).toMatch(/<input type="number" id="([^"]+)" aria-labelledby="\1-label"\/>/)
+  })
+
+  it('контрол кита получает описание строки в aria-describedby', () => {
+    const out = ru(
+      <SettingRow controlId="sound" label="Звук" description="При новом обращении" control={<Switch checked={false} onChange={noop} />} />,
+    )
+    expect(out).toMatch(/id="sound"[^>]*aria-describedby="sound-desc"/)
+    expect(out).toContain('<p id="sound-desc" class="ev-setting-desc">')
+    // Без описания - без aria-describedby.
+    const bare = ru(<SettingRow controlId="bare" label="Звук" control={<Switch checked={false} onChange={noop} />} />)
+    expect(bare).not.toContain('aria-describedby')
+  })
+
+  it('пометка изменённой строки на английском; без changed - без пометки', () => {
+    expect(en(<SettingRow label="Sound" control={<Switch checked onChange={noop} />} changed />)).toContain(
+      '<span class="ev-visually-hidden">, changed</span>',
+    )
+    expect(en(<SettingRow label="Sound" control={<Switch checked onChange={noop} />} />)).not.toContain('ev-visually-hidden')
   })
 })
 

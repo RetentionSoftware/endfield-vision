@@ -3,8 +3,8 @@
 import { Check, Copy, ExternalLink, FileUp, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { useMessages } from '../lib/i18n'
-import type { Messages } from '../lib/i18n-messages'
 import { cx } from '../lib/cx'
+import { acceptMatches, formatSize } from '../lib/files'
 import { Button, IconButton } from './Button'
 import { useToast } from './Toast'
 import { Tooltip } from './Tooltip'
@@ -182,25 +182,6 @@ export interface FileDropProps {
   /** Ошибка снаружи (например, от сервера). */
   error?: ReactNode
   className?: string
-}
-
-function formatSize(bytes: number, t: Messages): string {
-  const { b, kb, mb } = t.file.units
-  if (bytes < 1024) return `${bytes} ${b}`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024).toLocaleString(t.intl)} ${kb}`
-  return `${(bytes / 1024 / 1024).toLocaleString(t.intl, { maximumFractionDigits: 1 })} ${mb}`
-}
-
-function acceptMatches(file: File, accept?: string): boolean {
-  if (!accept) return true
-  const rules = accept.split(',').map((r) => r.trim().toLowerCase()).filter(Boolean)
-  const name = file.name.toLowerCase()
-  const type = file.type.toLowerCase()
-  return rules.some((r) => {
-    if (r.startsWith('.')) return name.endsWith(r)
-    if (r.endsWith('/*')) return type.startsWith(r.slice(0, -1))
-    return type === r
-  })
 }
 
 /** Зона перетаскивания файла с выбором по клику и проверкой типа и размера. */

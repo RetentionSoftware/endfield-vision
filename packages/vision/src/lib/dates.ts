@@ -2,7 +2,11 @@
  * Даты без времени в формате 'YYYY-MM-DD' для полей и периодов.
  * Вся арифметика в локальном времени, сериализация вручную (без toISOString),
  * чтобы не ловить сдвиг часового пояса.
+ * Без 'use client': пригоден для серверных компонентов.
  */
+
+import { EMPTY_VALUE } from './cx'
+import { toDate, type DateInput } from './relative-time'
 
 export interface Ymd {
   y: number
@@ -141,3 +145,92 @@ export const DEFAULT_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
 ]
+
+/* ------------------------------------------------------------------ */
+/* Календарные дни: ключ, подпись «Сегодня / Вчера / 8 октября»,       */
+/* группировка (ленты переписки и уведомлений)                         */
+/* ------------------------------------------------------------------ */
+
+/** Ключ календарного дня 'YYYY-MM-DD' в часовом поясе timeZone (по умолчанию - пояс среды); некорректная дата - ''. */
+export function dayKey(date: DateInput, timeZone?: string): string {
+  const d = toDate(date)
+  if (!d) return ''
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(d)
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '00'
+  return `${get('year')}-${get('month')}-${get('day')}`
+}
+
+/** Сдвиг ключа дня 'YYYY-MM-DD' на days календарных дней. */
+export function shiftDayKey(key: string, days: number): string {
+  const [y = 0, m = 1, d = 1] = key.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
+}
+
+export interface DayLabelOptions {
+  /** Опорное «сейчас»: без него нет «Сегодня» и «Вчера», только дата с годом. */
+  now?: DateInput | null
+  /** Локаль Intl (t.intl). */
+  intl: string
+  today: string
+  yesterday: string
+  timeZone?: string
+}
+
+/** Подпись дня: «Сегодня», «Вчера», «8 октября» (год - если не текущий). */
+export function formatDayLabel(
+  date: DateInput,
+  { now, intl, today, yesterday, timeZone }: DayLabelOptions,
+): string {
+  const d = toDate(date)
+  if (!d) return EMPTY_VALUE
+  const key = dayKey(d, timeZone)
+  const n = now === undefined || now === null ? null : toDate(now)
+  const nowKey = n ? dayKey(n, timeZone) : null
+  if (nowKey !== null) {
+    if (key === nowKey) return today
+    if (key === shiftDayKey(nowKey, -1)) return yesterday
+  }
+  const sameYear = nowKey !== null && nowKey.slice(0, 4) === key.slice(0, 4)
+  return new Intl.DateTimeFormat(intl, {
+    day: 'numeric',
+    month: 'long',
+    year: sameYear ? undefined : 'numeric',
+    timeZone,
+  }).format(d)
+}
+
+export interface DayGroup<T> {
+  /** 'YYYY-MM-DD'. */
+  key: string
+  /** Дата первого элемента группы. */
+  date: Date
+  items: T[]
+}
+
+/** Группы по календарным дням в порядке первого появления; элементы с некорректной датой пропускаются. */
+export function groupByDay<T>(
+  items: readonly T[],
+  getDate: (item: T) => DateInput,
+  timeZone?: string,
+): DayGroup<T>[] {
+  const groups: DayGroup<T>[] = []
+  const byKey = new Map<string, DayGroup<T>>()
+  for (const item of items) {
+    const d = toDate(getDate(item))
+    if (!d) continue
+    const key = dayKey(d, timeZone)
+    let g = byKey.get(key)
+    if (!g) {
+      g = { key, date: d, items: [] }
+      byKey.set(key, g)
+      groups.push(g)
+    }
+    g.items.push(item)
+  }
+  return groups
+}

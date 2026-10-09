@@ -84,6 +84,7 @@
     background: var(--ev-surface-2);
     border-radius: var(--ev-radius-md);
     box-shadow: var(--ev-shadow-pop);
+    outline: none;
     animation: ev-pop-in var(--ev-dur-fast) var(--ev-ease-out);
   }
 

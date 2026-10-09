@@ -252,6 +252,8 @@ export interface Messages {
     moveTo: (column: string) => string
     count: (shown: number, total: number) => string
     dropHere: string
+    /** Подпись кнопки меню переноса карточки. */
+    move: string
   }
   timer: {
     overdueBy: (duration: string) => string
@@ -268,11 +270,15 @@ export interface Messages {
     changes: (n: number) => string
     section: string
     reset: string
+    /** Пометка изменённой ячейки для скринридера. */
+    changed: string
   }
   settings: {
     unsaved: string
     save: string
     discard: string
+    /** Пометка изменённой настройки для скринридера. */
+    changed: string
   }
   notifications: {
     title: string
@@ -296,6 +302,8 @@ export interface Messages {
     sending: string
     failed: string
     newMessages: string
+    sent: string
+    openImage: (name: string) => string
   }
   lightbox: {
     label: string
@@ -312,6 +320,8 @@ export interface Messages {
   }
   contextMenu: {
     label: string
+    /** Пункт «копировать выделенный текст». */
+    copy: string
   }
   statusBar: {
     label: string
@@ -329,6 +339,8 @@ export interface Messages {
     updateText: string
     reload: string
     later: string
+    /** Подпись перед временем окончания работ. */
+    until: string
   }
 }
 
@@ -602,6 +614,7 @@ export const ru: Messages = {
     moveTo: (column) => `Переместить в «${column}»`,
     count: (shown, total) => (shown === total ? String(total) : `${shown} из ${total}`),
     dropHere: 'Отпустите, чтобы переместить',
+    move: 'Переместить',
   },
   timer: {
     overdueBy: (duration) => `просрочено на ${duration}`,
@@ -618,11 +631,13 @@ export const ru: Messages = {
     changes: (n) => `Изменений: ${n}`,
     section: 'Раздел',
     reset: 'Сбросить изменения',
+    changed: 'изменено',
   },
   settings: {
     unsaved: 'Есть несохранённые изменения',
     save: 'Сохранить',
     discard: 'Отменить',
+    changed: 'изменено',
   },
   notifications: {
     title: 'Уведомления',
@@ -646,6 +661,8 @@ export const ru: Messages = {
     sending: 'Отправка',
     failed: 'Не отправлено',
     newMessages: 'Новые сообщения',
+    sent: 'Отправлено',
+    openImage: (name) => `Открыть изображение «${name}»`,
   },
   lightbox: {
     label: 'Просмотр вложений',
@@ -662,6 +679,7 @@ export const ru: Messages = {
   },
   contextMenu: {
     label: 'Контекстное меню',
+    copy: 'Копировать',
   },
   statusBar: {
     label: 'Строка состояния',
@@ -679,6 +697,7 @@ export const ru: Messages = {
     updateText: 'Обновите страницу, чтобы получить исправления и новые возможности.',
     reload: 'Обновить',
     later: 'Позже',
+    until: 'Ориентировочное окончание',
   },
 }
 
@@ -943,6 +962,7 @@ export const en: Messages = {
     moveTo: (column) => `Move to ${column}`,
     count: (shown, total) => (shown === total ? String(total) : `${shown} of ${total}`),
     dropHere: 'Drop to move here',
+    move: 'Move',
   },
   timer: {
     overdueBy: (duration) => `overdue by ${duration}`,
@@ -959,11 +979,13 @@ export const en: Messages = {
     changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'}`,
     section: 'Section',
     reset: 'Discard changes',
+    changed: 'changed',
   },
   settings: {
     unsaved: 'You have unsaved changes',
     save: 'Save changes',
     discard: 'Discard',
+    changed: 'changed',
   },
   notifications: {
     title: 'Notifications',
@@ -987,6 +1009,8 @@ export const en: Messages = {
     sending: 'Sending',
     failed: 'Not sent',
     newMessages: 'New messages',
+    sent: 'Sent',
+    openImage: (name) => `Open image ${name}`,
   },
   lightbox: {
     label: 'Attachment viewer',
@@ -1003,6 +1027,7 @@ export const en: Messages = {
   },
   contextMenu: {
     label: 'Context menu',
+    copy: 'Copy',
   },
   statusBar: {
     label: 'Status bar',
@@ -1020,6 +1045,7 @@ export const en: Messages = {
     updateText: 'Reload the page to get the latest fixes and features.',
     reload: 'Reload',
     later: 'Later',
+    until: 'Expected to end',
   },
 }
 

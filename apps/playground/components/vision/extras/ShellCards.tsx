@@ -218,7 +218,7 @@ function SiteTiles({ onAction }: { onAction: (label: string) => void }) {
         <span data-ctx-kind="person" data-ctx-id="u-7" data-name={t('Алина Воронцова', 'Alina Vorontsova')} tabIndex={0} style={{ textDecoration: 'underline dotted' }}>
           {t('Алина Воронцова', 'Alina Vorontsova')}
         </span>
-        {t('. Выделите часть этого текста и откройте меню - появится «Копировать».', '. Select part of this text and open the menu - a "Copy" item appears.')}
+        {t('. Выделите часть имени или названия площадки и откройте на нём меню - первым пунктом появится «Копировать».', '. Select part of the name or a site title and open the menu on it - "Copy" comes first.')}
       </p>
     </div>
   )
@@ -231,35 +231,19 @@ function ContextRegistryCard() {
     <Card
       title="ContextMenuProvider"
       description={t(
-        'Реестр для больших приложений: разметка помечает объекты data-ctx-kind и data-ctx-id, экран регистрирует построитель пунктов useContextMenuProvider(kind, builder). Провайдер один на приложение и слушает document; общие пункты (копировать выделенное) добавляются через globalItems. Где пунктов нет - нативное меню.',
-        'Registry for large apps: markup tags objects with data-ctx-kind and data-ctx-id, a screen registers an item builder with useContextMenuProvider(kind, builder). One provider per app listens on document; shared items (copy selection) come from globalItems. Where there are no items, the native menu shows.',
+        'Реестр для больших приложений: разметка помечает объекты data-ctx-kind и data-ctx-id, экран регистрирует построитель пунктов useContextMenuProvider(kind, builder). Провайдер один на приложение и слушает document; общие пункты добавляются через globalItems, «Копировать» для выделенного текста встроен (copySelection). Где пунктов нет - нативное меню.',
+        'Registry for large apps: markup tags objects with data-ctx-kind and data-ctx-id, a screen registers an item builder with useContextMenuProvider(kind, builder). One provider per app listens on document; shared items come from globalItems, and "Copy" for selected text is built in (copySelection). Where there are no items, the native menu shows.',
       )}
     >
-      <ContextMenuProvider
-        globalItems={(info) =>
-          info.selection && info.target.closest('[data-demo-ctx]')
-            ? [
-                {
-                  id: 'copy-selection',
-                  label: t('Копировать', 'Copy'),
-                  icon: <Copy size={15} />,
-                  shortcut: 'Ctrl+C',
-                  onSelect: () => {
-                    void navigator.clipboard?.writeText(info.selection).catch(() => undefined)
-                    setLast(t('Скопировано выделение', 'Selection copied'))
-                  },
-                },
-              ]
-            : null
-        }
-      >
-        <div className="ev-stack" data-demo-ctx="">
+      <ContextMenuProvider>
+        <div className="ev-stack">
           <SiteTiles onAction={setLast} />
           <LastAction value={last} />
         </div>
       </ContextMenuProvider>
       <CodeBlock
-        code={`<ContextMenuProvider globalItems={(info) => info.selection ? [copyItem] : null}>
+        code={`// ${t('«Копировать» для выделенного текста - встроен (copySelection)', '"Copy" for selected text is built in (copySelection)')}
+<ContextMenuProvider>
   <App />
 </ContextMenuProvider>
 

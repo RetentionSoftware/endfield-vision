@@ -68,15 +68,15 @@ export interface SettingRowProps {
   description?: ReactNode
   /**
    * Контрол справа. Контролы кита (Switch, Input, NumberInput, Select) сами
-   * получают id из строки и связываются с подписью. Функция получает id и
-   * aria-атрибуты для своего контрола.
+   * получают id из строки и связываются с подписью и описанием. Функция
+   * получает id и aria-атрибуты для своего контрола.
    */
   control?: ReactNode | ((props: SettingControlProps) => ReactNode)
   /** Бейдж рядом с названием: «Бета», «Требует перезапуска». */
   badge?: ReactNode
   /** Служебная строка под описанием: кто и когда менял, когда применится. */
   hint?: ReactNode
-  /** Значение изменено и не сохранено: тонированный фон и уголок. */
+  /** Значение изменено и не сохранено: тонированный фон и уголок, для скринридера - пометка «изменено» в подписи. */
   changed?: boolean
   disabled?: boolean
   /** id контрола (иначе генерируется). */
@@ -86,6 +86,7 @@ export interface SettingRowProps {
 
 /** Строка настройки: название, описание и контрол справа; на узком экране контрол уходит вниз. */
 export function SettingRow({ label, description, control, badge, hint, changed = false, disabled = false, controlId, className }: SettingRowProps) {
+  const t = useMessages()
   const auto = useId()
   const id = controlId ?? `set${auto}`
   const labelId = `${id}-label`
@@ -102,6 +103,7 @@ export function SettingRow({ label, description, control, badge, hint, changed =
         <div className="ev-setting-label-row">
           <label id={labelId} className="ev-setting-label" htmlFor={id}>
             {label}
+            {changed ? <span className="ev-visually-hidden">, {t.settings.changed}</span> : null}
           </label>
           {badge ? <span className="ev-setting-badge">{badge}</span> : null}
         </div>
@@ -117,7 +119,7 @@ export function SettingRow({ label, description, control, badge, hint, changed =
           {typeof control === 'function' ? (
             content
           ) : (
-            <Field id={id} disabled={disabled || undefined}>
+            <Field id={id} disabled={disabled || undefined} describedBy={descId}>
               {content}
             </Field>
           )}

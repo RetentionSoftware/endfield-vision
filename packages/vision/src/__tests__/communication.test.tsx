@@ -277,9 +277,27 @@ describe('ChatThread и ChatMessage', () => {
     )
     expect(out).toContain('>изменено<')
     expect(out).toContain('data-count="2"')
-    expect(out).toContain('aria-label="Просмотр вложений: screen.png"')
+    expect(out).toContain('aria-label="Открыть изображение «screen.png»"')
     expect(out).toContain('download="report.pdf"')
     expect(out).toContain('240 КБ')
+  })
+
+  it('статус «отправлено» и кнопка изображения: подписи из словаря ru и en', () => {
+    const message: ChatMessageData = {
+      id: 's',
+      author: { id: 'me', name: 'Я' },
+      text: 'Готово',
+      time: NOW,
+      status: 'sent',
+      attachments: [{ id: 'i', name: 'scan.png', url: '/scan.png', alt: 'Скан акта' }],
+    }
+    const ruOut = renderRu(<ChatMessage message={message} own timeZone={TZ} />)
+    expect(ruOut).toContain('data-status="sent"><svg')
+    expect(ruOut).toContain('<span class="ev-visually-hidden">Отправлено</span>')
+    expect(ruOut).toContain('aria-label="Открыть изображение «Скан акта»"')
+    const enOut = renderToString(<ChatMessage message={message} own timeZone={TZ} />)
+    expect(enOut).toContain('<span class="ev-visually-hidden">Sent</span>')
+    expect(enOut).toContain('aria-label="Open image Скан акта"')
   })
 
   it('ChatAttachments без вложений ничего не рисует', () => {

@@ -185,29 +185,60 @@ export function useScrollLock(active: boolean): void {
 /**
  * Стек слоёв, закрываемых по Escape: закрывается только верхний.
  * Иначе Esc в выпадающем списке внутри модалки закрыл бы и модалку.
+ * Слой с условием claims забирает Escape, только пока оно истинно (например,
+ * правка блока - пока фокус внутри блока); иначе событие получает слой ниже.
  */
-const escapeStack: Array<{ id: number; cb: () => void }> = []
+export interface EscapeLayer {
+  id: number
+  cb: () => void
+  claims?: () => boolean
+}
+
+const escapeStack: EscapeLayer[] = []
 let escapeSeq = 0
 let escapeListening = false
 
+/**
+ * Верхний слой, который забирает Escape: сверху вниз, слои с ложным claims
+ * пропускаются. undefined - Escape никому не нужен.
+ */
+export function topEscapeLayer(stack: readonly EscapeLayer[]): EscapeLayer | undefined {
+  for (let i = stack.length - 1; i >= 0; i -= 1) {
+    const layer = stack[i]!
+    if (!layer.claims || layer.claims()) return layer
+  }
+  return undefined
+}
+
 function onGlobalEscape(e: KeyboardEvent) {
-  if (e.key !== 'Escape' || e.defaultPrevented) return
-  const top = escapeStack[escapeStack.length - 1]
+  if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) return
+  const top = topEscapeLayer(escapeStack)
   if (!top) return
   e.preventDefault()
   e.stopPropagation()
   top.cb()
 }
 
-export function useEscapeLayer(active: boolean, onEscape: () => void): void {
+export interface EscapeLayerOptions {
+  /** Забирать ли Escape сейчас (проверяется при нажатии); false - событие уходит слою ниже. */
+  claims?: () => boolean
+}
+
+export function useEscapeLayer(active: boolean, onEscape: () => void, options?: EscapeLayerOptions): void {
   const cbRef = useRef(onEscape)
+  const claimsRef = useRef(options?.claims)
   useIsoLayoutEffect(() => {
     cbRef.current = onEscape
+    claimsRef.current = options?.claims
   })
   useEffect(() => {
     if (!active) return
     const id = ++escapeSeq
-    escapeStack.push({ id, cb: () => cbRef.current() })
+    escapeStack.push({
+      id,
+      cb: () => cbRef.current(),
+      claims: () => claimsRef.current?.() ?? true,
+    })
     if (!escapeListening) {
       document.addEventListener('keydown', onGlobalEscape, true)
       escapeListening = true

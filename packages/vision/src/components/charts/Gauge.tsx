@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, type CSSProperties, type ReactNode } from 'react'
+import { useId, useRef, type CSSProperties, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { useNumberFormat } from '../../lib/i18n'
 import { useCountUp, useEntranceMotion, useMotionProgress } from '../../lib/motion'
@@ -77,7 +77,11 @@ export interface GaugeProps {
   thickness?: number
   /** Формат значения в центре, подписей краёв и aria-valuetext. */
   format?: (v: number) => string
-  /** Подпись под значением (единицы, название показателя). */
+  /**
+   * Подпись под значением (единицы, название показателя). У role="meter"
+   * содержимое не читается: строка или число добавляются к aria-valuetext,
+   * разметка - связывается через aria-describedby.
+   */
   caption?: ReactNode
   /** Подписи min и max под краями дуги. */
   showRange?: boolean
@@ -129,6 +133,10 @@ export function Gauge({
   const bands = thresholds.length > 0 ? gaugeBands(thresholds, min, max, tone) : []
   const height = c + stroke / 2 + 1
   const clamped = Math.min(max, Math.max(min, value))
+  const captionId = useId()
+  const hasCaption = caption !== undefined && caption !== null && caption !== false && caption !== ''
+  const textCaption = typeof caption === 'string' || typeof caption === 'number' ? String(caption) : null
+  const valueText = textCaption !== null ? `${format(value)} ${textCaption}` : format(value)
 
   return (
     <div
@@ -139,7 +147,8 @@ export function Gauge({
       aria-valuemin={min}
       aria-valuemax={max}
       aria-valuenow={Number.isFinite(clamped) ? clamped : undefined}
-      aria-valuetext={format(value)}
+      aria-valuetext={valueText}
+      aria-describedby={hasCaption && textCaption === null ? captionId : undefined}
       data-tone={valueTone}
       data-ev-motion={motion.attr}
       data-ev-drawing={drawing || undefined}
@@ -171,7 +180,11 @@ export function Gauge({
         </svg>
         <div className="ev-gauge-center">
           <span className="ev-gauge-value ev-num">{countUpText(counting, format(roundLike(min + shownOffset, value)), format(value))}</span>
-          {caption ? <span className="ev-gauge-caption">{caption}</span> : null}
+          {hasCaption ? (
+            <span id={captionId} className="ev-gauge-caption">
+              {caption}
+            </span>
+          ) : null}
         </div>
       </div>
       {showRange ? (

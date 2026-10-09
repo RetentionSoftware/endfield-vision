@@ -1,6 +1,5 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import {
   cloneElement,
   createContext,
@@ -20,9 +19,12 @@ import {
 import { cx } from '../lib/cx'
 import { useEventCallback, useIsoLayoutEffect, useOutsideClick } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
-import { UiLink } from '../lib/link'
-import { Portal, useEscapeLayer } from '../lib/overlay'
-import { findTypeaheadMatch, type MenuEntry } from './Menu'
+import { Portal } from '../lib/overlay'
+import { isContextMenuKey, MenuPanel, useMenuKeyboard, withCopySelectionEntry, type MenuAction, type MenuEntry } from './MenuCore'
+import { useToast } from './Toast'
+import { copyText } from './Utility'
+
+export { isContextMenuKey }
 
 /*
  * Контекстное меню по правой кнопке мыши.
@@ -37,8 +39,9 @@ import { findTypeaheadMatch, type MenuEntry } from './Menu'
  *    data-ctx-kind / data-ctx-id, экран регистрирует построитель пунктов для
  *    своего вида, провайдер один на приложение слушает document.
  *
- * Пункты - те же MenuEntry, что у Menu: стрелки, Home/End, поиск по первым
- * буквам, Enter/пробел, Escape с возвратом фокуса. С клавиатуры меню
+ * Пункты - те же MenuEntry, что у Menu, и та же разметка и клавиатура
+ * (MenuCore): стрелки, Home/End, поиск по первым буквам, Enter/пробел,
+ * Escape и Tab с возвратом фокуса. С клавиатуры меню
  * открывается клавишей ContextMenu или Shift+F10 на элементе в фокусе.
  * Закрывается по Escape, клику вне, прокрутке страницы, смене размера окна.
  *
@@ -52,18 +55,10 @@ import { findTypeaheadMatch, type MenuEntry } from './Menu'
 
 export type ContextMenuItems = MenuEntry[] | ((target: HTMLElement) => MenuEntry[] | null | undefined)
 
-type ActionEntry = Extract<MenuEntry, { label: ReactNode }> & { type?: 'item' }
-
-function isAction(e: MenuEntry): e is ActionEntry {
-  return e.type === undefined || e.type === 'item'
-}
-
 /** Отступ меню от краёв окна, px. */
 const VIEWPORT_PAD = 8
 /** Окно, в котором событие contextmenu после клавиши считается её эхом, мс. */
 const KEY_ECHO_MS = 400
-/** Пауза сброса поиска по первым буквам, мс (как у Menu). */
-const TYPEAHEAD_RESET_MS = 500
 
 /**
  * Позиция меню у точки: справа-снизу от курсора, при нехватке места -
@@ -84,11 +79,6 @@ export function placeContextMenu(
   left = Math.max(pad, Math.min(left, viewport.width - size.width - pad))
   top = Math.max(pad, Math.min(top, viewport.height - size.height - pad))
   return { left: Math.round(left), top: Math.round(top) }
-}
-
-/** Клавиша открытия контекстного меню: ContextMenu или Shift+F10. */
-export function isContextMenuKey(e: { key: string; shiftKey: boolean }): boolean {
-  return e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')
 }
 
 /** Поле ввода или редактируемый текст: там остаётся нативное меню браузера. */
@@ -197,96 +187,16 @@ interface ContextMenuPanelProps {
   menuRef?: Ref<HTMLDivElement>
   itemRef?: (index: number, node: HTMLElement | null) => void
   onActive?: (index: number) => void
-  onSelect?: (item: ActionEntry) => void
+  onSelect?: (item: MenuAction) => void
   onKeyDown?: (e: ReactKeyboardEvent<HTMLDivElement>) => void
 }
 
 /**
- * Разметка меню (role="menu") без портала и позиционирования. Классы - те же,
- * что у Menu: внешний вид у обычного и контекстного меню общий.
+ * Разметка меню (role="menu") без портала и позиционирования - общая с Menu
+ * (MenuPanel), плюс класс ev-context-menu.
  */
-export function ContextMenuPanel({
-  items,
-  label,
-  active,
-  className,
-  style,
-  menuRef,
-  itemRef,
-  onActive,
-  onSelect,
-  onKeyDown,
-}: ContextMenuPanelProps) {
-  return (
-    <div
-      ref={menuRef}
-      role="menu"
-      aria-label={label}
-      tabIndex={-1}
-      className={cx('ev-menu ev-context-menu', className)}
-      data-ev-layer=""
-      style={style}
-      onKeyDown={onKeyDown}
-      // Правый клик внутри меню не открывает ни нативное меню, ни новое своё.
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {items.map((it, i) => {
-        if (it.type === 'separator') return <div key={it.id} className="ev-menu-sep" role="separator" />
-        if (it.type === 'label')
-          return (
-            <div key={it.id} className="ev-menu-label" role="presentation">
-              {it.label}
-            </div>
-          )
-        const content = (
-          <>
-            <span className="ev-menu-icon" aria-hidden="true">
-              {it.checked ? <Check size={15} /> : it.icon}
-            </span>
-            <span className="ev-menu-text">
-              <span className="ev-menu-item-label">{it.label}</span>
-              {it.hint ? <span className="ev-menu-hint">{it.hint}</span> : null}
-            </span>
-            {it.shortcut ? <kbd className="ev-kbd">{it.shortcut}</kbd> : null}
-          </>
-        )
-        const common = {
-          role: it.checked === undefined ? 'menuitem' : 'menuitemcheckbox',
-          'aria-checked': it.checked,
-          'aria-disabled': it.disabled || undefined,
-          tabIndex: -1,
-          className: 'ev-menu-item',
-          'data-danger': it.danger || undefined,
-          'data-active': active === i || undefined,
-          onMouseEnter: () => !it.disabled && onActive?.(i),
-        }
-        if (it.href && !it.disabled) {
-          return (
-            <UiLink
-              key={it.id}
-              href={it.href}
-              {...common}
-              ref={(n: HTMLAnchorElement | null) => itemRef?.(i, n)}
-              onClick={() => onSelect?.(it)}
-              onKeyDown={(e) => {
-                if (e.key === ' ') {
-                  e.preventDefault()
-                  ;(e.currentTarget as HTMLAnchorElement).click()
-                }
-              }}
-            >
-              {content}
-            </UiLink>
-          )
-        }
-        return (
-          <button key={it.id} type="button" {...common} ref={(n) => itemRef?.(i, n)} onClick={() => onSelect?.(it)}>
-            {content}
-          </button>
-        )
-      })}
-    </div>
-  )
+export function ContextMenuPanel({ className, ...props }: ContextMenuPanelProps) {
+  return <MenuPanel {...props} className={cx('ev-context-menu', className)} />
 }
 
 function ContextMenuLayer({
@@ -300,14 +210,11 @@ function ContextMenuLayer({
   className?: string
   onClose: (refocus: boolean) => void
 }) {
-  const { items } = state
-  const menuRef = useRef<HTMLDivElement | null>(null)
-  const itemRefs = useRef<Array<HTMLElement | null>>([])
-  const typed = useRef({ text: '', at: 0 })
-  const actionable = useMemo(() => items.map((it, i) => (isAction(it) && !it.disabled ? i : -1)).filter((i) => i >= 0), [items])
-  // С клавиатуры активен первый пункт; после клика мышью - ни один (как у нативного меню).
-  const [active, setActive] = useState(() => (state.keyboard ? (actionable[0] ?? -1) : -1))
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+  // С клавиатуры активен первый пункт; после клика мышью - ни один (как у нативного меню).
+  // Фокус - после расстановки (pos), чтобы не дёргать прокрутку.
+  const kb = useMenuKeyboard({ items: state.items, open: true, ready: pos !== null, initial: state.keyboard ? 'first' : 'none', onClose })
+  const { menuRef } = kb
 
   useIsoLayoutEffect(() => {
     const el = menuRef.current
@@ -319,16 +226,9 @@ function ContextMenuLayer({
         { width: window.innerWidth, height: window.innerHeight },
       ),
     )
-  }, [state])
-
-  useIsoLayoutEffect(() => {
-    if (!pos) return
-    const target = active >= 0 ? itemRefs.current[active] : menuRef.current
-    target?.focus({ preventScroll: true })
-  }, [pos, active])
+  }, [state, menuRef])
 
   useOutsideClick([menuRef], () => onClose(false))
-  useEscapeLayer(true, () => onClose(true))
 
   useEffect(() => {
     const onScroll = (e: Event) => {
@@ -345,83 +245,25 @@ function ContextMenuLayer({
       window.removeEventListener('resize', onLeave)
       window.removeEventListener('blur', onLeave)
     }
-  }, [onClose])
-
-  const move = (dir: 1 | -1) => {
-    if (actionable.length === 0) return
-    const p = actionable.indexOf(active)
-    const next = p < 0 ? (dir === 1 ? 0 : actionable.length - 1) : (p + dir + actionable.length) % actionable.length
-    setActive(actionable[next] ?? -1)
-  }
-
-  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        move(1)
-        return
-      case 'ArrowUp':
-        e.preventDefault()
-        move(-1)
-        return
-      case 'Home':
-        e.preventDefault()
-        setActive(actionable[0] ?? -1)
-        return
-      case 'End':
-        e.preventDefault()
-        setActive(actionable[actionable.length - 1] ?? -1)
-        return
-      case 'Tab':
-        // Меню модально для клавиатуры: Tab закрывает его и возвращает фокус.
-        e.preventDefault()
-        onClose(true)
-        return
-      default:
-        break
-    }
-    if (isContextMenuKey(e)) {
-      e.preventDefault()
-      return
-    }
-    if (e.key.length !== 1 || e.key === ' ' || e.ctrlKey || e.metaKey || e.altKey) return
-    const now = Date.now()
-    const prev = now - typed.current.at > TYPEAHEAD_RESET_MS ? '' : typed.current.text
-    const text = prev + e.key
-    typed.current = { text, at: now }
-    const labels = items.map((it) => (isAction(it) && typeof it.label === 'string' ? it.label : null))
-    const hit = findTypeaheadMatch(labels, actionable, active, text)
-    if (hit >= 0) {
-      e.preventDefault()
-      setActive(hit)
-    }
-  }
-
-  const select = (it: ActionEntry) => {
-    if (it.disabled) return
-    onClose(!it.href)
-    it.onSelect?.()
-  }
+  }, [onClose, menuRef])
 
   return (
     <Portal>
       <ContextMenuPanel
-        items={items}
+        items={state.items}
         label={label}
-        active={active}
+        active={kb.active}
         className={className}
         menuRef={menuRef}
-        itemRef={(i, n) => {
-          itemRefs.current[i] = n
-        }}
+        itemRef={kb.itemRef}
         style={
           pos
             ? { position: 'fixed', top: pos.top, left: pos.left }
             : { position: 'fixed', top: -9999, left: -9999, visibility: 'hidden' }
         }
-        onActive={setActive}
-        onSelect={select}
-        onKeyDown={onKeyDown}
+        onActive={kb.setActive}
+        onSelect={kb.select}
+        onKeyDown={kb.onKeyDown}
       />
     </Portal>
   )
@@ -521,6 +363,17 @@ interface Registry {
 
 const RegistryContext = createContext<Registry | null>(null)
 
+/** Выделение задевает элемент (правый клик по выделенному, а не в другом месте страницы). */
+function selectionTouches(target: HTMLElement): boolean {
+  const sel = window.getSelection()
+  return Boolean(sel && !sel.isCollapsed && sel.containsNode(target, true))
+}
+
+/** Сочетание копирования для подсказки в пункте: ⌘C на устройствах Apple, иначе Ctrl+C. */
+function copyShortcut(): string {
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘C' : 'Ctrl+C'
+}
+
 /** Ближайший объект с data-ctx-kind и его id. */
 export function findContextTarget(target: HTMLElement): { element: HTMLElement | null; kind: string | null; id: string | null } {
   const element = target.closest<HTMLElement>('[data-ctx-kind]')
@@ -534,10 +387,16 @@ export function findContextTarget(target: HTMLElement): { element: HTMLElement |
 export interface ContextMenuProviderProps {
   children: ReactNode
   /**
-   * Общие пункты для любого места страницы (копировать выделенное и т.п.).
-   * Идут после пунктов объекта, через разделитель.
+   * Общие пункты для любого места страницы. Идут после пунктов объекта, через
+   * разделитель.
    */
   globalItems?: (info: ContextMenuTargetInfo) => MenuEntry[] | null | undefined
+  /**
+   * Встроенный пункт «Копировать» первым, если в элементе под курсором выделен
+   * текст (по умолчанию да). Добавляется к меню, у которого есть свои пункты;
+   * где их нет, остаётся нативное меню браузера со своим «Копировать».
+   */
+  copySelection?: boolean
   /** Подпись меню для скринридера; по умолчанию - «Контекстное меню». */
   label?: string
   /** Выключить перехват (например, личная настройка пользователя). */
@@ -556,6 +415,7 @@ export interface ContextMenuProviderProps {
 export function ContextMenuProvider({
   children,
   globalItems,
+  copySelection = true,
   label,
   disabled = false,
   nativeInFields = true,
@@ -563,6 +423,7 @@ export function ContextMenuProvider({
   className,
 }: ContextMenuProviderProps) {
   const t = useMessages()
+  const toast = useToast()
   const registry = useRef(new Map<string, { current: ContextMenuBuilder }>())
   const { state, open, close, isKeyEcho } = useContextMenuState(onOpenChange)
 
@@ -587,7 +448,18 @@ export function ContextMenuProvider({
       ...found,
       selection: window.getSelection()?.toString().trim() ?? '',
     }
-    return joinMenuSections([own, globalItems?.(info)])
+    const entries = joinMenuSections([own, globalItems?.(info)])
+    if (!copySelection || !info.selection || !selectionTouches(target)) return entries
+    return withCopySelectionEntry(entries, info.selection, {
+      label: t.contextMenu.copy,
+      shortcut: copyShortcut(),
+      onCopy: (text) => {
+        void copyText(text).then((ok) => {
+          if (ok) toast.success(t.copy.copied, { duration: 1800, id: 'ev-copy' })
+          else toast.error(t.copy.failed)
+        })
+      },
+    })
   })
 
   useEffect(() => {

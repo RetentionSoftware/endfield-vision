@@ -5,7 +5,7 @@ import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'rea
 import { cx } from '../lib/cx'
 import { useControllable, useIsoLayoutEffect } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
-import { getFocusable } from '../lib/overlay'
+import { getFocusable, useEscapeLayer } from '../lib/overlay'
 import { Button } from './Button'
 import { errorText } from './InlineEdit'
 
@@ -141,12 +141,14 @@ export function EditablePanel({
     }
   }
 
+  // Escape - через общий стек слоёв: отменяет правку, не закрывая окно вокруг
+  // (Modal, Drawer). Слой забирает Escape, только пока фокус внутри блока;
+  // открытый внутри выпадающий список - слой выше, Escape сначала закрывает его.
+  useEscapeLayer(editing, cancel, { claims: focusInside })
+
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (!editing || e.defaultPrevented || e.nativeEvent.isComposing) return
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      cancel()
-    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
       void save()
     }
