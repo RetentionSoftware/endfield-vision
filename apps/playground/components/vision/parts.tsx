@@ -2,6 +2,7 @@
 
 import { CopyButton } from 'endfield-vision'
 import {
+  Briefcase,
   ChartColumn,
   Compass,
   FileText,
@@ -24,7 +25,7 @@ import s from './vision.module.css'
 /* Вкладки витрины                                                     */
 /* ------------------------------------------------------------------ */
 
-export const VISION_TABS = ['intro', 'tokens', 'theme', 'i18n', 'actions', 'navigation', 'forms', 'data', 'content', 'feedback', 'charts', 'layout'] as const
+export const VISION_TABS = ['intro', 'tokens', 'theme', 'i18n', 'actions', 'navigation', 'forms', 'data', 'content', 'feedback', 'charts', 'crm', 'layout'] as const
 export type VisionTab = (typeof VISION_TABS)[number]
 
 export const VISION_TAB_META: Record<VisionTab, { label: Bi; description: Bi; icon: LucideIcon }> = {
@@ -115,6 +116,14 @@ export const VISION_TAB_META: Record<VisionTab, { label: Bi; description: Bi; ic
       'Bar, line, area, stacked, share, heatmap, donut, gauge and sparkline charts built on palette tokens.',
     ),
     icon: ChartColumn,
+  },
+  crm: {
+    label: bi('CRM', 'CRM'),
+    description: bi(
+      'Заготовки для CRM: карточка записи, канбан, таймеры SLA, права, настройки, уведомления, чат, контекстное меню и строка состояния.',
+      'CRM building blocks: record page, kanban, SLA timers, permissions, settings, notifications, chat, context menu and status bar.',
+    ),
+    icon: Briefcase,
   },
   layout: {
     label: bi('Каркас', 'Layout'),

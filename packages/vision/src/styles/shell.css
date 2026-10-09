@@ -276,4 +276,129 @@
     justify-content: center;
     padding: var(--ev-space-3) var(--ev-space-2);
   }
+
+  /* --- Строка состояния --- */
+  .ev-shell-statusbar {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--ev-z-topbar);
+  }
+
+  .ev-statusbar {
+    --ev-statusbar-h: 28px;
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-4);
+    min-height: var(--ev-statusbar-h);
+    padding: 0 var(--ev-page-gutter);
+    background: color-mix(in srgb, var(--ev-bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--ev-border);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    line-height: 1;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .ev-statusbar-zone {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-4);
+    min-width: 0;
+  }
+
+  .ev-statusbar-zone[data-zone='left'] {
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .ev-statusbar-zone[data-zone='center'] {
+    flex: 0 1 auto;
+    justify-content: center;
+  }
+
+  .ev-statusbar-zone[data-zone='right'] {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .ev-statusbar-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    height: 22px;
+    min-width: 0;
+    padding: 0 var(--ev-space-2);
+    margin: 0 calc(var(--ev-space-2) * -1);
+    border-radius: var(--ev-radius-xs);
+    color: inherit;
+    font: inherit;
+    text-decoration: none;
+    outline: none;
+  }
+
+  .ev-statusbar-item[data-mono] {
+    font-family: var(--ev-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ev-statusbar-item[data-interactive] {
+    cursor: pointer;
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-statusbar-item[data-interactive]:hover {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-statusbar-item:focus-visible {
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  .ev-statusbar-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .ev-statusbar-icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .ev-statusbar-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ev-statusbar-dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ev-tone);
+    box-shadow: 0 0 0 3px var(--ev-tone-soft);
+  }
+
+  .ev-statusbar-sep {
+    flex: 0 0 auto;
+    width: 1px;
+    height: 12px;
+    background: var(--ev-border);
+  }
+
+  @media (max-width: 720px) {
+    .ev-statusbar {
+      gap: var(--ev-space-3);
+      padding: 0 var(--ev-space-3);
+    }
+
+    .ev-statusbar-zone[data-zone='center'] {
+      display: none;
+    }
+  }
 }

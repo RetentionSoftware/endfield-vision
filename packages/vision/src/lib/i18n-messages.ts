@@ -226,6 +226,110 @@ export interface Messages {
     more: string
     less: string
   }
+  editablePanel: {
+    edit: string
+    save: string
+  }
+  completeness: {
+    complete: string
+    missing: (n: number) => string
+    missingTitle: string
+    expiring: string
+  }
+  badgeStack: {
+    more: (n: number) => string
+  }
+  presence: {
+    online: string
+    away: string
+    busy: string
+    offline: string
+    lastSeen: (when: string) => string
+  }
+  kanban: {
+    empty: string
+    loadMore: (n: number) => string
+    moveTo: (column: string) => string
+    count: (shown: number, total: number) => string
+    dropHere: string
+  }
+  timer: {
+    overdueBy: (duration: string) => string
+    left: (duration: string) => string
+    days: string
+    hours: string
+    minutes: string
+    seconds: string
+  }
+  permissions: {
+    denied: string
+    view: string
+    full: string
+    changes: (n: number) => string
+    section: string
+    reset: string
+  }
+  settings: {
+    unsaved: string
+    save: string
+    discard: string
+  }
+  notifications: {
+    title: string
+    open: string
+    empty: string
+    markAllRead: string
+    clearAll: string
+    unread: (n: number) => string
+    remove: string
+    markRead: string
+  }
+  chat: {
+    placeholder: string
+    send: string
+    attach: string
+    today: string
+    yesterday: string
+    edited: string
+    removeAttachment: (name: string) => string
+    dropHint: string
+    sending: string
+    failed: string
+    newMessages: string
+  }
+  lightbox: {
+    label: string
+    prev: string
+    next: string
+    counter: (i: number, n: number) => string
+    download: string
+  }
+  connection: {
+    online: string
+    degraded: string
+    offline: string
+    reconnecting: string
+  }
+  contextMenu: {
+    label: string
+  }
+  statusBar: {
+    label: string
+  }
+  workspace: {
+    label: string
+    switch: string
+    search: string
+    current: string
+  }
+  screenOverlay: {
+    maintenanceTitle: string
+    maintenanceText: string
+    updateTitle: string
+    updateText: string
+    reload: string
+    later: string
+  }
 }
 
 /** Русское склонение по числу: plural(5, 'день', 'дня', 'дней'). */
@@ -472,6 +576,110 @@ export const ru: Messages = {
     more: 'Показать полностью',
     less: 'Свернуть',
   },
+  editablePanel: {
+    edit: 'Изменить',
+    save: 'Сохранить',
+  },
+  completeness: {
+    complete: 'Заполнено',
+    missing: (n) => `Не заполнено: ${n}`,
+    missingTitle: 'Не заполнено',
+    expiring: 'Истекает срок',
+  },
+  badgeStack: {
+    more: (n) => `Ещё ${n}`,
+  },
+  presence: {
+    online: 'В сети',
+    away: 'Нет на месте',
+    busy: 'Занят',
+    offline: 'Не в сети',
+    lastSeen: (when) => `В сети ${when}`,
+  },
+  kanban: {
+    empty: 'Пусто',
+    loadMore: (n) => `Показать ещё ${n}`,
+    moveTo: (column) => `Переместить в «${column}»`,
+    count: (shown, total) => (shown === total ? String(total) : `${shown} из ${total}`),
+    dropHere: 'Отпустите, чтобы переместить',
+  },
+  timer: {
+    overdueBy: (duration) => `просрочено на ${duration}`,
+    left: (duration) => `осталось ${duration}`,
+    days: 'д',
+    hours: 'ч',
+    minutes: 'мин',
+    seconds: 'с',
+  },
+  permissions: {
+    denied: 'Нет доступа',
+    view: 'Просмотр',
+    full: 'Полный доступ',
+    changes: (n) => `Изменений: ${n}`,
+    section: 'Раздел',
+    reset: 'Сбросить изменения',
+  },
+  settings: {
+    unsaved: 'Есть несохранённые изменения',
+    save: 'Сохранить',
+    discard: 'Отменить',
+  },
+  notifications: {
+    title: 'Уведомления',
+    open: 'Открыть уведомления',
+    empty: 'Новых уведомлений нет',
+    markAllRead: 'Прочитать все',
+    clearAll: 'Очистить',
+    unread: (n) => `Непрочитанных: ${n}`,
+    remove: 'Удалить уведомление',
+    markRead: 'Отметить прочитанным',
+  },
+  chat: {
+    placeholder: 'Напишите сообщение',
+    send: 'Отправить',
+    attach: 'Прикрепить файл',
+    today: 'Сегодня',
+    yesterday: 'Вчера',
+    edited: 'изменено',
+    removeAttachment: (name) => `Убрать «${name}»`,
+    dropHint: 'Отпустите, чтобы прикрепить',
+    sending: 'Отправка',
+    failed: 'Не отправлено',
+    newMessages: 'Новые сообщения',
+  },
+  lightbox: {
+    label: 'Просмотр вложений',
+    prev: 'Предыдущее',
+    next: 'Следующее',
+    counter: (i, n) => `${i} из ${n}`,
+    download: 'Скачать',
+  },
+  connection: {
+    online: 'Связь есть',
+    degraded: 'Связь нестабильна',
+    offline: 'Нет связи',
+    reconnecting: 'Переподключение',
+  },
+  contextMenu: {
+    label: 'Контекстное меню',
+  },
+  statusBar: {
+    label: 'Строка состояния',
+  },
+  workspace: {
+    label: 'Рабочее пространство',
+    switch: 'Сменить рабочее пространство',
+    search: 'Найти',
+    current: 'текущее',
+  },
+  screenOverlay: {
+    maintenanceTitle: 'Идут технические работы',
+    maintenanceText: 'Система временно недоступна. Страница обновится сама, когда работы закончатся.',
+    updateTitle: 'Доступна новая версия',
+    updateText: 'Обновите страницу, чтобы получить исправления и новые возможности.',
+    reload: 'Обновить',
+    later: 'Позже',
+  },
 }
 
 export const en: Messages = {
@@ -708,6 +916,110 @@ export const en: Messages = {
   expandableText: {
     more: 'Show more',
     less: 'Show less',
+  },
+  editablePanel: {
+    edit: 'Edit',
+    save: 'Save',
+  },
+  completeness: {
+    complete: 'Complete',
+    missing: (n) => `${n} missing`,
+    missingTitle: 'Missing',
+    expiring: 'Expiring soon',
+  },
+  badgeStack: {
+    more: (n) => `${n} more`,
+  },
+  presence: {
+    online: 'Online',
+    away: 'Away',
+    busy: 'Busy',
+    offline: 'Offline',
+    lastSeen: (when) => `Last seen ${when}`,
+  },
+  kanban: {
+    empty: 'No items',
+    loadMore: (n) => `Show ${n} more`,
+    moveTo: (column) => `Move to ${column}`,
+    count: (shown, total) => (shown === total ? String(total) : `${shown} of ${total}`),
+    dropHere: 'Drop to move here',
+  },
+  timer: {
+    overdueBy: (duration) => `overdue by ${duration}`,
+    left: (duration) => `${duration} left`,
+    days: 'd',
+    hours: 'h',
+    minutes: 'min',
+    seconds: 's',
+  },
+  permissions: {
+    denied: 'No access',
+    view: 'View',
+    full: 'Full access',
+    changes: (n) => `${n} ${n === 1 ? 'change' : 'changes'}`,
+    section: 'Section',
+    reset: 'Discard changes',
+  },
+  settings: {
+    unsaved: 'You have unsaved changes',
+    save: 'Save changes',
+    discard: 'Discard',
+  },
+  notifications: {
+    title: 'Notifications',
+    open: 'Open notifications',
+    empty: 'You are all caught up',
+    markAllRead: 'Mark all as read',
+    clearAll: 'Clear all',
+    unread: (n) => `${n} unread`,
+    remove: 'Remove notification',
+    markRead: 'Mark as read',
+  },
+  chat: {
+    placeholder: 'Write a message',
+    send: 'Send',
+    attach: 'Attach file',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    edited: 'edited',
+    removeAttachment: (name) => `Remove ${name}`,
+    dropHint: 'Drop to attach',
+    sending: 'Sending',
+    failed: 'Not sent',
+    newMessages: 'New messages',
+  },
+  lightbox: {
+    label: 'Attachment viewer',
+    prev: 'Previous',
+    next: 'Next',
+    counter: (i, n) => `${i} of ${n}`,
+    download: 'Download',
+  },
+  connection: {
+    online: 'Connected',
+    degraded: 'Unstable connection',
+    offline: 'Offline',
+    reconnecting: 'Reconnecting',
+  },
+  contextMenu: {
+    label: 'Context menu',
+  },
+  statusBar: {
+    label: 'Status bar',
+  },
+  workspace: {
+    label: 'Workspace',
+    switch: 'Switch workspace',
+    search: 'Find',
+    current: 'current',
+  },
+  screenOverlay: {
+    maintenanceTitle: 'Maintenance in progress',
+    maintenanceText: 'The system is temporarily unavailable. This page refreshes on its own when the work is done.',
+    updateTitle: 'A new version is available',
+    updateText: 'Reload the page to get the latest fixes and features.',
+    reload: 'Reload',
+    later: 'Later',
   },
 }
 

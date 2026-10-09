@@ -18,4 +18,8 @@
 @import './components/input-extras.css';
 @import './components/chart-extras.css';
 @import './components/content.css';
+@import './components/records.css';
+@import './components/workflow.css';
+@import './components/communication.css';
+@import './components/shell-extras.css';
 @import './shell.css';

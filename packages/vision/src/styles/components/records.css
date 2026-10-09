@@ -1,0 +1,511 @@
+@layer ev.components {
+  /*
+   * Карточка сущности: шапка RecordHeader, раскладка RecordLayout, блоки
+   * EditablePanel, полнота данных, стопка бейджей, группа аватаров и
+   * присутствие у Avatar, пометка незаполненного поля в KeyValueList.
+   */
+
+  /* --- Кольцо вокруг точки присутствия и аватаров внахлёст: цвет поверхности под ними --- */
+  .ev-card,
+  .ev-panel,
+  .ev-modal,
+  .ev-drawer {
+    --ev-avatar-ring: var(--ev-surface-1);
+  }
+
+  :is(.ev-card, .ev-panel, .ev-modal, .ev-drawer) :is(.ev-card, .ev-panel, .ev-stat, .ev-table-card, .ev-table-state) {
+    --ev-avatar-ring: var(--ev-surface-nested);
+  }
+
+  .ev-popover,
+  .ev-menu {
+    --ev-avatar-ring: var(--ev-surface-2);
+  }
+
+  /* --- Присутствие у аватара --- */
+  .ev-avatar-presence {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    vertical-align: middle;
+  }
+
+  .ev-avatar-status {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: var(--ev-presence-dot, 9px);
+    height: var(--ev-presence-dot, 9px);
+    border-radius: 50%;
+    background: var(--ev-presence-color, var(--ev-neutral));
+    box-shadow: 0 0 0 2px var(--ev-avatar-ring, var(--ev-bg));
+  }
+
+  .ev-avatar-presence[data-status='online'] {
+    --ev-presence-color: var(--ev-success);
+  }
+
+  .ev-avatar-presence[data-status='away'] {
+    --ev-presence-color: var(--ev-warning);
+  }
+
+  .ev-avatar-presence[data-status='busy'] {
+    --ev-presence-color: var(--ev-danger);
+  }
+
+  /* «Занят» - черта поперёк точки: смысл не только в цвете. */
+  .ev-avatar-presence[data-status='busy'] .ev-avatar-status::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 24%;
+    right: 24%;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 1px;
+    background: var(--ev-avatar-ring, var(--ev-bg));
+  }
+
+  /* «Не в сети» - пустой круг. */
+  .ev-avatar-presence[data-status='offline'] .ev-avatar-status {
+    background: var(--ev-avatar-ring, var(--ev-bg));
+    box-shadow:
+      inset 0 0 0 2px var(--ev-text-muted),
+      0 0 0 2px var(--ev-avatar-ring, var(--ev-bg));
+  }
+
+  /* --- Группа аватаров внахлёст --- */
+  .ev-avatar-group {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    padding-left: calc(var(--ev-avatar-group-size, 28px) * 0.28);
+  }
+
+  .ev-avatar-group-item,
+  .ev-avatar-group-more {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-left: calc(var(--ev-avatar-group-size, 28px) * -0.28);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--ev-avatar-ring, var(--ev-bg));
+  }
+
+  .ev-avatar-group-item:hover {
+    z-index: 1;
+  }
+
+  .ev-avatar-group-more {
+    align-items: center;
+    justify-content: center;
+    background: var(--ev-tint-3);
+    color: var(--ev-text-secondary);
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1;
+    cursor: default;
+  }
+
+  .ev-avatar-group-more:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-avatar-group-tip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ev-avatar-group-tip-muted {
+    opacity: 0.75;
+  }
+
+  /* --- Стопка бейджей --- */
+  .ev-badge-stack {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    max-width: 100%;
+    min-width: 0;
+    vertical-align: middle;
+  }
+
+  .ev-badge-stack-more {
+    cursor: default;
+  }
+
+  .ev-badge-stack-more:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-badge-stack-tip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* Узлы-бейджи в подсказке - строкой с переносом. */
+  .ev-badge-stack-tip[data-nodes] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--ev-space-1);
+    padding: 2px 0;
+  }
+
+  /* --- Пометка незаполненного поля в KeyValueList --- */
+  .ev-kv-missing {
+    display: inline-flex;
+    align-items: center;
+    margin-left: var(--ev-space-2);
+    color: var(--ev-warning);
+    vertical-align: -2px;
+  }
+
+  /* --- Полнота данных --- */
+  .ev-completeness[tabindex] {
+    cursor: default;
+  }
+
+  .ev-completeness:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-completeness-btn {
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-completeness-btn:hover {
+    background: var(--ev-tone-edge);
+  }
+
+  .ev-completeness-btn[aria-expanded='true'] .ev-completeness-chevron {
+    transform: rotate(180deg);
+  }
+
+  .ev-completeness-chevron {
+    flex: 0 0 auto;
+    margin-right: -2px;
+    transition: transform var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-completeness-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ev-completeness-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    white-space: normal;
+  }
+
+  .ev-completeness-title {
+    margin-bottom: 2px;
+    font-weight: var(--ev-fw-semibold);
+  }
+
+  .ev-completeness-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ev-completeness-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ev-space-4);
+  }
+
+  .ev-completeness-date {
+    flex: 0 0 auto;
+    opacity: 0.8;
+  }
+
+  /* В поповере пункты - кнопки во всю ширину. */
+  .ev-completeness-pop {
+    min-width: 220px;
+    max-width: min(340px, calc(100vw - 16px));
+    padding: var(--ev-space-3) var(--ev-space-2);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-completeness-pop .ev-completeness-title {
+    padding: 0 var(--ev-space-3);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  .ev-completeness-pop .ev-completeness-item {
+    width: 100%;
+    padding: var(--ev-space-2) var(--ev-space-3);
+    border: 0;
+    border-radius: var(--ev-radius-sm);
+    background: none;
+    color: var(--ev-text);
+    font: inherit;
+    text-align: left;
+  }
+
+  .ev-completeness-pop button.ev-completeness-item {
+    cursor: pointer;
+  }
+
+  .ev-completeness-pop button.ev-completeness-item:hover {
+    background: var(--ev-hover);
+  }
+
+  .ev-completeness-pop button.ev-completeness-item:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
+  .ev-completeness-pop .ev-completeness-date {
+    color: var(--ev-text-muted);
+    opacity: 1;
+  }
+
+  /* --- Блок с правкой на месте --- */
+  .ev-edit-panel-error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-3);
+    margin: var(--ev-space-4) var(--ev-space-6) 0;
+    padding: var(--ev-space-3) var(--ev-space-4);
+    border-radius: var(--ev-radius);
+    background: var(--ev-danger-soft);
+    color: var(--ev-danger);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-edit-panel-error > svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .ev-edit-panel-error {
+      margin-inline: var(--ev-space-5);
+    }
+  }
+
+  /* --- Шапка карточки сущности --- */
+  .ev-record-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-4);
+    min-width: 0;
+    container: ev-record / inline-size;
+  }
+
+  .ev-record-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-5);
+    padding: var(--ev-space-6);
+  }
+
+  .ev-record-hero-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-5);
+  }
+
+  .ev-record-avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .ev-record-titles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-record-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2) var(--ev-space-4);
+  }
+
+  .ev-record-title {
+    font-size: var(--ev-fs-2xl);
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    overflow-wrap: anywhere;
+  }
+
+  .ev-record-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-record-subtitle {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-record-ids {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ev-space-2) var(--ev-space-6);
+    margin-top: var(--ev-space-1);
+  }
+
+  .ev-record-id {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ev-record-id-label {
+    flex: 0 0 auto;
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-record-id-value {
+    min-width: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-record-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ev-space-2);
+    flex: 0 1 auto;
+  }
+
+  .ev-record-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--ev-space-4) var(--ev-space-6);
+    padding-top: var(--ev-space-5);
+    border-top: 1px solid var(--ev-border-soft);
+  }
+
+  .ev-record-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .ev-record-stat-label {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-record-stat-value {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--ev-fs-lg);
+    font-weight: var(--ev-fw-semibold);
+    line-height: 1.3;
+  }
+
+  .ev-record-stat[data-tone] .ev-record-stat-value > .ev-num {
+    color: var(--ev-tone);
+  }
+
+  .ev-record-stat-hint {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-regular);
+  }
+
+  /* Узкий контейнер: действия уходят под заголовок, отступы меньше. */
+  @container ev-record (max-width: 640px) {
+    .ev-record-hero {
+      padding: var(--ev-space-5);
+    }
+
+    .ev-record-hero-row {
+      flex-wrap: wrap;
+      gap: var(--ev-space-4);
+    }
+
+    .ev-record-titles {
+      flex-basis: calc(100% - 72px);
+    }
+
+    .ev-record-actions {
+      flex-basis: 100%;
+      justify-content: flex-start;
+    }
+
+    .ev-record-title {
+      font-size: var(--ev-fs-xl);
+    }
+  }
+
+  /* --- Раскладка карточки: основная и боковая колонки --- */
+  .ev-record-layout {
+    --ev-record-side-w: 340px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--ev-space-6);
+    min-width: 0;
+  }
+
+  .ev-record-layout[data-side] {
+    grid-template-columns: minmax(0, 1fr) var(--ev-record-side-w);
+  }
+
+  .ev-record-main,
+  .ev-record-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-6);
+    min-width: 0;
+  }
+
+  .ev-record-layout[data-sticky] > .ev-record-side {
+    position: sticky;
+    top: var(--ev-record-sticky-top, calc(var(--ev-topbar-h) + var(--ev-space-6)));
+  }
+
+  @media (max-width: 1100px) {
+    .ev-record-layout[data-side] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ev-record-layout[data-sticky] > .ev-record-side {
+      position: static;
+    }
+
+    .ev-record-layout[data-side-first] > .ev-record-side {
+      order: -1;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .ev-record-layout,
+    .ev-record-main,
+    .ev-record-side {
+      gap: var(--ev-space-5);
+    }
+  }
+}

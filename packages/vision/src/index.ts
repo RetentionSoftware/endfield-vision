@@ -131,6 +131,7 @@ export {
   StatTile,
   StatusPill,
   type AvatarProps,
+  type PresenceStatus,
   type BadgeProps,
   type CalloutProps,
   type CardProps,
@@ -178,7 +179,7 @@ export {
   type ModalsApi,
   type ModalSize,
 } from './components/Modal'
-export { toast, Toaster, ToastProvider, useToast, type ToastApi, type ToastOptions, type ToastTone } from './components/Toast'
+export { toast, Toaster, ToastProvider, useToast, type ToastAction, type ToastApi, type ToastOptions, type ToastTone } from './components/Toast'
 export { Timeline, type TimelineItem, type TimelineProps } from './components/Timeline'
 export { UptimeBar, type UptimeBarProps, type UptimeDay, type UptimeStatus } from './components/UptimeBar'
 export { findTypeaheadMatch, Menu, type MenuEntry, type MenuProps } from './components/Menu'
@@ -262,3 +263,120 @@ export {
   type NumericText,
 } from './lib/motion'
 export { AnimatedNumber, AnimatedText, type AnimatedNumberProps } from './components/AnimatedNumber'
+
+// --- CRM: карточка записи
+export { EditablePanel, type EditablePanelProps } from './components/EditablePanel'
+export { RecordHeader, type RecordHeaderProps, type RecordIdentifier, type RecordStat } from './components/RecordHeader'
+export { RecordLayout, type RecordLayoutProps } from './components/RecordLayout'
+export {
+  CompletenessBadge,
+  completenessTone,
+  type CompletenessBadgeProps,
+  type CompletenessField,
+  type CompletenessExpiringItem,
+  type CompletenessSeverity,
+  type CompletenessTone,
+} from './components/CompletenessBadge'
+export { BadgeStack, splitOverflow, type BadgeStackItem, type BadgeStackProps } from './components/BadgeStack'
+export { AvatarGroup, type AvatarGroupItem, type AvatarGroupProps } from './components/AvatarGroup'
+
+// --- CRM: каркас и взаимодействие
+export {
+  ContextMenu,
+  ContextMenuProvider,
+  useContextMenuProvider,
+  compactMenuEntries,
+  joinMenuSections,
+  placeContextMenu,
+  isContextMenuKey,
+  isEditableTarget,
+  findContextTarget,
+  type ContextMenuProps,
+  type ContextMenuProviderProps,
+  type ContextMenuBuilder,
+  type ContextMenuItems,
+  type ContextMenuTargetInfo,
+} from './components/ContextMenu'
+export { StatusBar, StatusBarItem, StatusBarSeparator, StatusBarClock, type StatusBarProps, type StatusBarItemProps, type StatusBarClockProps } from './components/StatusBar'
+export { WorkspaceSwitcher, filterWorkspaces, type WorkspaceItem, type WorkspaceSwitcherProps } from './components/WorkspaceSwitcher'
+export { ScreenOverlay, isBlockingOverlay, type ScreenOverlayProps, type ScreenOverlayVariant } from './components/ScreenOverlay'
+export {
+  useUrlFilters,
+  serializeFilters,
+  parseFilters,
+  countActiveFilters,
+  filterValueEquals,
+  hasFilterParams,
+  mergeFilterSearch,
+  URL_FILTERS_STORAGE_PREFIX,
+  type FilterValue,
+  type FilterValues,
+  type UrlFiltersOptions,
+  type UrlFiltersApi,
+} from './lib/url-filters'
+
+// --- CRM: рабочие процессы
+export { KanbanBoard, KanbanCard, resolveKanbanDrop, type KanbanBoardProps, type KanbanCardProps, type KanbanColumn, type KanbanMoveHandler } from './components/KanbanBoard'
+export { formatDuration, SlaTimer, timerTickInterval, timerTone, type FormatDurationOptions, type SlaTimerProps, type TimerKind, type TimerThresholds, type TimerTone } from './components/SlaTimer'
+export {
+  diffPermissions,
+  PermissionMatrix,
+  type PermissionChange,
+  type PermissionColumn,
+  type PermissionMatrixProps,
+  type PermissionMode,
+  type PermissionModeOption,
+  type PermissionRow,
+  type PermissionValue,
+} from './components/PermissionMatrix'
+export {
+  isEqualValue,
+  SaveBar,
+  SettingRow,
+  SettingsList,
+  SettingsSection,
+  useDirtyState,
+  type DirtyState,
+  type SaveBarProps,
+  type SettingControlProps,
+  type SettingRowProps,
+  type SettingsListProps,
+  type SettingsSectionProps,
+} from './components/SettingsList'
+
+// --- CRM: коммуникации
+export {
+  buildChatRows,
+  ChatAttachments,
+  ChatMessage,
+  ChatThread,
+  Composer,
+  dayKey,
+  formatDayLabel,
+  groupByDay,
+  type ChatAttachment,
+  type ChatAttachmentsProps,
+  type ChatAuthor,
+  type ChatMessageData,
+  type ChatMessageProps,
+  type ChatMessageStatus,
+  type ChatRow,
+  type ChatRowsOptions,
+  type ChatThreadProps,
+  type ComposerPayload,
+  type ComposerProps,
+  type DayGroup,
+  type DayLabelOptions,
+} from './components/Chat'
+export {
+  countUnread,
+  groupNotificationsByDay,
+  NotificationCenter,
+  NotificationList,
+  type NotificationAction,
+  type NotificationCenterProps,
+  type NotificationItem,
+  type NotificationListProps,
+} from './components/NotificationCenter'
+export { Lightbox, type LightboxImage, type LightboxProps } from './components/Lightbox'
+export { ConnectionStatus, type ConnectionState, type ConnectionStatusProps } from './components/ConnectionStatus'

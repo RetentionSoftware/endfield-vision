@@ -1,0 +1,723 @@
+@layer ev.components {
+  /* ================================================================= */
+  /* Канбан-доска                                                       */
+  /* ================================================================= */
+
+  /* Поверхности: на странице колонка - панель, карточка - вложенный блок. */
+  .ev-kanban {
+    --ev-kanban-col-bg: var(--ev-surface-1);
+    --ev-kanban-col-shadow: var(--ev-shadow-card);
+    --ev-kanban-card-bg: var(--ev-surface-nested);
+    --ev-kanban-card-shadow: none;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(280px, 1fr);
+    align-items: start;
+    gap: var(--ev-space-4);
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--ev-space-1);
+    /* Тень колонок не обрезается прокруткой. */
+    margin: -4px -4px 0;
+    padding: 4px 4px var(--ev-space-2);
+  }
+
+  /* Доска внутри карточки или панели: колонка - вложенный блок, карточка - снова панель. */
+  :is(.ev-card, .ev-panel) .ev-kanban {
+    --ev-kanban-col-bg: var(--ev-surface-nested);
+    --ev-kanban-col-shadow: none;
+    --ev-kanban-card-bg: var(--ev-surface-1);
+    --ev-kanban-card-shadow: var(--ev-shadow-card);
+  }
+
+  .ev-kanban-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    scroll-snap-align: start;
+    background: var(--ev-kanban-col-bg);
+    border-radius: var(--ev-radius-lg);
+    box-shadow: var(--ev-kanban-col-shadow);
+    transition: background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-kanban-col[data-over] {
+    --ev-corner-color: var(--ev-accent);
+    background: color-mix(in srgb, var(--ev-kanban-col-bg) 92%, var(--ev-accent) 8%);
+  }
+
+  .ev-kanban-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-3);
+    min-height: 48px;
+    padding: var(--ev-space-4) var(--ev-space-5) var(--ev-space-3);
+  }
+
+  .ev-kanban-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--ev-tone);
+  }
+
+  .ev-kanban-title {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-kanban-count {
+    flex: 0 0 auto;
+    padding: 2px var(--ev-space-2);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-kanban-card-bg);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  .ev-kanban-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    margin: -4px -6px -4px auto;
+  }
+
+  .ev-kanban-list {
+    display: flex;
+    flex-direction: column;
+    min-height: 8px;
+    max-height: var(--ev-kanban-list-max, none);
+    margin: 0;
+    padding: 0 var(--ev-space-3) var(--ev-space-3);
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .ev-kanban-item {
+    position: relative;
+    padding-bottom: var(--ev-space-3);
+    -webkit-touch-callout: none;
+  }
+
+  .ev-kanban-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .ev-kanban-item[data-movable] {
+    cursor: grab;
+  }
+
+  .ev-kanban-item[data-movable]:active {
+    cursor: grabbing;
+  }
+
+  .ev-kanban-item[data-dragging] {
+    opacity: 0.45;
+  }
+
+  /* Кнопка меню переноса: в правом верхнем углу карточки, видна по наведению и фокусу. */
+  .ev-kanban-move {
+    position: absolute;
+    top: var(--ev-space-2);
+    right: var(--ev-space-2);
+    z-index: 2;
+    opacity: 0;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-kanban-item:hover .ev-kanban-move,
+  .ev-kanban-move:focus-visible,
+  .ev-kanban-move[aria-expanded='true'] {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .ev-kanban-move {
+      opacity: 1;
+    }
+  }
+
+  .ev-kanban[data-dragging] .ev-kanban-move {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Место вставки: линия между карточками, не сдвигает раскладку. */
+  .ev-kanban-drop {
+    position: relative;
+    height: 0;
+    list-style: none;
+  }
+
+  .ev-kanban-drop::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--ev-space-3) / -2 - 1px);
+    height: 2px;
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-accent);
+  }
+
+  .ev-kanban-drop:first-child::before {
+    top: -4px;
+  }
+
+  .ev-kanban-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-kanban-empty {
+    margin: 0 var(--ev-space-3) var(--ev-space-3);
+    padding: var(--ev-space-6) var(--ev-space-4);
+    border-radius: var(--ev-radius);
+    background: var(--ev-kanban-card-bg);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-sm);
+    text-align: center;
+  }
+
+  .ev-kanban-col[data-over] .ev-kanban-empty {
+    background: var(--ev-accent-softer);
+    color: var(--ev-accent-text);
+  }
+
+  .ev-kanban-more {
+    padding: 0 var(--ev-space-3) var(--ev-space-3);
+  }
+
+  @media (max-width: 768px) {
+    .ev-kanban {
+      grid-auto-columns: minmax(280px, 86%);
+      scroll-snap-type: x mandatory;
+    }
+  }
+
+  /* --- Карточка доски: блок внутри колонки, на вложенной поверхности --- */
+  .ev-kanban-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    min-width: 0;
+    padding: var(--ev-space-4);
+    border-radius: var(--ev-radius);
+    background: var(--ev-kanban-card-bg);
+    box-shadow: var(--ev-kanban-card-shadow);
+    font-size: var(--ev-fs-sm);
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      box-shadow var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-kanban-card[data-interactive]:hover {
+    background: color-mix(in srgb, var(--ev-kanban-card-bg) 94%, var(--ev-text) 6%);
+  }
+
+  .ev-kanban-card[data-selected] {
+    --ev-corner-color: var(--ev-accent);
+    background: var(--ev-accent-softer);
+  }
+
+  .ev-kanban-card:has(.ev-kanban-card-link:focus-visible) {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-kanban-card-title {
+    min-width: 0;
+    color: var(--ev-text);
+    font-weight: var(--ev-fw-medium);
+    line-height: var(--ev-lh-tight);
+    overflow-wrap: anywhere;
+  }
+
+  .ev-kanban-item[data-movable] .ev-kanban-card-title {
+    padding-right: var(--ev-space-7);
+  }
+
+  /* Ссылка или кнопка заголовка растянута на всю карточку. */
+  .ev-kanban-card-link {
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    outline: none;
+  }
+
+  .ev-kanban-card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .ev-kanban-card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-1) var(--ev-space-3);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-kanban-card-body {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-kanban-card-foot {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2);
+    margin-top: var(--ev-space-1);
+  }
+
+  /* Кнопки и ссылки внутри карточки - над растянутой ссылкой заголовка. */
+  .ev-kanban-card-meta :is(a, button, [tabindex]),
+  .ev-kanban-card-body :is(a, button, [tabindex]),
+  .ev-kanban-card-foot :is(a, button, [tabindex]) {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ================================================================= */
+  /* Таймер SLA                                                         */
+  /* ================================================================= */
+
+  .ev-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    height: 22px;
+    max-width: 100%;
+    padding: 0 var(--ev-space-3);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-tone-soft);
+    color: var(--ev-tone);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .ev-timer[data-tone='neutral'] {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-timer[data-compact] {
+    height: 18px;
+    padding: 0 var(--ev-space-2);
+    font-size: var(--ev-fs-2xs);
+  }
+
+  .ev-timer[data-compact]:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-timer-icon {
+    display: inline-flex;
+  }
+
+  .ev-timer[data-compact] .ev-timer-icon svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .ev-timer-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ================================================================= */
+  /* Матрица прав                                                       */
+  /* ================================================================= */
+
+  .ev-perm {
+    --ev-perm-bg: var(--ev-surface-1);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ev-perm-scroll {
+    min-width: 0;
+    overflow: auto;
+  }
+
+  .ev-perm-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-perm-table th,
+  .ev-perm-table td {
+    padding: var(--ev-space-2) var(--ev-space-3);
+    border-bottom: 1px solid var(--ev-border-soft);
+    background: var(--ev-perm-bg);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  .ev-perm-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--ev-z-sticky);
+    height: 40px;
+    background: var(--ev-surface-2);
+    border-bottom-color: var(--ev-border);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    white-space: nowrap;
+  }
+
+  /* Первый столбец закреплён при горизонтальной прокрутке. */
+  .ev-perm-rowhead,
+  .ev-perm-corner,
+  .ev-perm-group th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .ev-perm-table thead .ev-perm-corner {
+    z-index: calc(var(--ev-z-sticky) + 1);
+    padding-left: var(--ev-space-5);
+  }
+
+  .ev-perm-rowhead {
+    min-width: 200px;
+    max-width: 320px;
+    padding-left: var(--ev-space-5);
+    font-weight: var(--ev-fw-regular);
+  }
+
+  .ev-perm-rowlabel {
+    display: block;
+    color: var(--ev-text);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  .ev-perm-rowdesc {
+    display: block;
+    margin-top: 2px;
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-perm-group th {
+    padding-top: var(--ev-space-4);
+    padding-left: var(--ev-space-5);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-2xs);
+    font-weight: var(--ev-fw-semibold);
+    letter-spacing: var(--ev-tracking-caps);
+    text-transform: uppercase;
+  }
+
+  .ev-perm-colhead {
+    min-width: 156px; /* «Полный доступ» с иконкой - без обрезки; лишние роли уходят в горизонтальную прокрутку */
+  }
+
+  .ev-perm-colbtn,
+  .ev-perm-collabel {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    margin: 0 calc(var(--ev-space-2) * -1);
+    padding: 4px var(--ev-space-2);
+    border-radius: var(--ev-radius-sm);
+    color: inherit;
+    font: inherit;
+  }
+
+  .ev-perm-colbtn {
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-perm-colbtn:hover,
+  .ev-perm-colbtn[aria-expanded='true'] {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-perm-colbtn:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-perm-td[data-changed] {
+    --ev-corner-color: var(--ev-accent);
+    --ev-corner-inset: 3px;
+    --ev-corner-size: 7px;
+    background: color-mix(in srgb, var(--ev-perm-bg) 88%, var(--ev-accent) 12%);
+  }
+
+  /* Ячейка-чип: тон режима и иконка, нажатие - следующий режим. */
+  .ev-perm-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    height: 26px;
+    padding: 0 var(--ev-space-3);
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-tone-soft);
+    color: var(--ev-tone);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      color var(--ev-dur-fast) var(--ev-ease),
+      box-shadow var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-perm-cell[data-tone='neutral'] {
+    color: var(--ev-text-muted);
+  }
+
+  .ev-perm-cell:hover:not([aria-disabled]) {
+    box-shadow: 0 0 0 1px var(--ev-tone-edge);
+  }
+
+  .ev-perm-cell:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-perm-cell[aria-disabled] {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .ev-perm-cell-icon {
+    display: inline-flex;
+  }
+
+  .ev-perm-cell-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ev-perm-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ev-space-3);
+    padding: var(--ev-space-3) var(--ev-space-5);
+    background: var(--ev-surface-nested);
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
+
+  .ev-perm-count {
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  /* ================================================================= */
+  /* Настройки и панель сохранения                                     */
+  /* ================================================================= */
+
+  .ev-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-7);
+    min-width: 0;
+  }
+
+  .ev-settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-settings-section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-4);
+  }
+
+  .ev-settings-section-titles {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-settings-section-title {
+    font-size: var(--ev-fs-base);
+    font-weight: var(--ev-fw-semibold);
+  }
+
+  .ev-settings-section-desc {
+    margin-top: 2px;
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-settings-section-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-settings-rows {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ev-setting {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-5);
+    min-width: 0;
+    padding: var(--ev-space-4) var(--ev-space-3);
+    border-radius: var(--ev-radius);
+    transition: background-color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-setting + .ev-setting {
+    box-shadow: 0 -1px 0 var(--ev-border-soft);
+  }
+
+  .ev-settings > .ev-setting,
+  .ev-settings-rows > .ev-setting {
+    margin: 0 calc(var(--ev-space-3) * -1);
+  }
+
+  .ev-setting[data-changed] {
+    --ev-corner-color: var(--ev-accent);
+    background: var(--ev-accent-softer);
+  }
+
+  .ev-setting[data-disabled] .ev-setting-main {
+    opacity: 0.55;
+  }
+
+  .ev-setting-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-setting-label-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-setting-label {
+    color: var(--ev-text);
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  .ev-setting-badge {
+    display: inline-flex;
+  }
+
+  .ev-setting-desc {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-setting-hint {
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-setting-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    max-width: 55%;
+    min-width: 0;
+  }
+
+  @media (max-width: 600px) {
+    .ev-setting {
+      flex-wrap: wrap;
+    }
+
+    .ev-setting-control {
+      justify-content: flex-start;
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  .ev-savebar {
+    position: sticky;
+    bottom: var(--ev-space-4);
+    z-index: var(--ev-z-sticky);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--ev-space-3) var(--ev-space-5);
+    padding: var(--ev-space-3) var(--ev-space-3) var(--ev-space-3) var(--ev-space-5);
+    border-radius: var(--ev-radius-lg);
+    background: var(--ev-surface-2);
+    box-shadow: var(--ev-shadow-pop);
+    animation: ev-savebar-in var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-savebar-text {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    min-width: 0;
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-sm);
+    font-weight: var(--ev-fw-medium);
+  }
+
+  .ev-savebar-text svg {
+    flex: 0 0 auto;
+    color: var(--ev-warning);
+  }
+
+  .ev-savebar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+    margin-left: auto;
+  }
+
+  @keyframes ev-savebar-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

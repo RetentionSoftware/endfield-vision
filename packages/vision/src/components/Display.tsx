@@ -7,6 +7,7 @@ import { useMessages } from '../lib/i18n'
 import { useCountUp, useEntranceMotion } from '../lib/motion'
 import { countUpText, roundLike } from '../lib/motion-values'
 import { AnimatedText } from './AnimatedNumber'
+import { Tooltip } from './Tooltip'
 
 /*
  * Простые компоненты отображения без состояния: бейджи, карточки,
@@ -136,6 +137,13 @@ export interface KeyValueItem {
   hint?: ReactNode
   /** Моноширинное значение (коды, номера). */
   mono?: boolean
+  /**
+   * Обязательное поле не заполнено: вместо значения - дефис с предупреждающей
+   * меткой, для скринридера - «Не заполнено».
+   */
+  missing?: boolean
+  /** id строки: якорь для перехода к полю (например, из CompletenessBadge). */
+  id?: string
 }
 
 /** Список «ключ - значение» (карточка сущности). Пустое значение - приглушённый дефис. */
@@ -150,6 +158,7 @@ export function KeyValueList({
   className?: string
   labelWidth?: number
 }) {
+  const t = useMessages()
   return (
     <dl
       className={cx('ev-kv', className)}
@@ -157,12 +166,25 @@ export function KeyValueList({
       style={labelWidth ? ({ '--ev-kv-label-w': `${labelWidth}px` } as CSSProperties) : undefined}
     >
       {items.map((it) => {
-        const empty = it.value === null || it.value === undefined || it.value === ''
+        const missing = it.missing === true
+        const empty = missing || it.value === null || it.value === undefined || it.value === ''
         return (
-          <div key={it.key} className="ev-kv-row">
+          <div key={it.key} id={it.id} className="ev-kv-row" data-missing={missing || undefined}>
             <dt className="ev-kv-label">{it.label}</dt>
             <dd className={cx('ev-kv-value', it.mono && 'ev-mono')}>
-              {empty ? <span className="ev-empty-value">{EMPTY_VALUE}</span> : it.value}
+              {empty ? (
+                <span className="ev-empty-value" aria-hidden={missing || undefined}>
+                  {EMPTY_VALUE}
+                </span>
+              ) : (
+                it.value
+              )}
+              {missing ? (
+                <span className="ev-kv-missing">
+                  <TriangleAlert size={13} aria-hidden="true" />
+                  <span className="ev-visually-hidden">{t.completeness.missingTitle}</span>
+                </span>
+              ) : null}
               {it.hint ? <span className="ev-kv-hint">{it.hint}</span> : null}
             </dd>
           </div>
@@ -230,6 +252,9 @@ function hashTone(name: string): Tone {
   return AVATAR_TONES[Math.abs(h) % AVATAR_TONES.length]!
 }
 
+/** Присутствие пользователя: в сети, нет на месте, занят, не в сети. */
+export type PresenceStatus = 'online' | 'away' | 'busy' | 'offline'
+
 export interface AvatarProps {
   /** Имя: из него инициалы и цвет. */
   name: string
@@ -239,10 +264,19 @@ export interface AvatarProps {
   src?: string
   /** Подпись для скринридера. Без неё аватар декоративный (aria-hidden). */
   alt?: string
+  /**
+   * Присутствие: точка в углу с кольцом цвета поверхности (--ev-avatar-ring).
+   * Цвет не единственный носитель: у «занят» - черта, у «не в сети» - пустой
+   * круг, для скринридера - текст статуса.
+   */
+  status?: PresenceStatus
+  /** Когда пользователь был в сети («вчера в 18:20»): подсказка у статуса offline. */
+  lastSeen?: string
   className?: string
 }
 
-export function Avatar({ name, size = 32, tone, src, alt, className }: AvatarProps) {
+export function Avatar({ name, size = 32, tone, src, alt, status, lastSeen, className }: AvatarProps) {
+  const t = useMessages()
   const imgRef = useRef<HTMLImageElement>(null)
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const showImg = Boolean(src) && failedSrc !== src
@@ -254,14 +288,16 @@ export function Avatar({ name, size = 32, tone, src, alt, className }: AvatarPro
     if (src && img && img.complete && img.naturalWidth === 0) setFailedSrc(src)
   }, [src])
 
-  return (
+  // Без статуса разметка прежняя: подпись и класс - на самом круге.
+  const own = !status
+  const face = (
     <span
-      className={cx('ev-avatar', className)}
+      className={cx('ev-avatar', own && className)}
       data-tone={tone ?? hashTone(name)}
       style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.38)) }}
-      role={labelled ? 'img' : undefined}
-      aria-label={labelled ? alt : undefined}
-      aria-hidden={labelled ? undefined : true}
+      role={own && labelled ? 'img' : undefined}
+      aria-label={own && labelled ? alt : undefined}
+      aria-hidden={own && labelled ? undefined : true}
     >
       {showImg ? (
         // Библиотека не завязана на next/image: обычный img.
@@ -272,6 +308,26 @@ export function Avatar({ name, size = 32, tone, src, alt, className }: AvatarPro
       )}
     </span>
   )
+  if (!status) return face
+
+  const statusText = t.presence[status]
+  const seen = status === 'offline' && lastSeen ? t.presence.lastSeen(lastSeen) : null
+  const spoken = [statusText, seen].filter(Boolean).join('. ')
+  const dot = Math.max(8, Math.round(size * 0.27))
+  const wrap = (
+    <span
+      className={cx('ev-avatar-presence', className)}
+      data-status={status}
+      style={{ width: size, height: size, '--ev-presence-dot': `${dot}px` } as CSSProperties}
+      role={labelled ? 'img' : undefined}
+      aria-label={labelled ? `${alt}. ${spoken}` : undefined}
+    >
+      {face}
+      <span className="ev-avatar-status" aria-hidden="true" />
+      {labelled ? null : <span className="ev-visually-hidden">{spoken}</span>}
+    </span>
+  )
+  return seen ? <Tooltip content={seen}>{wrap}</Tooltip> : wrap
 }
 
 export interface StatTileProps {

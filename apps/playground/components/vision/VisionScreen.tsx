@@ -17,6 +17,10 @@ import { useUrlTab } from '@/lib/use-url-state'
 import { ActionsSection } from './ActionsSection'
 import { ChartsSection } from './ChartsSection'
 import { DataSection } from './DataSection'
+import { CommunicationCards } from './extras/CommunicationCards'
+import { RecordCards } from './extras/RecordCards'
+import { ShellCards } from './extras/ShellCards'
+import { WorkflowCards } from './extras/WorkflowCards'
 import { ChartCards } from './extras/ChartCards'
 import { ContentCards } from './extras/ContentCards'
 import { InputCards } from './extras/InputCards'
@@ -102,6 +106,14 @@ export function VisionScreen() {
             <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-6)' }}>
               <ChartsSection />
               <ChartCards />
+            </div>
+          ) : null}
+          {tab === 'crm' ? (
+            <div className="ev-stack" style={{ ['--ev-gap' as string]: 'var(--ev-space-8)' }}>
+              <RecordCards />
+              <WorkflowCards />
+              <CommunicationCards />
+              <ShellCards />
             </div>
           ) : null}
           {tab === 'layout' ? <LayoutSection /> : null}

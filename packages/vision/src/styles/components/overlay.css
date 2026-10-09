@@ -475,6 +475,14 @@
     font-weight: var(--ev-fw-medium);
   }
 
+  /* Несколько действий - строка небольших кнопок под описанием. */
+  .ev-toast-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ev-space-2);
+    margin-top: var(--ev-space-3);
+  }
+
   .ev-toast-close {
     display: inline-flex;
     align-items: center;

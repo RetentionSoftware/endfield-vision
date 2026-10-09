@@ -13,7 +13,8 @@ import { Tooltip } from './Tooltip'
 /*
  * Каркас приложения: боковое меню, шапка, область содержимого.
  * От 1024px меню закреплено слева и сворачивается до иконок; уже - выезжает
- * панелью по кнопке в шапке и закрывается после перехода.
+ * панелью по кнопке в шапке и закрывается после перехода. Строка состояния
+ * (проп statusBar) - внизу колонки содержимого, прилипает к низу окна.
  */
 
 interface ShellContextValue {
@@ -44,10 +45,12 @@ export interface AppShellProps {
   /** Свёрнутое меню (управляемое); иначе состояние внутри. */
   collapsed?: boolean
   onCollapsedChange?: (collapsed: boolean) => void
+  /** Строка состояния (StatusBar) внизу колонки содержимого; прилипает к низу окна. */
+  statusBar?: ReactNode
   className?: string
 }
 
-export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, onCollapsedChange, className }: AppShellProps) {
+export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, onCollapsedChange, statusBar, className }: AppShellProps) {
   const t = useMessages()
   const mobile = useMediaQuery('(max-width: 1023px)')
   const [navOpen, setNavOpen] = useState(false)
@@ -78,6 +81,7 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
           <main id="ev-main" className="ev-shell-content" tabIndex={-1}>
             {children}
           </main>
+          {statusBar ? <div className="ev-shell-statusbar">{statusBar}</div> : null}
         </div>
         {mobile ? (
           <Drawer open={navOpen} onClose={() => setNavOpen(false)} side="left" width={288} bare aria-label={t.shell.menu}>

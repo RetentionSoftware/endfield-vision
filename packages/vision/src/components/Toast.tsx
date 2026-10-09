@@ -4,15 +4,25 @@ import { TriangleAlert, CircleCheck, Info, OctagonAlert, X } from 'lucide-react'
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { useMessages } from '../lib/i18n'
 import { Portal } from '../lib/overlay'
+import { Button } from './Button'
 
 /*
  * Уведомления. Хранилище модульное: toast.* можно вызвать вне React
  * (клиент API, обработчики), а <Toaster /> рисует стек. На экране не больше
  * четырёх карточек, остальные сворачиваются в строку «и ещё N».
  * Повторный показ с тем же id заменяет карточку - без дублей.
+ * Действия: одно (action) - текстовая кнопка, несколько (actions) - строка кнопок.
  */
 
 export type ToastTone = 'info' | 'success' | 'warning' | 'error'
+
+/** Кнопка в строке действий уведомления. После нажатия уведомление закрывается. */
+export interface ToastAction {
+  label: string
+  onClick: () => void
+  /** По умолчанию первая кнопка - secondary, остальные - ghost. */
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger-ghost'
+}
 
 export interface ToastOptions {
   id?: string
@@ -21,14 +31,19 @@ export interface ToastOptions {
   tone?: ToastTone
   /** Мс до автоскрытия; null - не скрывать. */
   duration?: number | null
+  /** Одно действие - текстовая кнопка под описанием. */
   action?: { label: string; onClick: () => void }
+  /** Несколько действий - строка небольших кнопок («Открыть», «Отменить»). Вместе с action оно идёт первым. */
+  actions?: ToastAction[]
 }
 
-interface ToastItem extends Required<Pick<ToastOptions, 'id' | 'tone'>> {
+/** Карточка в хранилище. Экспортируется для тестов, в публичный API не входит. */
+export interface ToastItem extends Required<Pick<ToastOptions, 'id' | 'tone'>> {
   title: ReactNode
   description?: ReactNode
   duration: number | null
   action?: ToastOptions['action']
+  actions?: ToastAction[]
   createdAt: number
 }
 
@@ -58,6 +73,7 @@ function show(opts: ToastOptions): string {
     description: opts.description,
     duration: opts.duration === undefined ? DEFAULT_DURATION[tone] : opts.duration,
     action: opts.action,
+    actions: opts.actions && opts.actions.length > 0 ? opts.actions : undefined,
     createdAt: Date.now(),
   }
   const exists = items.some((t) => t.id === id)
@@ -80,7 +96,10 @@ function dismissAll() {
   emit()
 }
 
-type Shortcut = (title: ReactNode, opts?: Omit<ToastOptions, 'title' | 'tone'> & { description?: ReactNode }) => string
+type Shortcut = (
+  title: ReactNode,
+  opts?: Omit<ToastOptions, 'title' | 'tone'> & { description?: ReactNode },
+) => string
 
 export interface ToastApi {
   show: (opts: ToastOptions) => string
@@ -114,7 +133,8 @@ const ICONS: Record<ToastTone, ReactNode> = {
   error: <OctagonAlert size={17} />,
 }
 
-function ToastCard({ item }: { item: ToastItem }) {
+/** Карточка уведомления. Экспортируется для тестов, в публичный API не входит. */
+export function ToastCard({ item }: { item: ToastItem }) {
   const t = useMessages()
   const remaining = useRef(item.duration)
   const started = useRef(0)
@@ -142,14 +162,37 @@ function ToastCard({ item }: { item: ToastItem }) {
   }, [item.createdAt])
 
   return (
-    <div className="ev-toast ev-corners" data-corners="diagonal" data-tone={item.tone} role={item.tone === 'error' ? 'alert' : 'status'} onMouseEnter={stop} onMouseLeave={start}>
+    <div
+      className="ev-toast ev-corners"
+      data-corners="diagonal"
+      data-tone={item.tone}
+      role={item.tone === 'error' ? 'alert' : 'status'}
+      onMouseEnter={stop}
+      onMouseLeave={start}
+    >
       <span className="ev-toast-icon" aria-hidden="true">
         {ICONS[item.tone]}
       </span>
       <div className="ev-toast-body">
         <div className="ev-toast-title">{item.title}</div>
         {item.description ? <div className="ev-toast-desc">{item.description}</div> : null}
-        {item.action ? (
+        {item.actions ? (
+          <div className="ev-toast-actions">
+            {(item.action ? ([item.action, ...item.actions] as ToastAction[]) : item.actions).map((a, i) => (
+              <Button
+                key={`${i}-${a.label}`}
+                size="sm"
+                variant={a.variant ?? (i === 0 ? 'secondary' : 'ghost')}
+                onClick={() => {
+                  a.onClick()
+                  dismiss(item.id)
+                }}
+              >
+                {a.label}
+              </Button>
+            ))}
+          </div>
+        ) : item.action ? (
           <button
             type="button"
             className="ev-toast-action"
@@ -162,7 +205,12 @@ function ToastCard({ item }: { item: ToastItem }) {
           </button>
         ) : null}
       </div>
-      <button type="button" className="ev-toast-close" aria-label={t.toast.dismiss} onClick={() => dismiss(item.id)}>
+      <button
+        type="button"
+        className="ev-toast-close"
+        aria-label={t.toast.dismiss}
+        onClick={() => dismiss(item.id)}
+      >
         <X size={14} />
       </button>
     </div>
