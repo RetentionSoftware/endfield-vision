@@ -19,7 +19,7 @@ const isComponent = ([name, v]: [string, unknown]) =>
 const COMPONENTS_COUNT = EXPORTS.filter(isComponent).length
 const HOOKS_COUNT = EXPORTS.filter(([name, v]) => /^use[A-Z]/.test(name) && typeof v === 'function').length
 // Уникальные переменные --ev-* в tokens.css и accents.css (CSS не импортируется в JS - число задано вручную).
-const TOKENS_COUNT = 149
+const TOKENS_COUNT = 150
 
 const INSTALL = `npm i endfield-vision`
 

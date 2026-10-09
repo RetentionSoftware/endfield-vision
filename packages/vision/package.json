@@ -12,6 +12,10 @@
     "css-variables"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/RetentionSoftware/endfield-vision#readme",
+  "bugs": {
+    "url": "https://github.com/RetentionSoftware/endfield-vision/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RetentionSoftware/endfield-vision.git",
@@ -35,7 +39,8 @@
     "dist",
     "src",
     "!src/**/__tests__",
-    "LICENSE"
+    "LICENSE",
+    "README.ru.md"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",

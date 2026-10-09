@@ -174,8 +174,9 @@ function pickTickIndexes(n: number, width: number, minGap = 64): number[] {
   const out: number[] = []
   for (let i = 0; i < n; i += step) out.push(i)
   if (out[out.length - 1] !== n - 1) {
-    // Последняя подпись важнее предпоследней: заменяем, если тесно.
-    if (n - 1 - out[out.length - 1]! < step / 2) out.pop()
+    // Последняя подпись важнее предпоследней: заменяем её, иначе они слипаются
+    // (у линейного графика крайняя подпись прижата вправо и заходит на соседнюю).
+    if (out.length > 1) out.pop()
     out.push(n - 1)
   }
   return out

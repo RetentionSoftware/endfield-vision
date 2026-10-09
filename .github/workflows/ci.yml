@@ -26,5 +26,7 @@ jobs:
         run: npm run build:lib
       - name: Check library dist
         run: npm run check:dist -w endfield-vision
+      - name: Check README stats
+        run: node scripts/readme-stats.mjs --check
       - name: Build playground
         run: npm run build -w @endfield-vision/playground
