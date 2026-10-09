@@ -11,29 +11,28 @@ import {
 } from '@/lib/demo/tasks'
 import { personName } from '@/lib/demo/team'
 import { formatDate } from '@/lib/format'
+import type { Translator } from '@/lib/i18n'
 import s from './tasks.module.css'
 
-/* Колонки таблицы задач и сортировка по ним. */
+/* Колонки таблицы задач и сортировка по ним. Подписи - на языке переводчика из useT(). */
 
 const FACILITY_BY_ID = new Map(FACILITIES.map((f) => [f.id, f]))
 
-export function facilityName(id: string): string {
-  return FACILITY_BY_ID.get(id)?.name ?? ''
+export function facilityName(id: string, tr: Translator): string {
+  const f = FACILITY_BY_ID.get(id)
+  return f ? tr.tx(f.name) : ''
 }
 
-export function compareTasks(a: Task, b: Task, key: string): number {
+export function compareTasks(a: Task, b: Task, key: string, tr: Translator): number {
   switch (key) {
     case 'id':
       return a.id.localeCompare(b.id)
     case 'title':
-      return a.title.localeCompare(b.title, 'ru')
+      return tr.tx(a.title).localeCompare(tr.tx(b.title), tr.intl)
     case 'facility':
-      return (FACILITY_BY_ID.get(a.facilityId)?.name ?? '').localeCompare(
-        FACILITY_BY_ID.get(b.facilityId)?.name ?? '',
-        'ru',
-      )
+      return facilityName(a.facilityId, tr).localeCompare(facilityName(b.facilityId, tr), tr.intl)
     case 'assignee':
-      return personName(a.assigneeId).localeCompare(personName(b.assigneeId), 'ru')
+      return tr.tx(personName(a.assigneeId)).localeCompare(tr.tx(personName(b.assigneeId)), tr.intl)
     case 'priority':
       return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
     case 'status':
@@ -45,86 +44,96 @@ export function compareTasks(a: Task, b: Task, key: string): number {
   }
 }
 
-export const TASK_COLUMNS: Column<Task>[] = [
-  {
-    key: 'id',
-    header: 'Номер',
-    sortable: true,
-    width: 100,
-    hideOnMobile: true,
-    cell: (t) => <span className="ev-mono ev-muted">{t.id}</span>,
-  },
-  {
-    key: 'title',
-    header: 'Задача',
-    primary: true,
-    sortable: true,
-    minWidth: 240,
-    wrap: true,
-    cell: (t) => <span className={s.title}>{t.title}</span>,
-  },
-  {
-    key: 'facility',
-    header: 'Объект',
-    sortable: true,
-    cell: (t) => {
-      const f = FACILITY_BY_ID.get(t.facilityId)
-      return f ? (
-        <span className={s.twoLine}>
-          <span>{f.name}</span>
-          <span className="ev-mono ev-muted">{f.code}</span>
-        </span>
-      ) : null
+export function taskColumns(tr: Translator): Column<Task>[] {
+  const { t, tx } = tr
+  return [
+    {
+      key: 'id',
+      header: t('Номер', 'No.'),
+      sortable: true,
+      width: 100,
+      hideOnMobile: true,
+      cell: (task) => <span className="ev-mono ev-muted">{task.id}</span>,
     },
-  },
-  {
-    key: 'assignee',
-    header: 'Исполнитель',
-    sortable: true,
-    cell: (t) => (
-      <span className={s.person}>
-        <Avatar name={personName(t.assigneeId)} size={24} />
-        <span className="ev-truncate">{personName(t.assigneeId)}</span>
-      </span>
-    ),
-  },
-  {
-    key: 'priority',
-    header: 'Приоритет',
-    sortable: true,
-    cell: (t) => <Badge tone={PRIORITY[t.priority].tone}>{PRIORITY[t.priority].label}</Badge>,
-  },
-  {
-    key: 'status',
-    header: 'Статус',
-    sortable: true,
-    cell: (t) => <StatusPill tone={TASK_STATUS[t.status].tone}>{TASK_STATUS[t.status].label}</StatusPill>,
-  },
-  {
-    key: 'due',
-    header: 'Срок',
-    sortable: true,
-    align: 'right',
-    cell: (t) => <span className={isOverdue(t) ? `${s.overdue} ev-num` : 'ev-num'}>{formatDate(t.due)}</span>,
-  },
-  {
-    key: 'progress',
-    header: 'Прогресс',
-    sortable: true,
-    width: 150,
-    cell: (t) => {
-      const p = taskProgress(t)
-      return (
-        <span className={s.progress}>
-          <Progress
-            value={p}
-            size="sm"
-            tone={p === 100 ? 'success' : 'accent'}
-            aria-label={`Прогресс ${t.id}`}
-          />
-          <span className="ev-num ev-muted">{p}%</span>
-        </span>
-      )
+    {
+      key: 'title',
+      header: t('Задача', 'Task'),
+      primary: true,
+      sortable: true,
+      minWidth: 240,
+      wrap: true,
+      cell: (task) => <span className={s.title}>{tx(task.title)}</span>,
     },
-  },
-]
+    {
+      key: 'facility',
+      header: t('Объект', 'Facility'),
+      sortable: true,
+      cell: (task) => {
+        const f = FACILITY_BY_ID.get(task.facilityId)
+        return f ? (
+          <span className={s.twoLine}>
+            <span>{tx(f.name)}</span>
+            <span className="ev-mono ev-muted">{f.code}</span>
+          </span>
+        ) : null
+      },
+    },
+    {
+      key: 'assignee',
+      header: t('Исполнитель', 'Assignee'),
+      sortable: true,
+      cell: (task) => {
+        const name = tx(personName(task.assigneeId))
+        return (
+          <span className={s.person}>
+            <Avatar name={name} size={24} />
+            <span className="ev-truncate">{name}</span>
+          </span>
+        )
+      },
+    },
+    {
+      key: 'priority',
+      header: t('Приоритет', 'Priority'),
+      sortable: true,
+      cell: (task) => <Badge tone={PRIORITY[task.priority].tone}>{tx(PRIORITY[task.priority].label)}</Badge>,
+    },
+    {
+      key: 'status',
+      header: t('Статус', 'Status'),
+      sortable: true,
+      cell: (task) => (
+        <StatusPill tone={TASK_STATUS[task.status].tone}>{tx(TASK_STATUS[task.status].label)}</StatusPill>
+      ),
+    },
+    {
+      key: 'due',
+      header: t('Срок', 'Due date'),
+      sortable: true,
+      align: 'right',
+      cell: (task) => (
+        <span className={isOverdue(task) ? `${s.overdue} ev-num` : 'ev-num'}>{formatDate(task.due)}</span>
+      ),
+    },
+    {
+      key: 'progress',
+      header: t('Прогресс', 'Progress'),
+      sortable: true,
+      width: 150,
+      cell: (task) => {
+        const p = taskProgress(task)
+        return (
+          <span className={s.progress}>
+            <Progress
+              value={p}
+              size="sm"
+              tone={p === 100 ? 'success' : 'accent'}
+              aria-label={t(`Прогресс ${task.id}`, `Progress ${task.id}`)}
+            />
+            <span className="ev-num ev-muted">{p}%</span>
+          </span>
+        )
+      },
+    },
+  ]
+}

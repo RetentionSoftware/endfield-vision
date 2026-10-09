@@ -11,8 +11,8 @@ import {
   type TabItem,
 } from 'endfield-vision'
 import { RotateCcw } from 'lucide-react'
-import { useState } from 'react'
-import { crumbs } from '@/lib/nav'
+import { useMemo, useState } from 'react'
+import { useCrumbs, useT } from '@/lib/i18n'
 import { useUrlTab } from '@/lib/use-url-state'
 import { ActionsSection } from './ActionsSection'
 import { ChartsSection } from './ChartsSection'
@@ -30,15 +30,20 @@ import { LIBRARY_VERSION, VISION_TAB_META, VISION_TABS, type VisionTab } from '.
 import { ThemeSection } from './ThemeSection'
 import { TokensSection } from './TokensSection'
 
-const TAB_ITEMS: TabItem<VisionTab>[] = VISION_TABS.map((value) => {
-  const Icon = VISION_TAB_META[value].icon
-  return { value, label: VISION_TAB_META[value].label, icon: <Icon size={15} /> }
-})
-
 const ID_BASE = 'vision'
 
 /** ENDFIELD Vision: живая витрина всех элементов библиотеки. Вкладка - в адресе (?tab=). */
 export function VisionScreen() {
+  const { t, tx } = useT()
+  const breadcrumbs = useCrumbs('vision')
+  const tabItems = useMemo<TabItem<VisionTab>[]>(
+    () =>
+      VISION_TABS.map((value) => {
+        const Icon = VISION_TAB_META[value].icon
+        return { value, label: tx(VISION_TAB_META[value].label), icon: <Icon size={15} /> }
+      }),
+    [tx],
+  )
   const [tab, setTab] = useUrlTab<VisionTab>(VISION_TABS, 'intro')
   // Перезапуск анимации появления: новый ключ пересоздаёт содержимое вкладки.
   const [replay, setReplay] = useState(0)
@@ -48,26 +53,32 @@ export function VisionScreen() {
     <>
       <PageHeader
         title="ENDFIELD Vision"
-        subtitle="Дизайн-система консоли: токены, темы, компоненты и каркас. Каждый пример на странице - живой компонент библиотеки endfield-vision."
-        breadcrumbs={crumbs('vision')}
+        subtitle={t(
+          'Дизайн-система консоли: токены, темы, компоненты и каркас. Каждый пример на странице - живой компонент библиотеки endfield-vision.',
+          'The console design system: tokens, themes, components and app shell. Every example on this page is a live endfield-vision component.',
+        )}
+        breadcrumbs={breadcrumbs}
         meta={
           <>
             <Badge tone="accent">v{LIBRARY_VERSION}</Badge>
             <Badge>React 19</Badge>
           </>
         }
-        actions={<CopyValue value="npm i endfield-vision" label="Скопировать команду установки" />}
+        actions={<CopyValue value="npm i endfield-vision" label={t('Скопировать команду установки', 'Copy install command')} />}
       >
-        <Tabs aria-label="Разделы витрины" idBase={ID_BASE} value={tab} onChange={setTab} items={TAB_ITEMS} />
+        <Tabs aria-label={t('Разделы витрины', 'Showcase sections')} idBase={ID_BASE} value={tab} onChange={setTab} items={tabItems} />
       </PageHeader>
       <TabPanel idBase={ID_BASE} value={tab}>
         {animatedTab && animate ? (
           <div className="ev-row" style={{ justifyContent: 'flex-end', marginBottom: 'var(--ev-space-5)' }}>
             <span className="ev-muted" style={{ fontSize: 'var(--ev-fs-sm)' }}>
-              Числа и графики анимируются при появлении (MotionProvider). Выключить - меню оформления в шапке.
+              {t(
+                'Числа и графики анимируются при появлении (MotionProvider). Выключить - меню оформления в шапке.',
+                'Numbers and charts animate on entry (MotionProvider). Turn it off in the appearance menu in the header.',
+              )}
             </span>
             <Button size="sm" icon={<RotateCcw size={14} />} onClick={() => setReplay((n) => n + 1)}>
-              Повторить анимацию
+              {t('Повторить анимацию', 'Replay animation')}
             </Button>
           </div>
         ) : null}

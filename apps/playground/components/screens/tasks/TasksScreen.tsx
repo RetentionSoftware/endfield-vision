@@ -34,15 +34,14 @@ import {
   type TaskStatus,
 } from '@/lib/demo/tasks'
 import { CURRENT_USER_ID, personName } from '@/lib/demo/team'
-import { crumbs } from '@/lib/nav'
-import { plural } from '@/lib/format'
+import { bi, useCrumbs, useT } from '@/lib/i18n'
 import { useUrlTab } from '@/lib/use-url-state'
-import { compareTasks, facilityName, TASK_COLUMNS } from './TaskColumns'
+import { compareTasks, facilityName, taskColumns } from './TaskColumns'
 import { TaskDrawer } from './TaskDrawer'
 import {
   AssigneePicker,
   emptyDraft,
-  FACILITY_OPTIONS,
+  facilityOptions,
   TaskForm,
   validateDraft,
   type TaskDraft,
@@ -59,12 +58,10 @@ const TAB_FILTER: Record<TabKey, (t: Task) => boolean> = {
   done: (t) => t.status === 'done',
 }
 
-const PRIORITY_OPTIONS = (Object.keys(PRIORITY) as Priority[]).map((p) => ({
-  value: p,
-  label: PRIORITY[p].label,
-}))
-
 export function TasksScreen() {
+  const tr = useT()
+  const { t, tx, plural } = tr
+  const breadcrumbs = useCrumbs('tasks')
   const modals = useModals()
   const [tasks, setTasks] = useState<Task[]>(TASKS)
   const [tab, setTab] = useUrlTab(TABS, 'all')
@@ -85,20 +82,28 @@ export function TasksScreen() {
 
   const filtered = useMemo(() => {
     const needle = normalizeSearch(q)
-    const list = tasks.filter((t) => {
-      if (!TAB_FILTER[tab](t)) return false
-      if (priority && t.priority !== priority) return false
-      if (facilities.length > 0 && !facilities.includes(t.facilityId)) return false
+    const list = tasks.filter((x) => {
+      if (!TAB_FILTER[tab](x)) return false
+      if (priority && x.priority !== priority) return false
+      if (facilities.length > 0 && !facilities.includes(x.facilityId)) return false
       if (!needle) return true
-      const hay = `${t.id} ${t.title} ${facilityName(t.facilityId)} ${personName(t.assigneeId)}`
+      const hay = `${x.id} ${tx(x.title)} ${facilityName(x.facilityId, tr)} ${tx(personName(x.assigneeId))}`
       return normalizeSearch(hay).includes(needle)
     })
     if (sort) {
       const k = sort.dir === 'asc' ? 1 : -1
-      list.sort((a, b) => compareTasks(a, b, sort.key) * k || a.id.localeCompare(b.id))
+      list.sort((a, b) => compareTasks(a, b, sort.key, tr) * k || a.id.localeCompare(b.id))
     }
     return list
-  }, [tasks, tab, q, priority, facilities, sort])
+  }, [tasks, tab, q, priority, facilities, sort, tr, tx])
+
+  const columns = useMemo(() => taskColumns(tr), [tr])
+  const facilityOpts = useMemo(() => facilityOptions(tr), [tr])
+  const priorityOptions = (Object.keys(PRIORITY) as Priority[]).map((p) => ({
+    value: p,
+    label: tx(PRIORITY[p].label),
+  }))
+  const taskWord = (n: number) => plural(n, ['задача', 'задачи', 'задач'], ['task', 'tasks'])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
   const safePage = Math.min(page, pageCount)
@@ -125,29 +130,37 @@ export function TasksScreen() {
       draft = d
     }
     const handle: ModalHandle = modals.open({
-      title: 'Новая задача',
-      subtitle: 'Задача попадёт в очередь исполнителя и в журнал объекта.',
+      title: t('Новая задача', 'New task'),
+      subtitle: t(
+        'Задача попадёт в очередь исполнителя и в журнал объекта.',
+        "The task goes to the assignee's queue and the facility log.",
+      ),
       size: 'md',
       body: <TaskForm initial={draft} showErrors={false} onChange={onChange} />,
       footer: {
         buttons: [
-          { label: 'Отмена', variant: 'ghost' },
+          { label: t('Отмена', 'Cancel'), variant: 'ghost' },
           {
-            label: 'Создать',
+            label: t('Создать', 'Create'),
             variant: 'primary',
             onClick: async ({ setBusy, close }) => {
-              const errors = validateDraft(draft)
+              const errors = validateDraft(draft, tr)
               if (Object.keys(errors).length > 0) {
                 handle.update({ body: <TaskForm initial={draft} showErrors onChange={onChange} /> })
-                toast.warning('Проверьте поля формы', { description: Object.values(errors)[0] })
+                toast.warning(t('Проверьте поля формы', 'Check the form fields'), {
+                  description: Object.values(errors)[0],
+                })
                 return
               }
               setBusy(true)
               await new Promise((r) => window.setTimeout(r, 600))
-              const id = `TSK-${Math.max(...tasks.map((t) => Number(t.id.slice(4))), 1000) + 1}`
+              const id = `TSK-${Math.max(...tasks.map((x) => Number(x.id.slice(4))), 1000) + 1}`
+              // Текст пользователя - на том языке, на котором он написан.
+              const title = draft.title.trim()
+              const description = draft.description.trim() || `${title}.`
               const created: Task = {
                 id,
-                title: draft.title.trim(),
+                title: bi(title, title),
                 facilityId: draft.facilityId!,
                 assigneeId: draft.assigneeId!,
                 authorId: CURRENT_USER_ID,
@@ -155,7 +168,7 @@ export function TasksScreen() {
                 status: 'new',
                 due: draft.due,
                 createdAt: TODAY,
-                description: draft.description.trim() || `${draft.title.trim()}.`,
+                description: bi(description, description),
                 checklist: [],
                 comments: [],
               }
@@ -164,11 +177,12 @@ export function TasksScreen() {
               setSort(null)
               setPage(1)
               close()
-              toast.success(`Задача ${id} создана`, {
+              const who = tx(personName(created.assigneeId))
+              toast.success(t(`Задача ${id} создана`, `Task ${id} created`), {
                 description: draft.notify
-                  ? `${personName(created.assigneeId)} получит уведомление.`
-                  : created.title,
-                action: { label: 'Открыть', onClick: () => setOpenId(id) },
+                  ? t(`${who} получит уведомление.`, `${who} will be notified.`)
+                  : title,
+                action: { label: t('Открыть', 'Open'), onClick: () => setOpenId(id) },
               })
             },
           },
@@ -181,26 +195,29 @@ export function TasksScreen() {
     let assignee: string | null = null
     const ids = selected
     modals.open({
-      title: 'Назначить исполнителя',
-      subtitle: `${ids.length} ${plural(ids.length, 'задача', 'задачи', 'задач')} получат нового исполнителя.`,
+      title: t('Назначить исполнителя', 'Assign'),
+      subtitle: t(
+        `${ids.length} ${taskWord(ids.length)} получат нового исполнителя.`,
+        `${ids.length} ${taskWord(ids.length)} will get a new assignee.`,
+      ),
       size: 'sm',
       body: <AssigneePicker onChange={(v) => (assignee = v)} />,
       footer: {
         buttons: [
-          { label: 'Отмена', variant: 'ghost' },
+          { label: t('Отмена', 'Cancel'), variant: 'ghost' },
           {
-            label: 'Назначить',
+            label: t('Назначить', 'Assign'),
             variant: 'primary',
             onClick: ({ close }) => {
               if (!assignee) {
-                toast.warning('Выберите исполнителя')
+                toast.warning(t('Выберите исполнителя', 'Select an assignee'))
                 return
               }
               const who = assignee
-              updateMany(ids, (t) => ({ ...t, assigneeId: who }))
+              updateMany(ids, (x) => ({ ...x, assigneeId: who }))
               close()
-              toast.success('Исполнитель назначен', {
-                description: `${personName(who)}: ${ids.length} ${plural(ids.length, 'задача', 'задачи', 'задач')}`,
+              toast.success(t('Исполнитель назначен', 'Assignee set'), {
+                description: `${tx(personName(who))}: ${ids.length} ${taskWord(ids.length)}`,
               })
             },
           },
@@ -211,44 +228,53 @@ export function TasksScreen() {
 
   const bulkStatus = (status: TaskStatus) => {
     const ids = selected
-    updateMany(ids, (t) => ({
-      ...t,
+    updateMany(ids, (x) => ({
+      ...x,
       status,
-      checklist: status === 'done' ? t.checklist.map((c) => ({ ...c, done: true })) : t.checklist,
+      checklist: status === 'done' ? x.checklist.map((c) => ({ ...c, done: true })) : x.checklist,
     }))
-    toast.success('Статус изменён', {
-      description: `${TASK_STATUS[status].label}: ${ids.length} ${plural(ids.length, 'задача', 'задачи', 'задач')}`,
+    toast.success(t('Статус изменён', 'Status changed'), {
+      description: `${tx(TASK_STATUS[status].label)}: ${ids.length} ${taskWord(ids.length)}`,
     })
   }
 
   const bulkDelete = async () => {
     const ids = selected
+    const n = ids.length
     const ok = await modals.confirm({
-      title: `Удалить ${ids.length} ${plural(ids.length, 'задачу', 'задачи', 'задач')}?`,
-      message:
+      title: t(
+        `Удалить ${n} ${plural(n, ['задачу', 'задачи', 'задач'], ['task', 'tasks'])}?`,
+        `Delete ${n} ${taskWord(n)}?`,
+      ),
+      message: t(
         'Задачи, чек-листы и комментарии будут удалены без возможности восстановления. Запись об удалении останется в журнале.',
-      okLabel: 'Удалить',
+        'Tasks, checklists and comments will be permanently deleted. The deletion is recorded in the audit log.',
+      ),
+      okLabel: t('Удалить', 'Delete'),
       okVariant: 'danger',
       okIcon: <Trash2 size={15} />,
       onOk: () => new Promise((r) => window.setTimeout(r, 500)),
     })
     if (!ok) return
     const set = new Set(ids)
-    setTasks((list) => list.filter((t) => !set.has(t.id)))
+    setTasks((list) => list.filter((x) => !set.has(x.id)))
     setSelected([])
-    toast.success('Задачи удалены', { description: ids.join(', ') })
+    toast.success(t('Задачи удалены', 'Tasks deleted'), { description: ids.join(', ') })
   }
 
   return (
     <>
       <PageHeader
-        title="Задачи"
-        subtitle="Работы на объектах: сроки, исполнители, ход выполнения."
-        breadcrumbs={crumbs('tasks')}
+        title={t('Задачи', 'Tasks')}
+        subtitle={t(
+          'Работы на объектах: сроки, исполнители, ход выполнения.',
+          'Work at facilities: due dates, assignees, progress.',
+        )}
+        breadcrumbs={breadcrumbs}
         meta={
           counts.overdue > 0 ? (
             <Badge tone="danger" dot>
-              Просрочено: {counts.overdue}
+              {t('Просрочено', 'Overdue')}: {counts.overdue}
             </Badge>
           ) : null
         }
@@ -257,32 +283,32 @@ export function TasksScreen() {
             <Button
               icon={<Download size={15} />}
               onClick={() =>
-                toast.success('Реестр выгружен', {
-                  description: `${filtered.length} ${plural(filtered.length, 'задача', 'задачи', 'задач')}, CSV`,
+                toast.success(t('Реестр выгружен', 'Task list exported'), {
+                  description: `${filtered.length} ${taskWord(filtered.length)}, CSV`,
                 })
               }
             >
-              Выгрузить
+              {t('Выгрузить', 'Export')}
             </Button>
             <Button variant="primary" icon={<Plus size={15} />} onClick={newTask}>
-              Новая задача
+              {t('Новая задача', 'New task')}
             </Button>
           </>
         }
       >
         <Tabs
-          aria-label="Фильтр задач"
+          aria-label={t('Фильтр задач', 'Task filter')}
           value={tab}
-          onChange={(t) => {
-            setTab(t)
+          onChange={(next) => {
+            setTab(next)
             setPage(1)
             setSelected([])
           }}
           items={[
-            { value: 'all', label: 'Все', count: counts.all },
-            { value: 'mine', label: 'Мои', count: counts.mine },
-            { value: 'overdue', label: 'Просроченные', count: counts.overdue },
-            { value: 'done', label: 'Выполненные', count: counts.done },
+            { value: 'all', label: t('Все', 'All'), count: counts.all },
+            { value: 'mine', label: t('Мои', 'Mine'), count: counts.mine },
+            { value: 'overdue', label: t('Просроченные', 'Overdue'), count: counts.overdue },
+            { value: 'done', label: t('Выполненные', 'Done'), count: counts.done },
           ]}
         />
       </PageHeader>
@@ -292,23 +318,26 @@ export function TasksScreen() {
           <Callout
             tone="info"
             icon={false}
-            title={`Выбрано: ${selected.length} ${plural(selected.length, 'задача', 'задачи', 'задач')}`}
+            title={t(
+              `Выбрано: ${selected.length} ${taskWord(selected.length)}`,
+              `Selected: ${selected.length} ${taskWord(selected.length)}`,
+            )}
             actions={
               <>
                 <Button size="sm" icon={<UserPlus size={14} />} onClick={bulkAssign}>
-                  Назначить
+                  {t('Назначить', 'Assign')}
                 </Button>
                 <Menu
-                  label="Сменить статус"
+                  label={t('Сменить статус', 'Change status')}
                   placement="bottom-start"
                   trigger={
                     <Button size="sm" iconRight={<ChevronDown size={14} />}>
-                      Сменить статус
+                      {t('Сменить статус', 'Change status')}
                     </Button>
                   }
                   items={STATUS_ORDER.map((st) => ({
                     id: st,
-                    label: TASK_STATUS[st].label,
+                    label: tx(TASK_STATUS[st].label),
                     onSelect: () => bulkStatus(st),
                   }))}
                 />
@@ -318,15 +347,18 @@ export function TasksScreen() {
                   icon={<Trash2 size={14} />}
                   onClick={() => void bulkDelete()}
                 >
-                  Удалить
+                  {t('Удалить', 'Delete')}
                 </Button>
                 <Button size="sm" variant="ghost" icon={<X size={14} />} onClick={() => setSelected([])}>
-                  Снять выбор
+                  {t('Снять выбор', 'Clear selection')}
                 </Button>
               </>
             }
           >
-            Действие применится ко всем выбранным задачам, в том числе на других страницах.
+            {t(
+              'Действие применится ко всем выбранным задачам, в том числе на других страницах.',
+              'The action applies to all selected tasks, including those on other pages.',
+            )}
           </Callout>
         ) : null}
 
@@ -337,7 +369,7 @@ export function TasksScreen() {
               search={{
                 value: q,
                 onChange: resetPage(setQ),
-                placeholder: 'Номер, название, объект, исполнитель',
+                placeholder: t('Номер, название, объект, исполнитель', 'Number, title, facility, assignee'),
               }}
               activeCount={activeFilters}
               onReset={() => {
@@ -348,44 +380,47 @@ export function TasksScreen() {
               }}
             >
               <Select
-                aria-label="Приоритет"
-                placeholder="Любой приоритет"
+                aria-label={t('Приоритет', 'Priority')}
+                placeholder={t('Любой приоритет', 'Any priority')}
                 value={priority}
                 onChange={resetPage(setPriority)}
-                options={PRIORITY_OPTIONS}
+                options={priorityOptions}
                 clearable
                 searchable={false}
               />
               <MultiSelect
-                aria-label="Объекты"
-                placeholder="Все объекты"
+                aria-label={t('Объекты', 'Facilities')}
+                placeholder={t('Все объекты', 'All facilities')}
                 value={facilities}
                 onChange={resetPage(setFacilities)}
-                options={FACILITY_OPTIONS}
+                options={facilityOpts}
                 dropdownMinWidth={280}
               />
             </FilterBar>
           }
         >
           <DataTable
-            aria-label="Задачи"
-            columns={TASK_COLUMNS}
+            aria-label={t('Задачи', 'Tasks')}
+            columns={columns}
             rows={pageRows}
-            rowKey={(t) => t.id}
+            rowKey={(x) => x.id}
             sort={sort}
             onSortChange={setSort}
             selected={selected}
             onSelectedChange={setSelected}
-            rowMuted={(t) => t.status === 'done'}
-            onRowClick={(t) => setOpenId(t.id)}
+            rowMuted={(x) => x.status === 'done'}
+            onRowClick={(x) => setOpenId(x.id)}
             empty={
               <EmptyState
                 compact
-                title="Задач не найдено"
-                description="Измените условия поиска или сбросьте фильтры."
+                title={t('Задач не найдено', 'No tasks found')}
+                description={t(
+                  'Измените условия поиска или сбросьте фильтры.',
+                  'Change the search or reset the filters.',
+                )}
                 actions={
                   <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={newTask}>
-                    Новая задача
+                    {t('Новая задача', 'New task')}
                   </Button>
                 }
               />

@@ -4,8 +4,7 @@ import { Button, PageHeader, StatTile, TabPanel, Tabs, toast, useModals } from '
 import { AlertTriangle, ClipboardCheck, Package, Truck, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { SHIPMENTS, STOCK, stockState, TRANSFERS, WAREHOUSES, type Shipment, type StockItem, type Transfer } from '@/lib/demo/inventory'
-import { formatNum, formatRub, plural } from '@/lib/format'
-import { crumbs } from '@/lib/nav'
+import { useCrumbs, useT } from '@/lib/i18n'
 import { useUrlTab } from '@/lib/use-url-state'
 import { ShipmentsTab } from './ShipmentsTab'
 import { StockTab } from './StockTab'
@@ -19,6 +18,8 @@ const ID_BASE = 'inventory'
 
 export function InventoryScreen() {
   const modals = useModals()
+  const { t, plural, formatNum, formatRub } = useT()
+  const breadcrumbs = useCrumbs('inventory')
   const [tab, setTab] = useUrlTab<InventoryTab>(TABS, 'stock')
   const [items, setItems] = useState<StockItem[]>(STOCK)
   const [shipments, setShipments] = useState<Shipment[]>(SHIPMENTS)
@@ -39,56 +40,76 @@ export function InventoryScreen() {
 
   const scheduleCount = async () => {
     const ok = await modals.confirm({
-      title: 'Назначить инвентаризацию?',
-      message: 'Все склады: 12.10.2026 с 08:00 до 14:00. На это время движения по складам блокируются, приёмка поставок переносится.',
-      okLabel: 'Назначить',
+      title: t('Назначить инвентаризацию?', 'Schedule a stock count?'),
+      message: t(
+        'Все склады: 12.10.2026 с 08:00 до 14:00. На это время движения по складам блокируются, приёмка поставок переносится.',
+        'All warehouses: 12.10.2026 from 08:00 to 14:00. Stock movements are blocked for that time, and receiving of deliveries is postponed.',
+      ),
+      okLabel: t('Назначить', 'Schedule'),
       okIcon: <ClipboardCheck size={15} />,
     })
-    if (ok) toast.success('Инвентаризация назначена', { description: '12.10.2026, 08:00-14:00. Ответственные получили уведомление.' })
+    if (ok)
+      toast.success(t('Инвентаризация назначена', 'Stock count scheduled'), {
+        description: t('12.10.2026, 08:00-14:00. Ответственные получили уведомление.', '12.10.2026, 08:00-14:00. The people in charge have been notified.'),
+      })
   }
 
   return (
     <>
       <PageHeader
-        title="Склад"
-        subtitle="Остатки по складам, входящие поставки и перемещения."
-        breadcrumbs={crumbs('inventory')}
+        title={t('Склад', 'Inventory')}
+        subtitle={t('Остатки по складам, входящие поставки и перемещения.', 'Stock by warehouse, incoming deliveries and transfers.')}
+        breadcrumbs={breadcrumbs}
         actions={
           <Button icon={<ClipboardCheck size={15} />} onClick={() => void scheduleCount()}>
-            Инвентаризация
+            {t('Инвентаризация', 'Stock count')}
           </Button>
         }
       />
 
       <div className={s.page}>
         <div className="ev-grid" style={{ ['--ev-grid-min' as string]: '220px' }}>
-          <StatTile label="Позиций на складах" value={formatNum(items.length)} icon={<Package size={16} />} hint={`${WAREHOUSES.length} склада, 6 категорий`} />
           <StatTile
-            label="Мало или нет"
+            label={t('Позиций на складах', 'Items in stock')}
+            value={formatNum(items.length)}
+            icon={<Package size={16} />}
+            hint={t(`${WAREHOUSES.length} склада, 6 категорий`, `${WAREHOUSES.length} warehouses, 6 categories`)}
+          />
+          <StatTile
+            label={t('Мало или нет', 'Low or out')}
             value={formatNum(stats.low)}
             icon={<AlertTriangle size={16} />}
             tone="warning"
-            hint={`Нет в наличии: ${stats.out} ${plural(stats.out, 'позиция', 'позиции', 'позиций')}`}
+            hint={`${t('Нет в наличии', 'Out of stock')}: ${stats.out} ${plural(stats.out, ['позиция', 'позиции', 'позиций'], ['item', 'items'])}`}
           />
-          <StatTile label="Стоимость запасов" value={formatRub(stats.value)} icon={<Wallet size={16} />} tone="success" hint="По учётной цене" />
           <StatTile
-            label="Ожидаются поставки"
+            label={t('Стоимость запасов', 'Stock value')}
+            value={formatRub(stats.value)}
+            icon={<Wallet size={16} />}
+            tone="success"
+            hint={t('По учётной цене', 'At book price')}
+          />
+          <StatTile
+            label={t('Ожидаются поставки', 'Expected deliveries')}
             value={formatNum(stats.pending)}
             icon={<Truck size={16} />}
             tone="info"
-            hint={`На ${formatRub(stats.pendingValue)}${stats.delayed ? `, задерживается: ${stats.delayed}` : ''}`}
+            hint={
+              t(`На ${formatRub(stats.pendingValue)}`, `Worth ${formatRub(stats.pendingValue)}`) +
+              (stats.delayed ? t(`, задерживается: ${stats.delayed}`, `, delayed: ${stats.delayed}`) : '')
+            }
           />
         </div>
 
         <Tabs
           idBase={ID_BASE}
-          aria-label="Разделы склада"
+          aria-label={t('Разделы склада', 'Inventory sections')}
           value={tab}
           onChange={setTab}
           items={[
-            { value: 'stock', label: 'Остатки', count: items.length },
-            { value: 'shipments', label: 'Поставки', count: stats.pending },
-            { value: 'transfers', label: 'Перемещения' },
+            { value: 'stock', label: t('Остатки', 'Stock'), count: items.length },
+            { value: 'shipments', label: t('Поставки', 'Deliveries'), count: stats.pending },
+            { value: 'transfers', label: t('Перемещения', 'Transfers') },
           ]}
         />
 
@@ -110,8 +131,8 @@ export function InventoryScreen() {
           <TabPanel idBase={ID_BASE} value="transfers">
             <TransfersTab
               transfers={transfers}
-              onChange={(id, patch) => setTransfers((list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t)))}
-              onCreate={(t) => setTransfers((list) => [t, ...list])}
+              onChange={(id, patch) => setTransfers((list) => list.map((tr) => (tr.id === id ? { ...tr, ...patch } : tr)))}
+              onCreate={(tr) => setTransfers((list) => [tr, ...list])}
             />
           </TabPanel>
         ) : null}

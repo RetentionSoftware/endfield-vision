@@ -4,16 +4,20 @@
  */
 
 import type { Tone } from 'endfield-vision'
+import { bi, type Bi } from '../lang'
 import { FACILITIES, FACILITY_STATUS } from './facilities'
 import { PEOPLE, ROLES } from './team'
 import { PRIORITY, TASK_STATUS, TASKS } from './tasks'
 
 export type AuditAction = 'create' | 'update' | 'delete' | 'login' | 'export' | 'access'
 
+/** Текст события: двуязычный или одинаковый на обоих языках (числа, коды). */
+export type AuditText = Bi | string
+
 export interface AuditChange {
-  field: string
-  before: string | null
-  after: string | null
+  field: Bi
+  before: AuditText | null
+  after: AuditText | null
 }
 
 export interface AuditEvent {
@@ -23,24 +27,24 @@ export interface AuditEvent {
   /** Сотрудник или 'system'. */
   actorId: string
   action: AuditAction
-  objectType: string
-  object: string
-  summary: string
+  objectType: Bi
+  object: AuditText
+  summary: Bi
   ip: string
-  client: string
+  client: AuditText
   requestId: string
   changes: AuditChange[]
 }
 
 export const SYSTEM_ACTOR = 'system'
 
-export const AUDIT_ACTIONS: Record<AuditAction, { label: string; tone: Tone }> = {
-  create: { label: 'Создание', tone: 'success' },
-  update: { label: 'Изменение', tone: 'info' },
-  delete: { label: 'Удаление', tone: 'danger' },
-  login: { label: 'Вход', tone: 'neutral' },
-  export: { label: 'Выгрузка', tone: 'violet' },
-  access: { label: 'Доступ', tone: 'warning' },
+export const AUDIT_ACTIONS: Record<AuditAction, { label: Bi; tone: Tone }> = {
+  create: { label: bi('Создание', 'Create'), tone: 'success' },
+  update: { label: bi('Изменение', 'Update'), tone: 'info' },
+  delete: { label: bi('Удаление', 'Delete'), tone: 'danger' },
+  login: { label: bi('Вход', 'Sign-in'), tone: 'neutral' },
+  export: { label: bi('Выгрузка', 'Export'), tone: 'violet' },
+  access: { label: bi('Доступ', 'Access'), tone: 'warning' },
 }
 
 /** Дни журнала: 25.09-08.10. */
@@ -85,21 +89,58 @@ const CLIENTS = [
   'Endfield Mobile 3.4, Android 14',
   'Edge 129, Windows 10',
 ]
-const STOCK = [
-  ['Фильтр F7 592x592', 120, 96],
-  ['Реагент Р-14, канистра 20 л', 48, 36],
-  ['Трос стальной 16 мм, м', 600, 450],
-  ['Подшипник 6312-2RS', 34, 40],
-  ['Масло гидравлическое HVLP 46, л', 1800, 1520],
-] as const
-const EXPORTS = ['Отчёт по выпуску', 'Реестр задач', 'Остатки склада', 'Табель смен', 'Энергопотребление']
-const DELETED = [
-  'Черновик отчёта',
-  'Пропуск подрядчика',
-  'Шаблон задачи',
-  'Позиция склада',
-  'Комментарий к задаче',
+const STOCK: Array<[name: Bi, before: number, after: number]> = [
+  [bi('Фильтр F7 592x592', 'F7 filter 592x592'), 120, 96],
+  [bi('Реагент Р-14, канистра 20 л', 'Reagent R-14, 20 L canister'), 48, 36],
+  [bi('Трос стальной 16 мм, м', 'Steel cable 16 mm, m'), 600, 450],
+  [bi('Подшипник 6312-2RS', 'Bearing 6312-2RS'), 34, 40],
+  [bi('Масло гидравлическое HVLP 46, л', 'Hydraulic oil HVLP 46, L'), 1800, 1520],
 ]
+const EXPORTS = [
+  bi('Отчёт по выпуску', 'Output report'),
+  bi('Реестр задач', 'Task register'),
+  bi('Остатки склада', 'Inventory stock'),
+  bi('Табель смен', 'Shift timesheet'),
+  bi('Энергопотребление', 'Energy consumption'),
+]
+const DELETED = [
+  bi('Черновик отчёта', 'Report draft'),
+  bi('Пропуск подрядчика', 'Contractor pass'),
+  bi('Шаблон задачи', 'Task template'),
+  bi('Позиция склада', 'Inventory item'),
+  bi('Комментарий к задаче', 'Task comment'),
+]
+
+/* Подписи полей и типов объектов журнала. */
+const F = {
+  status: bi('Статус', 'Status'),
+  priority: bi('Приоритет', 'Priority'),
+  load: bi('Загрузка', 'Load'),
+  stock: bi('Остаток', 'Stock'),
+  reason: bi('Основание', 'Reason'),
+  title: bi('Название', 'Title'),
+  assignee: bi('Исполнитель', 'Assignee'),
+  due: bi('Срок', 'Due date'),
+  author: bi('Автор', 'Author'),
+  format: bi('Формат', 'Format'),
+  role: bi('Роль', 'Role'),
+  facilities: bi('Объекты', 'Facilities'),
+}
+const TYPE = {
+  task: bi('Задача', 'Task'),
+  facility: bi('Объект', 'Facility'),
+  stock: bi('Склад', 'Inventory'),
+  record: bi('Запись', 'Record'),
+  session: bi('Сессия', 'Session'),
+  report: bi('Отчёт', 'Report'),
+  person: bi('Сотрудник', 'Employee'),
+}
+
+/** Склейка двуязычных частей через пробел: код и название. */
+function join(...parts: AuditText[]): Bi {
+  const text = (lang: 'ru' | 'en') => parts.map((x) => (typeof x === 'string' ? x : x[lang])).join(' ')
+  return bi(text('ru'), text('en'))
+}
 
 function pick<T>(list: readonly T[], n: number): T {
   return list[((n % list.length) + list.length) % list.length]!
@@ -122,7 +163,10 @@ function build(n: number, at: string): AuditEvent {
     actorId,
     action,
     ip,
-    client: actorId === SYSTEM_ACTOR ? 'Планировщик, задание sync-facilities' : pick(CLIENTS, actorIdx + n),
+    client:
+      actorId === SYSTEM_ACTOR
+        ? bi('Планировщик, задание sync-facilities', 'Scheduler, sync-facilities job')
+        : pick(CLIENTS, actorIdx + n),
     requestId: `req-${(0xa1b2c + n * 104729).toString(36)}`,
   }
 
@@ -135,13 +179,13 @@ function build(n: number, at: string): AuditEvent {
         const to = from === 'new' ? 'in_progress' : from === 'in_progress' ? 'review' : 'done'
         return {
           ...base,
-          objectType: 'Задача',
-          object: `${t.id} ${t.title}`,
-          summary: 'Смена статуса задачи',
+          objectType: TYPE.task,
+          object: join(t.id, t.title),
+          summary: bi('Смена статуса задачи', 'Task status change'),
           changes: [
-            { field: 'Статус', before: TASK_STATUS[from].label, after: TASK_STATUS[to].label },
+            { field: F.status, before: TASK_STATUS[from].label, after: TASK_STATUS[to].label },
             ...(n % 2 === 0
-              ? [{ field: 'Приоритет', before: PRIORITY.normal.label, after: PRIORITY.high.label }]
+              ? [{ field: F.priority, before: PRIORITY.normal.label, after: PRIORITY.high.label }]
               : []),
           ],
         }
@@ -150,15 +194,15 @@ function build(n: number, at: string): AuditEvent {
         const f = pick(FACILITIES, n)
         return {
           ...base,
-          objectType: 'Объект',
-          object: `${f.code} ${f.name}`,
-          summary: 'Обновление параметров объекта',
+          objectType: TYPE.facility,
+          object: join(f.code, f.name),
+          summary: bi('Обновление параметров объекта', 'Facility parameters updated'),
           changes: [
-            { field: 'Загрузка', before: `${Math.max(0, f.load - 6 - (n % 9))}%`, after: `${f.load}%` },
+            { field: F.load, before: `${Math.max(0, f.load - 6 - (n % 9))}%`, after: `${f.load}%` },
             ...(n % 4 === 1
               ? [
                   {
-                    field: 'Статус',
+                    field: F.status,
                     before: FACILITY_STATUS.online.label,
                     after: FACILITY_STATUS[f.status].label,
                   },
@@ -170,12 +214,12 @@ function build(n: number, at: string): AuditEvent {
       const [name, before, after] = pick(STOCK, n)
       return {
         ...base,
-        objectType: 'Склад',
+        objectType: TYPE.stock,
         object: name,
-        summary: 'Корректировка остатка',
+        summary: bi('Корректировка остатка', 'Stock adjustment'),
         changes: [
-          { field: 'Остаток', before: String(before), after: String(after) },
-          { field: 'Основание', before: null, after: `Акт ${1200 + n}` },
+          { field: F.stock, before: String(before), after: String(after) },
+          { field: F.reason, before: null, after: bi(`Акт ${1200 + n}`, `Adjustment report ${1200 + n}`) },
         ],
       }
     }
@@ -184,46 +228,50 @@ function build(n: number, at: string): AuditEvent {
       const assignee = PEOPLE.find((p) => p.id === t.assigneeId)
       return {
         ...base,
-        objectType: 'Задача',
-        object: `${t.id} ${t.title}`,
-        summary: 'Создана задача',
+        objectType: TYPE.task,
+        object: join(t.id, t.title),
+        summary: bi('Создана задача', 'Task created'),
         changes: [
-          { field: 'Название', before: null, after: t.title },
-          { field: 'Исполнитель', before: null, after: assignee?.name ?? null },
-          { field: 'Приоритет', before: null, after: PRIORITY[t.priority].label },
-          { field: 'Срок', before: null, after: t.due.split('-').reverse().join('.') },
+          { field: F.title, before: null, after: t.title },
+          { field: F.assignee, before: null, after: assignee?.name ?? null },
+          { field: F.priority, before: null, after: PRIORITY[t.priority].label },
+          { field: F.due, before: null, after: t.due.split('-').reverse().join('.') },
         ],
       }
     }
     case 'delete': {
       const what = pick(DELETED, n)
+      const record = bi(`${what.ru} №${300 + n}`, `${what.en} #${300 + n}`)
       return {
         ...base,
-        objectType: 'Запись',
-        object: `${what} №${300 + n}`,
-        summary: 'Запись удалена',
+        objectType: TYPE.record,
+        object: record,
+        summary: bi('Запись удалена', 'Record deleted'),
         changes: [
-          { field: 'Название', before: `${what} №${300 + n}`, after: null },
-          { field: 'Автор', before: pick(PEOPLE, n).name, after: null },
+          { field: F.title, before: record, after: null },
+          { field: F.author, before: pick(PEOPLE, n).name, after: null },
         ],
       }
     }
     case 'login':
       return {
         ...base,
-        objectType: 'Сессия',
-        object: 'Вход в консоль',
-        summary: n % 9 === 4 ? 'Вход из внешней сети' : 'Успешный вход',
+        objectType: TYPE.session,
+        object: bi('Вход в консоль', 'Console sign-in'),
+        summary:
+          n % 9 === 4
+            ? bi('Вход из внешней сети', 'Sign-in from an external network')
+            : bi('Успешный вход', 'Successful sign-in'),
         changes: [],
       }
     case 'export': {
       const what = pick(EXPORTS, n)
       return {
         ...base,
-        objectType: 'Отчёт',
+        objectType: TYPE.report,
         object: what,
-        summary: `Выгрузка: ${what}`,
-        changes: [{ field: 'Формат', before: null, after: n % 2 ? 'CSV' : 'XLSX' }],
+        summary: bi(`Выгрузка: ${what.ru}`, `Export: ${what.en}`),
+        changes: [{ field: F.format, before: null, after: n % 2 ? 'CSV' : 'XLSX' }],
       }
     }
     case 'access': {
@@ -233,12 +281,12 @@ function build(n: number, at: string): AuditEvent {
       const to = pick(roles, n + 1)
       return {
         ...base,
-        objectType: 'Сотрудник',
+        objectType: TYPE.person,
         object: p.name,
-        summary: 'Изменение роли и доступа',
+        summary: bi('Изменение роли и доступа', 'Role and access change'),
         changes: [
-          { field: 'Роль', before: ROLES[from].label, after: ROLES[to].label },
-          { field: 'Объекты', before: '1', after: String(2 + (n % 3)) },
+          { field: F.role, before: ROLES[from].label, after: ROLES[to].label },
+          { field: F.facilities, before: '1', after: String(2 + (n % 3)) },
         ],
       }
     }

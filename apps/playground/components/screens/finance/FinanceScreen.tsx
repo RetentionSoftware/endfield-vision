@@ -38,6 +38,7 @@ import {
   FINANCE_FIRST_DAY,
   FINANCE_TODAY,
   INVOICE_STATUS,
+  invoiceNumber,
   invoiceTotal,
   INVOICES,
   RECEIVABLES_TREND,
@@ -45,20 +46,20 @@ import {
   type Invoice,
   type InvoiceStatus,
 } from '@/lib/demo/finance'
-import { formatDate, formatNum, formatRub, formatRubShort, plural } from '@/lib/format'
-import { crumbs } from '@/lib/nav'
+import { formatDate } from '@/lib/format'
+import { bi, useCrumbs, useT, type Bi } from '@/lib/i18n'
 import { InvoiceDrawer } from './InvoiceDrawer'
 import { NewInvoiceModal } from './NewInvoiceModal'
 import s from './finance.module.css'
 
 type InvoiceTab = 'all' | InvoiceStatus
 
-const PRESETS: DateRangePreset[] = [
-  { id: 'last7', label: 'Последние 7 дней', range: () => ({ from: addDaysIso(FINANCE_TODAY, -6), to: FINANCE_TODAY }) },
-  { id: 'last30', label: 'Последние 30 дней', range: () => ({ from: addDaysIso(FINANCE_TODAY, -29), to: FINANCE_TODAY }) },
-  { id: 'october', label: 'Октябрь', range: () => ({ from: '2026-10-01', to: FINANCE_TODAY }) },
-  { id: 'september', label: 'Сентябрь', range: () => ({ from: '2026-09-01', to: '2026-09-30' }) },
-  { id: 'last90', label: 'Последние 90 дней', range: () => ({ from: FINANCE_FIRST_DAY, to: FINANCE_TODAY }) },
+const PRESETS: Array<Omit<DateRangePreset, 'label'> & { label: Bi }> = [
+  { id: 'last7', label: bi('Последние 7 дней', 'Last 7 days'), range: () => ({ from: addDaysIso(FINANCE_TODAY, -6), to: FINANCE_TODAY }) },
+  { id: 'last30', label: bi('Последние 30 дней', 'Last 30 days'), range: () => ({ from: addDaysIso(FINANCE_TODAY, -29), to: FINANCE_TODAY }) },
+  { id: 'october', label: bi('Октябрь', 'October'), range: () => ({ from: '2026-10-01', to: FINANCE_TODAY }) },
+  { id: 'september', label: bi('Сентябрь', 'September'), range: () => ({ from: '2026-09-01', to: '2026-09-30' }) },
+  { id: 'last90', label: bi('Последние 90 дней', 'Last 90 days'), range: () => ({ from: FINANCE_FIRST_DAY, to: FINANCE_TODAY }) },
 ]
 
 const DEFAULT_RANGE: DateRange = { from: addDaysIso(FINANCE_TODAY, -29), to: FINANCE_TODAY }
@@ -106,6 +107,9 @@ function bucketize(days: FinanceDay[]): ExpenseBucket[] {
 }
 
 export function FinanceScreen() {
+  const { t, tx, plural, formatNum, formatRub, formatRubShort, intl } = useT()
+  const breadcrumbs = useCrumbs('finance')
+  const presets: DateRangePreset[] = PRESETS.map((p) => ({ ...p, label: tx(p.label) }))
   const [range, setRange] = useState<DateRange | null>(DEFAULT_RANGE)
   const [invoices, setInvoices] = useState<Invoice[]>(INVOICES)
   const [tab, setTab] = useState<InvoiceTab>('all')
@@ -170,16 +174,18 @@ export function FinanceScreen() {
       if (tab !== 'all' && i.status !== tab) return false
       if (!q) return true
       const cp = counterparty(i.counterpartyId)
-      return [i.number, cp?.name ?? '', cp?.inn ?? '', facilityName(i.facilityId), i.description].some((v) => normalizeSearch(v).includes(q))
+      return [tx(i.number), cp ? tx(cp.name) : '', cp?.inn ?? '', tx(facilityName(i.facilityId)), tx(i.description)].some((v) =>
+        normalizeSearch(v).includes(q),
+      )
     })
     if (!sort) return list
     const dir = sort.dir === 'asc' ? 1 : -1
     return [...list].sort((a, b) => {
       if (sort.key === 'amount') return (invoiceTotal(a.net, a.vat) - invoiceTotal(b.net, b.vat)) * dir
       if (sort.key === 'dueAt') return a.dueAt.localeCompare(b.dueAt) * dir
-      return a.number.localeCompare(b.number) * dir
+      return a.seq.localeCompare(b.seq) * dir
     })
-  }, [invoices, tab, query, sort])
+  }, [invoices, tab, query, sort, tx])
 
   const visibleTotal = visible.reduce((a, i) => a + invoiceTotal(i.net, i.vat), 0)
   const opened = invoices.find((i) => i.id === openId) ?? null
@@ -189,38 +195,45 @@ export function FinanceScreen() {
   }
 
   const nextNumber = useMemo(() => {
-    const max = invoices.reduce((m, i) => Math.max(m, Number(i.number.slice(-4))), 0)
+    const max = invoices.reduce((m, i) => Math.max(m, Number(i.seq)), 0)
     return String(max + 1).padStart(4, '0')
   }, [invoices])
 
   const exportReport = (title: string, file: string) => {
-    toast.success(title, { description: `Файл ${file} за ${formatDate(from)} - ${formatDate(to)} сформирован.` })
+    toast.success(title, {
+      description: t(`Файл ${file} за ${formatDate(from)} - ${formatDate(to)} сформирован.`, `${file} for ${formatDate(from)} - ${formatDate(to)} is ready.`),
+    })
   }
 
   const columns: Column<Invoice>[] = [
     {
       key: 'number',
-      header: 'Номер',
+      header: t('Номер', 'Number'),
       primary: true,
       sortable: true,
       cell: (i) => (
         <span className={s.twoLine}>
-          <span className="ev-mono">{i.number}</span>
-          <span className="ev-muted">от {formatDate(i.issuedAt)}</span>
+          <span className="ev-mono">{tx(i.number)}</span>
+          <span className="ev-muted">
+            {t('от', 'issued')} {formatDate(i.issuedAt)}
+          </span>
         </span>
       ),
     },
     {
       key: 'counterparty',
-      header: 'Контрагент',
+      header: t('Контрагент', 'Counterparty'),
       minWidth: 200,
-      cell: (i) => <span className={s.counterparty}>{counterparty(i.counterpartyId)?.name}</span>,
+      cell: (i) => {
+        const cp = counterparty(i.counterpartyId)
+        return <span className={s.counterparty}>{cp ? tx(cp.name) : null}</span>
+      },
     },
-    { key: 'facility', header: 'Объект', hideOnMobile: true, cell: (i) => facilityName(i.facilityId) },
-    { key: 'amount', header: 'Сумма', numeric: true, sortable: true, cell: (i) => formatRub(invoiceTotal(i.net, i.vat)) },
+    { key: 'facility', header: t('Объект', 'Facility'), hideOnMobile: true, cell: (i) => tx(facilityName(i.facilityId)) },
+    { key: 'amount', header: t('Сумма', 'Amount'), numeric: true, sortable: true, cell: (i) => formatRub(invoiceTotal(i.net, i.vat)) },
     {
       key: 'dueAt',
-      header: 'Срок оплаты',
+      header: t('Срок оплаты', 'Due date'),
       sortable: true,
       cell: (i) => {
         const late = daysBetween(i.dueAt, FINANCE_TODAY)
@@ -229,10 +242,12 @@ export function FinanceScreen() {
             <span className="ev-num">{formatDate(i.dueAt)}</span>
             {i.status === 'overdue' ? (
               <span className={s.overdue}>
-                просрочка {late} {plural(late, 'день', 'дня', 'дней')}
+                {t('просрочка', 'overdue by')} {late} {plural(late, ['день', 'дня', 'дней'], ['day', 'days'])}
               </span>
             ) : i.status === 'paid' && i.paidAt ? (
-              <span className="ev-muted">оплачен {formatDate(i.paidAt)}</span>
+              <span className="ev-muted">
+                {t('оплачен', 'paid')} {formatDate(i.paidAt)}
+              </span>
             ) : null}
           </span>
         )
@@ -240,70 +255,76 @@ export function FinanceScreen() {
     },
     {
       key: 'status',
-      header: 'Статус',
-      cell: (i) => <StatusPill tone={INVOICE_STATUS[i.status].tone}>{INVOICE_STATUS[i.status].label}</StatusPill>,
+      header: t('Статус', 'Status'),
+      cell: (i) => <StatusPill tone={INVOICE_STATUS[i.status].tone}>{tx(INVOICE_STATUS[i.status].label)}</StatusPill>,
     },
   ]
 
-  const tabLabels: Record<InvoiceTab, string> = { all: 'Все', pending: 'Ожидают', overdue: 'Просрочены', paid: 'Оплачены', draft: 'Черновики' }
+  const tabLabels: Record<InvoiceTab, string> = {
+    all: t('Все', 'All'),
+    pending: t('Ожидают', 'Pending'),
+    overdue: t('Просрочены', 'Overdue'),
+    paid: t('Оплачены', 'Paid'),
+    draft: t('Черновики', 'Drafts'),
+  }
 
   return (
     <>
       <PageHeader
-        title="Финансы"
-        subtitle="Выручка, расходы, бюджеты объектов и расчёты с контрагентами."
-        breadcrumbs={crumbs('finance')}
+        title={t('Финансы', 'Finance')}
+        subtitle={t('Выручка, расходы, бюджеты объектов и расчёты с контрагентами.', 'Revenue, expenses, facility budgets and counterparty settlements.')}
+        breadcrumbs={breadcrumbs}
         meta={
           receivables.overdueCount > 0 ? (
             <Badge tone="danger" dot>
-              Просрочено счетов: {receivables.overdueCount}
+              {t('Просрочено счетов', 'Overdue invoices')}: {receivables.overdueCount}
             </Badge>
           ) : (
             <Badge tone="success" dot>
-              Просрочек нет
+              {t('Просрочек нет', 'Nothing overdue')}
             </Badge>
           )
         }
         actions={
           <>
             <DateRangePicker
-              aria-label="Период отчёта"
+              aria-label={t('Период отчёта', 'Report period')}
               value={range}
               onChange={setRange}
-              presets={PRESETS}
+              presets={presets}
               min={FINANCE_FIRST_DAY}
               max={FINANCE_TODAY}
             />
             <Menu
-              label="Экспорт"
-              trigger={<Button iconRight={<ChevronDown size={15} />}>Экспорт</Button>}
+              label={t('Экспорт', 'Export')}
+              trigger={<Button iconRight={<ChevronDown size={15} />}>{t('Экспорт', 'Export')}</Button>}
               items={[
-                { type: 'label', id: 'l', label: 'За выбранный период' },
+                { type: 'label', id: 'l', label: t('За выбранный период', 'For the selected period') },
                 {
                   id: 'csv',
-                  label: 'Реестр счетов',
+                  label: t('Реестр счетов', 'Invoice register'),
                   hint: 'CSV',
                   icon: <FileSpreadsheet size={15} />,
-                  onSelect: () => exportReport('Реестр счетов выгружен', 'invoices.csv'),
+                  onSelect: () => exportReport(t('Реестр счетов выгружен', 'Invoice register exported'), 'invoices.csv'),
                 },
                 {
                   id: 'pnl',
-                  label: 'Доходы и расходы',
+                  label: t('Доходы и расходы', 'Income and expenses'),
                   hint: 'XLSX',
                   icon: <FileSpreadsheet size={15} />,
-                  onSelect: () => exportReport('Отчёт о доходах и расходах готов', 'pnl.xlsx'),
+                  onSelect: () => exportReport(t('Отчёт о доходах и расходах готов', 'Income and expense report ready'), 'pnl.xlsx'),
                 },
                 {
                   id: 'budget',
-                  label: 'Исполнение бюджетов',
+                  label: t('Исполнение бюджетов', 'Budget performance'),
                   hint: 'PDF',
                   icon: <FileText size={15} />,
-                  onSelect: () => exportReport('Отчёт по бюджетам готов', 'budgets.pdf'),
+                  onSelect: () => exportReport(t('Отчёт по бюджетам готов', 'Budget report ready'), 'budgets.pdf'),
                 },
               ]}
             />
             <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>
-              Новый счёт
+              {t('Новый счёт', 'New invoice')}
             </Button>
           </>
         }
@@ -312,71 +333,84 @@ export function FinanceScreen() {
       <div className={s.page}>
         <div className="ev-grid" style={{ ['--ev-grid-min' as string]: '230px' }}>
           <StatTile
-            label="Выручка"
+            label={t('Выручка', 'Revenue')}
             value={`${formatRubShort(stats.revenue)} ₽`}
             icon={<TrendingUp size={16} />}
             delta={stats.revenueDelta}
-            deltaLabel="к прошлому периоду"
-            trend={<Sparkline values={days.map((d) => d.revenue)} width="auto" aria-label="Выручка по дням" />}
+            deltaLabel={t('к прошлому периоду', 'vs previous period')}
+            trend={<Sparkline values={days.map((d) => d.revenue)} width="auto" aria-label={t('Выручка по дням', 'Revenue by day')} />}
           />
           <StatTile
-            label="Расходы"
+            label={t('Расходы', 'Expenses')}
             value={`${formatRubShort(stats.expenses)} ₽`}
             icon={<TrendingDown size={16} />}
             tone="warning"
             delta={stats.expensesDelta}
             positiveIsGood={false}
-            deltaLabel="к прошлому периоду"
-            trend={<Sparkline values={days.map(dayExpenses)} width="auto" color="var(--ev-warning)" aria-label="Расходы по дням" />}
+            deltaLabel={t('к прошлому периоду', 'vs previous period')}
+            trend={
+              <Sparkline values={days.map(dayExpenses)} width="auto" color="var(--ev-warning)" aria-label={t('Расходы по дням', 'Expenses by day')} />
+            }
           />
           <StatTile
-            label="Маржа"
-            value={`${stats.margin.toLocaleString('ru-RU', { maximumFractionDigits: 1 })}%`}
+            label={t('Маржа', 'Margin')}
+            value={`${stats.margin.toLocaleString(intl, { maximumFractionDigits: 1 })}%`}
             icon={<Percent size={16} />}
             tone="success"
             delta={stats.marginDelta}
-            formatDelta={(d) => `${d > 0 ? '+' : ''}${d.toLocaleString('ru-RU')} п.п.`}
-            deltaLabel="к прошлому периоду"
+            formatDelta={(d) => `${d > 0 ? '+' : ''}${d.toLocaleString(intl)} ${t('п.п.', 'pp')}`}
+            deltaLabel={t('к прошлому периоду', 'vs previous period')}
             trend={
               <Sparkline
                 values={days.map((d) => ((d.revenue - dayExpenses(d)) / d.revenue) * 100)}
                 width="auto"
                 color="var(--ev-success)"
-                aria-label="Маржа по дням"
+                aria-label={t('Маржа по дням', 'Margin by day')}
               />
             }
           />
           <StatTile
-            label="Дебиторская задолженность"
+            label={t('Дебиторская задолженность', 'Receivables')}
             value={`${formatRubShort(receivables.total)} ₽`}
             icon={<Landmark size={16} />}
             tone="danger"
             delta={2.7}
             positiveIsGood={false}
-            deltaLabel="за неделю"
-            hint={receivables.overdue > 0 ? `Просрочено: ${formatRub(receivables.overdue)}` : 'Просроченных счетов нет'}
-            trend={<Sparkline values={RECEIVABLES_TREND} width="auto" color="var(--ev-danger)" aria-label="Задолженность за 8 недель" />}
+            deltaLabel={t('за неделю', 'this week')}
+            hint={receivables.overdue > 0 ? `${t('Просрочено', 'Overdue')}: ${formatRub(receivables.overdue)}` : t('Просроченных счетов нет', 'No overdue invoices')}
+            trend={
+              <Sparkline
+                values={RECEIVABLES_TREND}
+                width="auto"
+                color="var(--ev-danger)"
+                aria-label={t('Задолженность за 8 недель', 'Receivables over 8 weeks')}
+              />
+            }
           />
         </div>
 
         <div className="pg-split">
-          <Card title="Выручка и расходы" description={`По дням, ${formatDate(from)} - ${formatDate(to)}`}>
+          <Card title={t('Выручка и расходы', 'Revenue and expenses')} description={`${t('По дням', 'By day')}, ${formatDate(from)} - ${formatDate(to)}`}>
             <AreaChart
-              aria-label="Выручка и расходы по дням"
+              aria-label={t('Выручка и расходы по дням', 'Revenue and expenses by day')}
               data={days}
               x={(d) => d.label}
               tooltipTitle={(d) => formatDate(d.date)!}
               height={280}
               series={[
-                { key: 'revenue', label: 'Выручка', value: (d) => d.revenue },
-                { key: 'expenses', label: 'Расходы', value: dayExpenses, color: 'var(--ev-chart-3)' },
+                { key: 'revenue', label: t('Выручка', 'Revenue'), value: (d) => d.revenue },
+                { key: 'expenses', label: t('Расходы', 'Expenses'), value: dayExpenses, color: 'var(--ev-chart-3)' },
               ]}
               format={formatRub}
               formatAxis={formatRubShort}
-              emptyText="Нет данных за период"
+              emptyText={t('Нет данных за период', 'No data for this period')}
             />
           </Card>
-          <Card title="Бюджеты объектов" description={`${BUDGET_PERIOD}: факт к лимиту`} icon={<Wallet size={16} />}>
+          <Card
+            title={t('Бюджеты объектов', 'Facility budgets')}
+            description={`${tx(BUDGET_PERIOD)}: ${t('факт к лимиту', 'actual vs limit')}`}
+            icon={<Wallet size={16} />}
+          >
             <div className={s.budgets}>
               {BUDGETS.map((b) => {
                 const pct = Math.round((b.spent / b.limit) * 100)
@@ -387,9 +421,9 @@ export function FinanceScreen() {
                     tone={pct >= 90 ? 'warning' : 'accent'}
                     value={b.spent}
                     max={b.limit}
-                    label={facilityName(b.facilityId)}
+                    label={tx(facilityName(b.facilityId))}
                     showValue={(spent, limit) =>
-                      `${formatRubShort(spent)} из ${formatRubShort(limit)}${spent > limit ? ` (+${pct - 100}%)` : ''}`
+                      `${formatRubShort(spent)} ${t('из', 'of')} ${formatRubShort(limit)}${spent > limit ? ` (+${pct - 100}%)` : ''}`
                     }
                   />
                 )
@@ -399,27 +433,30 @@ export function FinanceScreen() {
         </div>
 
         <div className="pg-split">
-          <Card title="Расходы по категориям" description={days.length > 14 ? 'По неделям, ₽' : 'По дням, ₽'}>
+          <Card
+            title={t('Расходы по категориям', 'Expenses by category')}
+            description={days.length > 14 ? t('По неделям, ₽', 'By week, ₽') : t('По дням, ₽', 'By day, ₽')}
+          >
             <BarChart
-              aria-label="Расходы по категориям"
+              aria-label={t('Расходы по категориям', 'Expenses by category')}
               data={buckets}
               x={(b) => b.label}
               tooltipTitle={(b) => b.title}
               stacked
               height={280}
-              series={EXPENSE_CATEGORIES.map((c) => ({ key: c.key, label: c.label, value: (b: ExpenseBucket) => b.values[c.key] ?? 0 }))}
+              series={EXPENSE_CATEGORIES.map((c) => ({ key: c.key, label: tx(c.label), value: (b: ExpenseBucket) => b.values[c.key] ?? 0 }))}
               format={formatRub}
               formatAxis={formatRubShort}
-              emptyText="Нет данных за период"
+              emptyText={t('Нет данных за период', 'No data for this period')}
             />
           </Card>
-          <Card title="Структура расходов" description={`Всего: ${formatRub(stats.expenses)}`}>
+          <Card title={t('Структура расходов', 'Expense breakdown')} description={`${t('Всего', 'Total')}: ${formatRub(stats.expenses)}`}>
             <ul role="list" className={s.structure}>
               {structure.map((c) => (
                 <li key={c.key} className={s.structureItem}>
                   <span className={s.dot} style={{ background: c.color }} aria-hidden="true" />
-                  <span className={s.structureLabel}>{c.label}</span>
-                  <span className="ev-num ev-muted">{c.share.toLocaleString('ru-RU', { maximumFractionDigits: 1 })}%</span>
+                  <span className={s.structureLabel}>{tx(c.label)}</span>
+                  <span className="ev-num ev-muted">{c.share.toLocaleString(intl, { maximumFractionDigits: 1 })}%</span>
                   <span className={s.structureValue}>{formatRubShort(c.value)} ₽</span>
                 </li>
               ))}
@@ -428,8 +465,8 @@ export function FinanceScreen() {
         </div>
 
         <Card
-          title="Счета"
-          description="Выставленные счета контрагентам"
+          title={t('Счета', 'Invoices')}
+          description={t('Выставленные счета контрагентам', 'Invoices issued to counterparties')}
           icon={<ReceiptText size={16} />}
           flush
           actions={
@@ -438,19 +475,19 @@ export function FinanceScreen() {
               wrapperClassName={s.search}
               value={query}
               onChange={setQuery}
-              placeholder="Номер, контрагент, ИНН"
-              aria-label="Поиск по счетам"
+              placeholder={t('Номер, контрагент, ИНН', 'Number, counterparty, TIN')}
+              aria-label={t('Поиск по счетам', 'Search invoices')}
             />
           }
         >
           <Tabs
-            aria-label="Статус счёта"
+            aria-label={t('Статус счёта', 'Invoice status')}
             value={tab}
             onChange={setTab}
             items={(['all', 'pending', 'overdue', 'paid', 'draft'] as const).map((t) => ({ value: t, label: tabLabels[t], count: counts[t] }))}
           />
           <DataTable
-            aria-label="Счета"
+            aria-label={t('Счета', 'Invoices')}
             columns={columns}
             rows={visible}
             rowKey={(i) => i.id}
@@ -458,11 +495,12 @@ export function FinanceScreen() {
             onSortChange={setSort}
             onRowClick={(i) => setOpenId(i.id)}
             rowMuted={(i) => i.status === 'draft'}
-            empty={query ? 'Ничего не найдено' : 'Счетов нет'}
-            emptyDescription={query ? 'Измените запрос или выберите другую вкладку.' : undefined}
+            empty={query ? t('Ничего не найдено', 'Nothing found') : t('Счетов нет', 'No invoices')}
+            emptyDescription={query ? t('Измените запрос или выберите другую вкладку.', 'Change the search or pick another tab.') : undefined}
             footer={
               <span className="ev-muted ev-num">
-                {formatNum(visible.length)} {plural(visible.length, 'счёт', 'счёта', 'счетов')} на сумму {formatRub(visibleTotal)}
+                {formatNum(visible.length)} {plural(visible.length, ['счёт', 'счёта', 'счетов'], ['invoice', 'invoices'])}{' '}
+                {t('на сумму', 'totaling')} {formatRub(visibleTotal)}
               </span>
             }
           />
@@ -479,16 +517,24 @@ export function FinanceScreen() {
 
       {creating ? (
         <NewInvoiceModal
-          number={`СЧ-2026-${nextNumber}`}
+          number={tx(invoiceNumber(nextNumber))}
           onClose={() => setCreating(false)}
           onCreate={(draft) => {
-            const inv: Invoice = { ...draft, id: `inv-${nextNumber}`, number: `СЧ-2026-${nextNumber}`, issuedAt: FINANCE_TODAY, paidAt: null, reminders: 0 }
+            const inv: Invoice = {
+              ...draft,
+              id: `inv-${nextNumber}`,
+              seq: nextNumber,
+              number: invoiceNumber(nextNumber),
+              issuedAt: FINANCE_TODAY,
+              paidAt: null,
+              reminders: 0,
+            }
             setInvoices((list) => [inv, ...list])
             setTab('all')
             setCreating(false)
-            toast.success(inv.status === 'draft' ? 'Черновик сохранён' : 'Счёт выставлен', {
-              description: `${inv.number} на ${formatRub(invoiceTotal(inv.net, inv.vat))}`,
-              action: { label: 'Открыть', onClick: () => setOpenId(inv.id) },
+            toast.success(inv.status === 'draft' ? t('Черновик сохранён', 'Draft saved') : t('Счёт выставлен', 'Invoice issued'), {
+              description: `${tx(inv.number)} ${t('на', 'for')} ${formatRub(invoiceTotal(inv.net, inv.vat))}`,
+              action: { label: t('Открыть', 'Open'), onClick: () => setOpenId(inv.id) },
             })
           }}
         />

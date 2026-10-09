@@ -12,6 +12,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import { bi, type Bi, type Lang } from './lang'
 
 /*
  * Реестр разделов: меню, заголовки и хлебные крошки берут данные отсюда.
@@ -20,7 +21,7 @@ import {
 
 export interface NavSection {
   key: string
-  label: string
+  label: Bi
   href: string
   icon: LucideIcon
   /** Счётчик в меню. */
@@ -28,37 +29,37 @@ export interface NavSection {
 }
 
 export interface NavGroup {
-  title?: string
+  title?: Bi
   items: NavSection[]
 }
 
 export const NAV: NavGroup[] = [
   {
-    items: [{ key: 'overview', label: 'Обзор', href: '/overview', icon: LayoutDashboard }],
+    items: [{ key: 'overview', label: bi('Обзор', 'Overview'), href: '/overview', icon: LayoutDashboard }],
   },
   {
-    title: 'Операции',
+    title: bi('Операции', 'Operations'),
     items: [
-      { key: 'facilities', label: 'Объекты', href: '/facilities', icon: Factory },
-      { key: 'tasks', label: 'Задачи', href: '/tasks', icon: ClipboardList, badge: 12 },
-      { key: 'inventory', label: 'Склад', href: '/inventory', icon: Boxes },
-      { key: 'team', label: 'Команда', href: '/team', icon: Users },
+      { key: 'facilities', label: bi('Объекты', 'Facilities'), href: '/facilities', icon: Factory },
+      { key: 'tasks', label: bi('Задачи', 'Tasks'), href: '/tasks', icon: ClipboardList, badge: 12 },
+      { key: 'inventory', label: bi('Склад', 'Inventory'), href: '/inventory', icon: Boxes },
+      { key: 'team', label: bi('Команда', 'Team'), href: '/team', icon: Users },
     ],
   },
   {
-    title: 'Управление',
+    title: bi('Управление', 'Management'),
     items: [
-      { key: 'finance', label: 'Финансы', href: '/finance', icon: Wallet },
-      { key: 'inbox', label: 'Входящие', href: '/inbox', icon: Inbox, badge: 3 },
-      { key: 'audit', label: 'Журнал', href: '/audit', icon: ScrollText },
-      { key: 'settings', label: 'Настройки', href: '/settings', icon: Settings },
+      { key: 'finance', label: bi('Финансы', 'Finance'), href: '/finance', icon: Wallet },
+      { key: 'inbox', label: bi('Входящие', 'Inbox'), href: '/inbox', icon: Inbox, badge: 3 },
+      { key: 'audit', label: bi('Журнал', 'Audit log'), href: '/audit', icon: ScrollText },
+      { key: 'settings', label: bi('Настройки', 'Settings'), href: '/settings', icon: Settings },
     ],
   },
   {
-    title: 'Библиотека',
+    title: bi('Библиотека', 'Library'),
     items: [
-      { key: 'vision', label: 'ENDFIELD Vision', href: '/vision', icon: Sparkles },
-      { key: 'status', label: 'Состояние систем', href: '/status', icon: Activity },
+      { key: 'vision', label: bi('ENDFIELD Vision', 'ENDFIELD Vision'), href: '/vision', icon: Sparkles },
+      { key: 'status', label: bi('Состояние систем', 'System status'), href: '/status', icon: Activity },
     ],
   },
 ]
@@ -82,8 +83,8 @@ export function activeKey(pathname: string): string | null {
   return best?.key ?? null
 }
 
-/** Хлебные крошки раздела: «Консоль / Раздел». */
-export function crumbs(key: string, ...rest: Array<{ label: string; href?: string }>) {
+/** Хлебные крошки раздела: «Консоль / Раздел». В компонентах - useCrumbs() из lib/use-crumbs. */
+export function crumbs(key: string, lang: Lang = 'ru', ...rest: Array<{ label: string; href?: string }>) {
   const s = section(key)
-  return [{ label: 'Консоль', href: '/overview' }, { label: s.label, href: rest.length ? s.href : undefined }, ...rest]
+  return [{ label: lang === 'en' ? 'Console' : 'Консоль', href: '/overview' }, { label: s.label[lang], href: rest.length ? s.href : undefined }, ...rest]
 }

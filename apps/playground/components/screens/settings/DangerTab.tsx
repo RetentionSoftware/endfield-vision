@@ -4,24 +4,34 @@ import { Button, Callout, Card, Field, Input, toast, useModals, type ModalButton
 import { DatabaseBackup, LogOut, RotateCcw, Trash2, Undo2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { WORKSPACE_NAME } from '@/lib/demo/settings'
+import { useT } from '@/lib/i18n'
 import s from './settings.module.css'
 
 const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms))
 
 /** Поле подтверждения: имя пространства нужно ввести вручную. */
 function TypeToConfirm({ expected, onValid }: { expected: string; onValid: (ok: boolean) => void }) {
+  const { t, lang } = useT()
   const [value, setValue] = useState('')
   return (
     <div className="ev-stack">
       <p className="ev-secondary">
-        Будут удалены объекты, задачи, складские остатки, счета, журнал и ключи API. Участники потеряют доступ. Восстановление возможно в
-        течение 7 дней через поддержку, после этого данные удаляются безвозвратно.
+        {t(
+          'Будут удалены объекты, задачи, складские остатки, счета, журнал и ключи API. Участники потеряют доступ. Восстановление возможно в течение 7 дней через поддержку, после этого данные удаляются безвозвратно.',
+          'Facilities, tasks, stock, invoices, the audit log and API keys will be deleted. Members will lose access. Support can restore the workspace within 7 days; after that, the data is deleted permanently.',
+        )}
       </p>
       <Field
         label={
-          <>
-            Введите <span className="ev-mono">{expected}</span> для подтверждения
-          </>
+          lang === 'en' ? (
+            <>
+              Type <span className="ev-mono">{expected}</span> to confirm
+            </>
+          ) : (
+            <>
+              Введите <span className="ev-mono">{expected}</span> для подтверждения
+            </>
+          )
         }
       >
         <Input
@@ -53,15 +63,16 @@ function DangerRow({ title, description, action }: { title: string; description:
 }
 
 export function DangerTab() {
+  const { t, lang } = useT()
   const modals = useModals()
   const [scheduled, setScheduled] = useState(false)
 
   const deleteWorkspace = () => {
     let handle: ModalHandle | null = null
     const buttons = (ok: boolean): ModalButton[] => [
-      { label: 'Отмена', variant: 'ghost' },
+      { label: t('Отмена', 'Cancel'), variant: 'ghost' },
       {
-        label: 'Удалить пространство',
+        label: t('Удалить пространство', 'Delete workspace'),
         variant: 'danger',
         icon: <Trash2 size={15} />,
         disabled: !ok,
@@ -70,13 +81,18 @@ export function DangerTab() {
           await wait(1200)
           setScheduled(true)
           close()
-          toast.warning('Удаление запланировано', { description: `Пространство ${WORKSPACE_NAME} будет удалено 15.10.2026.` })
+          toast.warning(t('Удаление запланировано', 'Deletion scheduled'), {
+            description: t(
+              `Пространство ${WORKSPACE_NAME} будет удалено 15.10.2026.`,
+              `The ${WORKSPACE_NAME} workspace will be deleted on 15.10.2026.`,
+            ),
+          })
         },
       },
     ]
     handle = modals.open({
-      title: 'Удалить рабочее пространство?',
-      subtitle: 'Действие затронет всех участников.',
+      title: t('Удалить рабочее пространство?', 'Delete the workspace?'),
+      subtitle: t('Действие затронет всех участников.', 'This affects all members.'),
       size: 'sm',
       body: <TypeToConfirm expected={WORKSPACE_NAME} onValid={(ok) => handle?.update({ footer: { buttons: buttons(ok) } })} />,
       footer: { buttons: buttons(false) },
@@ -85,27 +101,37 @@ export function DangerTab() {
 
   const signOutEverywhere = () =>
     void modals.confirm({
-      title: 'Выйти на всех устройствах?',
-      message: 'Все сеансы, включая текущий, будут завершены. Ключи API продолжат работать.',
-      okLabel: 'Выйти везде',
+      title: t('Выйти на всех устройствах?', 'Sign out on all devices?'),
+      message: t(
+        'Все сеансы, включая текущий, будут завершены. Ключи API продолжат работать.',
+        'All sessions, including this one, will be ended. API keys will keep working.',
+      ),
+      okLabel: t('Выйти везде', 'Sign out everywhere'),
       okVariant: 'danger',
       okIcon: <LogOut size={15} />,
       onOk: async () => {
         await wait(700)
-        toast.success('Сеансы завершены', { description: 'Завершено сеансов: 4. Текущий сеанс сохранён в демо.' })
+        toast.success(t('Сеансы завершены', 'Sessions ended'), {
+          description: t('Завершено сеансов: 4. Текущий сеанс сохранён в демо.', 'Sessions ended: 4. The current session is kept in the demo.'),
+        })
       },
     })
 
   const resetDemo = () =>
     void modals.confirm({
-      title: 'Сбросить демо-данные?',
-      message: 'Задачи, счета и сообщения вернутся к исходному набору. Настройки оформления не изменятся.',
-      okLabel: 'Сбросить',
+      title: t('Сбросить демо-данные?', 'Reset demo data?'),
+      message: t(
+        'Задачи, счета и сообщения вернутся к исходному набору. Настройки оформления не изменятся.',
+        'Tasks, invoices and messages will return to the initial set. Appearance settings will not change.',
+      ),
+      okLabel: t('Сбросить', 'Reset'),
       okVariant: 'danger',
       okIcon: <RotateCcw size={15} />,
       onOk: async () => {
         await wait(800)
-        toast.success('Демо-данные сброшены', { description: 'Обновите страницу, чтобы увидеть исходный набор.' })
+        toast.success(t('Демо-данные сброшены', 'Demo data reset'), {
+          description: t('Обновите страницу, чтобы увидеть исходный набор.', 'Refresh the page to see the initial set.'),
+        })
       },
     })
 
@@ -114,70 +140,92 @@ export function DangerTab() {
       {scheduled ? (
         <Callout
           tone="warning"
-          title="Пространство будет удалено 15.10.2026"
+          title={t('Пространство будет удалено 15.10.2026', 'The workspace will be deleted on 15.10.2026')}
           actions={
             <Button
               size="sm"
               icon={<Undo2 size={14} />}
               onClick={() => {
                 setScheduled(false)
-                toast.success('Удаление отменено')
+                toast.success(t('Удаление отменено', 'Deletion canceled'))
               }}
             >
-              Отменить удаление
+              {t('Отменить удаление', 'Cancel deletion')}
             </Button>
           }
         >
-          До этой даты пространство работает в режиме чтения.
+          {t('До этой даты пространство работает в режиме чтения.', 'Until then, the workspace is read-only.')}
         </Callout>
       ) : (
-        <Callout tone="danger" title="Необратимые действия">
-          Действия в этом разделе затрагивают всё пространство {WORKSPACE_NAME} и всех его участников. Перед удалением выгрузите данные.
+        <Callout tone="danger" title={t('Необратимые действия', 'Irreversible actions')}>
+          {t(
+            `Действия в этом разделе затрагивают всё пространство ${WORKSPACE_NAME} и всех его участников. Перед удалением выгрузите данные.`,
+            `Actions in this section affect the entire ${WORKSPACE_NAME} workspace and all its members. Export your data before deleting.`,
+          )}
         </Callout>
       )}
 
-      <Card title="Опасная зона">
+      <Card title={t('Опасная зона', 'Danger zone')}>
         <div className={s.dangerList}>
           <DangerRow
-            title="Выгрузить все данные"
-            description="Архив JSON и CSV по всем разделам. Ссылка придёт на почту владельца."
+            title={t('Выгрузить все данные', 'Export all data')}
+            description={t(
+              'Архив JSON и CSV по всем разделам. Ссылка придёт на почту владельца.',
+              "A JSON and CSV archive of all sections. The link will be sent to the owner's email.",
+            )}
             action={
               <Button
                 icon={<DatabaseBackup size={15} />}
-                onClick={() => toast.info('Архив готовится', { description: 'Ссылка для скачивания придёт на a.vorontsova@endfield.dev.' })}
+                onClick={() =>
+                  toast.info(t('Архив готовится', 'Preparing the archive'), {
+                    description: t(
+                      'Ссылка для скачивания придёт на a.vorontsova@endfield.dev.',
+                      'A download link will be sent to a.vorontsova@endfield.dev.',
+                    ),
+                  })
+                }
               >
-                Выгрузить
+                {t('Выгрузить', 'Export')}
               </Button>
             }
           />
           <DangerRow
-            title="Выйти на всех устройствах"
-            description="Завершить все сеансы учётной записи, включая мобильное приложение."
+            title={t('Выйти на всех устройствах', 'Sign out on all devices')}
+            description={t(
+              'Завершить все сеансы учётной записи, включая мобильное приложение.',
+              'End all sessions of this account, including the mobile app.',
+            )}
             action={
               <Button variant="danger-ghost" icon={<LogOut size={15} />} onClick={signOutEverywhere}>
-                Выйти везде
+                {t('Выйти везде', 'Sign out everywhere')}
               </Button>
             }
           />
           <DangerRow
-            title="Сбросить демо-данные"
-            description="Вернуть задачи, счета и сообщения к исходному набору."
+            title={t('Сбросить демо-данные', 'Reset demo data')}
+            description={t('Вернуть задачи, счета и сообщения к исходному набору.', 'Return tasks, invoices and messages to the initial set.')}
             action={
               <Button variant="danger-ghost" icon={<RotateCcw size={15} />} onClick={resetDemo}>
-                Сбросить
+                {t('Сбросить', 'Reset')}
               </Button>
             }
           />
           <DangerRow
-            title="Удалить рабочее пространство"
+            title={t('Удалить рабочее пространство', 'Delete workspace')}
             description={
-              <>
-                Удаление <span className="ev-mono">{WORKSPACE_NAME}</span> со всеми данными. Потребуется ввести имя пространства.
-              </>
+              lang === 'en' ? (
+                <>
+                  Deletes <span className="ev-mono">{WORKSPACE_NAME}</span> with all its data. You will need to type the workspace name.
+                </>
+              ) : (
+                <>
+                  Удаление <span className="ev-mono">{WORKSPACE_NAME}</span> со всеми данными. Потребуется ввести имя пространства.
+                </>
+              )
             }
             action={
               <Button variant="danger" icon={<Trash2 size={15} />} onClick={deleteWorkspace} disabled={scheduled}>
-                Удалить
+                {t('Удалить', 'Delete')}
               </Button>
             }
           />

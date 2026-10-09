@@ -11,10 +11,11 @@ import {
   Textarea,
   type SelectOption,
 } from 'endfield-vision'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FACILITIES } from '@/lib/demo/facilities'
 import { PRIORITY, TODAY, type Priority } from '@/lib/demo/tasks'
 import { PEOPLE, ROLES } from '@/lib/demo/team'
+import { useT, type Translator } from '@/lib/i18n'
 import s from './tasks.module.css'
 
 export interface TaskDraft {
@@ -41,37 +42,40 @@ export function emptyDraft(): TaskDraft {
   }
 }
 
-export function validateDraft(d: TaskDraft): DraftErrors {
+export function validateDraft(d: TaskDraft, { t }: Translator): DraftErrors {
   const e: DraftErrors = {}
   const title = d.title.trim()
-  if (!title) e.title = 'Укажите название задачи'
-  else if (title.length < 5) e.title = 'Название слишком короткое: минимум 5 символов'
-  if (!d.facilityId) e.facilityId = 'Выберите объект'
-  if (!d.assigneeId) e.assigneeId = 'Назначьте исполнителя'
-  if (!d.due) e.due = 'Укажите срок'
-  else if (d.due < TODAY) e.due = 'Срок не может быть в прошлом'
+  if (!title) e.title = t('Укажите название задачи', 'Enter a task title')
+  else if (title.length < 5)
+    e.title = t('Название слишком короткое: минимум 5 символов', 'Title is too short: at least 5 characters')
+  if (!d.facilityId) e.facilityId = t('Выберите объект', 'Select a facility')
+  if (!d.assigneeId) e.assigneeId = t('Назначьте исполнителя', 'Assign someone')
+  if (!d.due) e.due = t('Укажите срок', 'Set a due date')
+  else if (d.due < TODAY) e.due = t('Срок не может быть в прошлом', 'Due date cannot be in the past')
   if (d.priority === 'critical' && d.description.trim().length < 10)
-    e.description = 'Для критической задачи опишите причину срочности'
+    e.description = t(
+      'Для критической задачи опишите причину срочности',
+      'Explain why a critical task is urgent',
+    )
   return e
 }
 
 /** Объекты, сгруппированные по сектору: опции одной группы идут подряд. */
-export const FACILITY_OPTIONS: SelectOption[] = [...FACILITIES]
-  .sort((a, b) => a.region.localeCompare(b.region, 'ru'))
-  .map((f) => ({ value: f.id, label: f.name, hint: f.code, group: f.region }))
+export function facilityOptions({ tx, intl }: Translator): SelectOption[] {
+  return [...FACILITIES]
+    .sort((a, b) => tx(a.region).localeCompare(tx(b.region), intl))
+    .map((f) => ({ value: f.id, label: tx(f.name), hint: f.code, group: tx(f.region) }))
+}
 
 /** Исполнители: аватар, должность и роль подсказкой. */
-export const ASSIGNEE_OPTIONS: SelectOption[] = PEOPLE.filter((p) => p.active).map((p) => ({
-  value: p.id,
-  label: p.name,
-  hint: `${p.position} - ${ROLES[p.role].label}`,
-  icon: <Avatar name={p.name} size={22} />,
-}))
-
-const PRIORITY_OPTIONS = (Object.keys(PRIORITY) as Priority[]).map((p) => ({
-  value: p,
-  label: PRIORITY[p].label,
-}))
+function assigneeOptions({ tx }: Translator): SelectOption[] {
+  return PEOPLE.filter((p) => p.active).map((p) => ({
+    value: p.id,
+    label: tx(p.name),
+    hint: `${tx(p.position)} - ${tx(ROLES[p.role].label)}`,
+    icon: <Avatar name={tx(p.name)} size={22} />,
+  }))
+}
 
 export function TaskForm({
   initial,
@@ -82,8 +86,16 @@ export function TaskForm({
   showErrors: boolean
   onChange: (d: TaskDraft) => void
 }) {
+  const tr = useT()
+  const { t, tx } = tr
   const [v, setV] = useState<TaskDraft>(initial)
-  const errors = showErrors ? validateDraft(v) : {}
+  const errors = showErrors ? validateDraft(v, tr) : {}
+  const facilities = useMemo(() => facilityOptions(tr), [tr])
+  const assignees = useMemo(() => assigneeOptions(tr), [tr])
+  const priorities = (Object.keys(PRIORITY) as Priority[]).map((p) => ({
+    value: p,
+    label: tx(PRIORITY[p].label),
+  }))
   const set = (patch: Partial<TaskDraft>) => {
     const next = { ...v, ...patch }
     setV(next)
@@ -93,7 +105,7 @@ export function TaskForm({
   return (
     <div className="ev-stack">
       <Field
-        label="Название"
+        label={t('Название', 'Title')}
         required
         error={errors.title}
         labelAside={<span className="ev-num">{v.title.length}/120</span>}
@@ -103,47 +115,54 @@ export function TaskForm({
           maxLength={120}
           autoFocus
           onChange={(e) => set({ title: e.target.value })}
-          placeholder="Например: заменить фильтры линии №2"
+          placeholder={t('Например: заменить фильтры линии №2', 'For example: replace filters on line 2')}
         />
       </Field>
       <div className={s.formGrid}>
-        <Field label="Объект" required error={errors.facilityId}>
+        <Field label={t('Объект', 'Facility')} required error={errors.facilityId}>
           <Select
             value={v.facilityId}
             onChange={(x) => set({ facilityId: x })}
-            placeholder="Выберите объект"
-            options={FACILITY_OPTIONS}
+            placeholder={t('Выберите объект', 'Select a facility')}
+            options={facilities}
           />
         </Field>
-        <Field label="Исполнитель" required error={errors.assigneeId}>
+        <Field label={t('Исполнитель', 'Assignee')} required error={errors.assigneeId}>
           <Select
             value={v.assigneeId}
             onChange={(x) => set({ assigneeId: x })}
-            placeholder="Выберите сотрудника"
-            searchPlaceholder="Имя или должность"
+            placeholder={t('Выберите сотрудника', 'Select an employee')}
+            searchPlaceholder={t('Имя или должность', 'Name or position')}
             dropdownMinWidth={320}
-            options={ASSIGNEE_OPTIONS}
+            options={assignees}
           />
         </Field>
       </div>
       <div className={s.dueRow}>
-        <Field label="Срок" required error={errors.due}>
+        <Field label={t('Срок', 'Due date')} required error={errors.due}>
           <DateField value={v.due} onChange={(x) => set({ due: x })} min={TODAY} />
         </Field>
-        <Field label="Приоритет">
+        <Field label={t('Приоритет', 'Priority')}>
           <SegmentedControl
-            aria-label="Приоритет"
+            aria-label={t('Приоритет', 'Priority')}
             block
             value={v.priority}
             onChange={(x) => set({ priority: x })}
-            options={PRIORITY_OPTIONS}
+            options={priorities}
           />
         </Field>
       </div>
       <Field
-        label="Описание"
+        label={t('Описание', 'Description')}
         error={errors.description}
-        hint={v.priority === 'critical' ? 'Для критической задачи описание обязательно.' : 'Необязательно.'}
+        hint={
+          v.priority === 'critical'
+            ? t(
+                'Для критической задачи описание обязательно.',
+                'A description is required for critical tasks.',
+              )
+            : t('Необязательно.', 'Optional.')
+        }
       >
         <Textarea
           value={v.description}
@@ -152,14 +171,17 @@ export function TaskForm({
           rows={3}
           maxLength={1000}
           showCount
-          placeholder="Что сделать, допуски, ссылки на документы"
+          placeholder={t(
+            'Что сделать, допуски, ссылки на документы',
+            'What to do, permits, links to documents',
+          )}
         />
       </Field>
       <Checkbox
         checked={v.notify}
         onChange={(x) => set({ notify: x })}
-        label="Уведомить исполнителя"
-        description="Сообщение в мобильном приложении и на почту."
+        label={t('Уведомить исполнителя', 'Notify the assignee')}
+        description={t('Сообщение в мобильном приложении и на почту.', 'Via the mobile app and email.')}
       />
     </div>
   )
@@ -167,18 +189,20 @@ export function TaskForm({
 
 /** Окно массового назначения: один выбор исполнителя. */
 export function AssigneePicker({ onChange }: { onChange: (id: string | null) => void }) {
+  const tr = useT()
   const [value, setValue] = useState<string | null>(null)
+  const assignees = useMemo(() => assigneeOptions(tr), [tr])
   return (
-    <Field label="Исполнитель" required>
+    <Field label={tr.t('Исполнитель', 'Assignee')} required>
       <Select
         value={value}
         onChange={(x) => {
           setValue(x)
           onChange(x)
         }}
-        placeholder="Выберите сотрудника"
+        placeholder={tr.t('Выберите сотрудника', 'Select an employee')}
         dropdownMinWidth={320}
-        options={ASSIGNEE_OPTIONS}
+        options={assignees}
       />
     </Field>
   )

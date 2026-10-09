@@ -3,7 +3,7 @@
 import { Badge, PageHeader, TabPanel, Tabs } from 'endfield-vision'
 import { Bell, KeyRound, OctagonAlert, Palette, ShieldCheck, UserRound } from 'lucide-react'
 import { WORKSPACE_NAME } from '@/lib/demo/settings'
-import { crumbs } from '@/lib/nav'
+import { useCrumbs, useT } from '@/lib/i18n'
 import { useUrlTab } from '@/lib/use-url-state'
 import { ApiKeysTab } from './ApiKeysTab'
 import { AppearanceTab } from './AppearanceTab'
@@ -19,13 +19,15 @@ const ID_BASE = 'settings'
 
 export function SettingsScreen() {
   const [tab, setTab] = useUrlTab<SettingsTab>(TABS, 'profile')
+  const { t } = useT()
+  const breadcrumbs = useCrumbs('settings')
 
   return (
     <>
       <PageHeader
-        title="Настройки"
-        subtitle="Профиль, оформление, уведомления и доступ к рабочему пространству."
-        breadcrumbs={crumbs('settings')}
+        title={t('Настройки', 'Settings')}
+        subtitle={t('Профиль, оформление, уведомления и доступ к рабочему пространству.', 'Profile, appearance, notifications and workspace access.')}
+        breadcrumbs={breadcrumbs}
         meta={
           <Badge tone="neutral" className="ev-mono">
             {WORKSPACE_NAME}
@@ -33,17 +35,17 @@ export function SettingsScreen() {
         }
       >
         <Tabs
-          aria-label="Разделы настроек"
+          aria-label={t('Разделы настроек', 'Settings sections')}
           idBase={ID_BASE}
           value={tab}
           onChange={setTab}
           items={[
-            { value: 'profile', label: 'Профиль', icon: <UserRound size={15} /> },
-            { value: 'appearance', label: 'Оформление', icon: <Palette size={15} /> },
-            { value: 'notifications', label: 'Уведомления', icon: <Bell size={15} /> },
-            { value: 'security', label: 'Безопасность', icon: <ShieldCheck size={15} /> },
-            { value: 'api', label: 'API-ключи', icon: <KeyRound size={15} /> },
-            { value: 'danger', label: 'Опасная зона', icon: <OctagonAlert size={15} /> },
+            { value: 'profile', label: t('Профиль', 'Profile'), icon: <UserRound size={15} /> },
+            { value: 'appearance', label: t('Оформление', 'Appearance'), icon: <Palette size={15} /> },
+            { value: 'notifications', label: t('Уведомления', 'Notifications'), icon: <Bell size={15} /> },
+            { value: 'security', label: t('Безопасность', 'Security'), icon: <ShieldCheck size={15} /> },
+            { value: 'api', label: t('API-ключи', 'API keys'), icon: <KeyRound size={15} /> },
+            { value: 'danger', label: t('Опасная зона', 'Danger zone'), icon: <OctagonAlert size={15} /> },
           ]}
         />
       </PageHeader>

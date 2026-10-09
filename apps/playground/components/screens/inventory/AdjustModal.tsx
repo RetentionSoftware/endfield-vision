@@ -4,7 +4,7 @@ import { Button, Field, Modal, NumberInput, Select, Textarea } from 'endfield-vi
 import { Check } from 'lucide-react'
 import { useId, useState } from 'react'
 import { ADJUST_REASONS, CATEGORIES, warehouseName, type StockItem } from '@/lib/demo/inventory'
-import { formatNum, formatRub } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import s from './inventory.module.css'
 
 interface AdjustModalProps {
@@ -22,6 +22,7 @@ type Reason = (typeof ADJUST_REASONS)[number]['value']
 
 function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockItem }) {
   const formId = useId()
+  const { t, tx, formatNum, formatRub } = useT()
   const [qty, setQty] = useState<number | null>(item.qty)
   const [reason, setReason] = useState<Reason | null>(null)
   const [comment, setComment] = useState('')
@@ -32,15 +33,17 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
 
   const submit = async () => {
     const e: typeof errors = {}
-    if (qty === null) e.qty = 'Укажите количество.'
-    else if (qty === item.qty) e.qty = 'Количество не изменилось.'
-    if (!reason) e.reason = 'Выберите причину корректировки.'
-    if ((reason === 'loss' || reason === 'damage') && comment.trim().length < 10) e.comment = 'Для недостачи и брака нужен комментарий: не меньше 10 символов.'
+    if (qty === null) e.qty = t('Укажите количество.', 'Enter a quantity.')
+    else if (qty === item.qty) e.qty = t('Количество не изменилось.', 'The quantity has not changed.')
+    if (!reason) e.reason = t('Выберите причину корректировки.', 'Select an adjustment reason.')
+    if ((reason === 'loss' || reason === 'damage') && comment.trim().length < 10)
+      e.comment = t('Для недостачи и брака нужен комментарий: не меньше 10 символов.', 'Shortage and damage require a comment of at least 10 characters.')
     setErrors(e)
     if (Object.keys(e).length > 0 || qty === null || !reason) return
     setBusy(true)
     await new Promise((r) => window.setTimeout(r, 600))
-    onSave(item, qty, ADJUST_REASONS.find((r) => r.value === reason)?.label ?? reason)
+    const label = ADJUST_REASONS.find((r) => r.value === reason)?.label
+    onSave(item, qty, label ? tx(label) : reason)
     onClose()
   }
 
@@ -49,13 +52,13 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
       open
       onClose={onClose}
       busy={busy}
-      title="Корректировка остатка"
-      subtitle={`${item.name} · ${warehouseName(item.warehouse)}`}
+      title={t('Корректировка остатка', 'Stock adjustment')}
+      subtitle={`${tx(item.name)} · ${tx(warehouseName(item.warehouse))}`}
       footerLeft={
         diff !== 0 ? (
           <span className={s.diff} data-dir={diff > 0 ? 'up' : 'down'}>
             {diff > 0 ? '+' : ''}
-            {formatNum(diff)} {item.unit} · {diff > 0 ? '+' : '-'}
+            {formatNum(diff)} {tx(item.unit)} · {diff > 0 ? '+' : '-'}
             {formatRub(Math.abs(diff) * item.price)}
           </span>
         ) : null
@@ -63,10 +66,10 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={busy}>
-            Отмена
+            {t('Отмена', 'Cancel')}
           </Button>
           <Button variant="primary" type="submit" form={formId} icon={<Check size={15} />} loading={busy}>
-            Сохранить
+            {t('Сохранить', 'Save')}
           </Button>
         </>
       }
@@ -82,27 +85,35 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
       >
         <dl className={s.adjustFacts}>
           <div>
-            <dt>Артикул</dt>
+            <dt>{t('Артикул', 'SKU')}</dt>
             <dd className="ev-mono">{item.sku}</dd>
           </div>
           <div>
-            <dt>Категория</dt>
-            <dd>{CATEGORIES[item.category]}</dd>
+            <dt>{t('Категория', 'Category')}</dt>
+            <dd>{tx(CATEGORIES[item.category])}</dd>
           </div>
           <div>
-            <dt>По учёту</dt>
+            <dt>{t('По учёту', 'On record')}</dt>
             <dd className="ev-num">
-              {formatNum(item.qty)} {item.unit}
+              {formatNum(item.qty)} {tx(item.unit)}
             </dd>
           </div>
           <div>
-            <dt>Мин. / макс.</dt>
+            <dt>{t('Мин. / макс.', 'Min / max')}</dt>
             <dd className="ev-num">
               {formatNum(item.min)} / {formatNum(item.max)}
             </dd>
           </div>
         </dl>
-        <Field label="Фактический остаток" required error={errors.qty} hint={`Не больше ёмкости места хранения: ${formatNum(item.max)} ${item.unit}.`}>
+        <Field
+          label={t('Фактический остаток', 'Actual quantity')}
+          required
+          error={errors.qty}
+          hint={t(
+            `Не больше ёмкости места хранения: ${formatNum(item.max)} ${tx(item.unit)}.`,
+            `Up to the storage capacity: ${formatNum(item.max)} ${tx(item.unit)}.`,
+          )}
+        >
           <NumberInput
             value={qty}
             onChange={(v) => {
@@ -113,21 +124,21 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
             max={item.max}
             step={item.max >= 1000 ? 10 : 1}
             stepper
-            unit={item.unit}
+            unit={tx(item.unit)}
           />
         </Field>
-        <Field label="Причина" required error={errors.reason}>
+        <Field label={t('Причина', 'Reason')} required error={errors.reason}>
           <Select
             value={reason}
             onChange={(v) => {
               setReason(v)
               setErrors((x) => ({ ...x, reason: undefined }))
             }}
-            placeholder="Выберите причину"
-            options={ADJUST_REASONS.map((r) => ({ value: r.value, label: r.label }))}
+            placeholder={t('Выберите причину', 'Select a reason')}
+            options={ADJUST_REASONS.map((r) => ({ value: r.value, label: tx(r.label) }))}
           />
         </Field>
-        <Field label="Комментарий" error={errors.comment} hint="Попадёт в акт корректировки.">
+        <Field label={t('Комментарий', 'Comment')} error={errors.comment} hint={t('Попадёт в акт корректировки.', 'Goes into the adjustment report.')}>
           <Textarea
             value={comment}
             rows={2}
@@ -138,7 +149,7 @@ function AdjustForm({ item, onClose, onSave }: AdjustModalProps & { item: StockI
               setComment(e.target.value)
               setErrors((x) => ({ ...x, comment: undefined }))
             }}
-            placeholder="Например: пересчёт после инвентаризации 07.10"
+            placeholder={t('Например: пересчёт после инвентаризации 07.10', 'For example: recount after the 07.10 stock count')}
           />
         </Field>
       </form>

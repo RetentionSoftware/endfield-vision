@@ -29,10 +29,9 @@ import {
   type TaskStatus,
 } from '@/lib/demo/tasks'
 import { CURRENT_USER_ID, personById, personName } from '@/lib/demo/team'
-import { formatDate, formatDateTime, plural } from '@/lib/format'
+import { formatDate, formatDateTime } from '@/lib/format'
+import { bi, useT } from '@/lib/i18n'
 import s from './tasks.module.css'
-
-const STATUS_OPTIONS = STATUS_ORDER.map((v) => ({ value: v, label: TASK_STATUS[v].label }))
 
 function nowIso(): string {
   const d = new Date()
@@ -57,12 +56,13 @@ export function TaskDrawer({
   onClose: () => void
   onUpdate: (id: string, patch: (t: Task) => Task) => void
 }) {
+  const { tx } = useT()
   return (
     <Drawer
       open={task !== null}
       onClose={onClose}
       width={580}
-      title={task?.title}
+      title={task ? tx(task.title) : undefined}
       subtitle={task ? <span className="ev-mono">{task.id}</span> : null}
       footer={task ? <DrawerFooter task={task} onClose={onClose} onUpdate={onUpdate} /> : null}
     >
@@ -80,36 +80,39 @@ function DrawerFooter({
   onClose: () => void
   onUpdate: (id: string, patch: (t: Task) => Task) => void
 }) {
+  const { t, tx } = useT()
   const done = task.status === 'done'
   return (
     <>
       <Button variant="ghost" onClick={onClose}>
-        Закрыть
+        {t('Закрыть', 'Close')}
       </Button>
       {done ? (
         <Button
           icon={<RotateCcw size={15} />}
           onClick={() => {
-            onUpdate(task.id, (t) => ({ ...t, status: 'in_progress' }))
-            toast.info('Задача возвращена в работу', { description: task.id })
+            onUpdate(task.id, (x) => ({ ...x, status: 'in_progress' }))
+            toast.info(t('Задача возвращена в работу', 'Task reopened'), { description: task.id })
           }}
         >
-          Вернуть в работу
+          {t('Вернуть в работу', 'Reopen')}
         </Button>
       ) : (
         <Button
           variant="primary"
           icon={<CheckCheck size={15} />}
           onClick={() => {
-            onUpdate(task.id, (t) => ({
-              ...t,
+            onUpdate(task.id, (x) => ({
+              ...x,
               status: 'done',
-              checklist: t.checklist.map((c) => ({ ...c, done: true })),
+              checklist: x.checklist.map((c) => ({ ...c, done: true })),
             }))
-            toast.success('Задача выполнена', { description: `${task.id} ${task.title}` })
+            toast.success(t('Задача выполнена', 'Task completed'), {
+              description: `${task.id} ${tx(task.title)}`,
+            })
           }}
         >
-          Отметить выполненной
+          {t('Отметить выполненной', 'Mark as done')}
         </Button>
       )}
     </>
@@ -123,6 +126,7 @@ function TaskDetails({
   task: Task
   onUpdate: (id: string, patch: (t: Task) => Task) => void
 }) {
+  const { t, tx, plural } = useT()
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState<string | null>(null)
   const facility = FACILITIES.find((f) => f.id === task.facilityId)
@@ -131,55 +135,70 @@ function TaskDetails({
   const doneSteps = task.checklist.filter((c) => c.done).length
   const progress = taskProgress(task)
   const left = daysBetween(TODAY, task.due)
+  const statusOptions = STATUS_ORDER.map((v) => ({ value: v, label: tx(TASK_STATUS[v].label) }))
+  const days = (n: number) => plural(n, ['день', 'дня', 'дней'], ['day', 'days'])
 
   const setStatus = (status: TaskStatus | null) => {
     if (!status || status === task.status) return
-    onUpdate(task.id, (t) => ({ ...t, status }))
-    toast.success('Статус изменён', { description: `${task.id}: ${TASK_STATUS[status].label}` })
+    onUpdate(task.id, (x) => ({ ...x, status }))
+    toast.success(t('Статус изменён', 'Status changed'), {
+      description: `${task.id}: ${tx(TASK_STATUS[status].label)}`,
+    })
   }
 
   const toggleStep = (id: string, done: boolean) => {
-    onUpdate(task.id, (t) => ({
-      ...t,
-      checklist: t.checklist.map((c) => (c.id === id ? { ...c, done } : c)),
+    onUpdate(task.id, (x) => ({
+      ...x,
+      checklist: x.checklist.map((c) => (c.id === id ? { ...c, done } : c)),
     }))
     if (done && doneSteps + 1 === task.checklist.length && task.status !== 'done') {
-      toast.info('Все пункты выполнены', { description: 'Задачу можно отправить на проверку или закрыть.' })
+      toast.info(t('Все пункты выполнены', 'All items done'), {
+        description: t(
+          'Задачу можно отправить на проверку или закрыть.',
+          'You can send the task for review or close it.',
+        ),
+      })
     }
   }
 
   const send = () => {
     const text = comment.trim()
     if (!text) {
-      setCommentError('Комментарий пустой')
+      setCommentError(t('Комментарий пустой', 'Comment is empty'))
       return
     }
-    onUpdate(task.id, (t) => ({
-      ...t,
+    onUpdate(task.id, (x) => ({
+      ...x,
       comments: [
-        ...t.comments,
-        { id: `c-${t.id}-${t.comments.length + 1}`, authorId: CURRENT_USER_ID, text, at: nowIso() },
+        ...x.comments,
+        // Текст пользователя - на том языке, на котором он написан.
+        {
+          id: `c-${x.id}-${x.comments.length + 1}`,
+          authorId: CURRENT_USER_ID,
+          text: bi(text, text),
+          at: nowIso(),
+        },
       ],
     }))
     setComment('')
     setCommentError(null)
-    toast.success('Комментарий добавлен')
+    toast.success(t('Комментарий добавлен', 'Comment added'))
   }
 
   return (
     <div className={s.drawer}>
       <div className="ev-row">
-        <StatusPill tone={TASK_STATUS[task.status].tone}>{TASK_STATUS[task.status].label}</StatusPill>
-        <Badge tone={PRIORITY[task.priority].tone}>{PRIORITY[task.priority].label}</Badge>
+        <StatusPill tone={TASK_STATUS[task.status].tone}>{tx(TASK_STATUS[task.status].label)}</StatusPill>
+        <Badge tone={PRIORITY[task.priority].tone}>{tx(PRIORITY[task.priority].label)}</Badge>
         {overdue ? (
           <Badge tone="danger">
-            Просрочена на {-left} {plural(-left, 'день', 'дня', 'дней')}
+            {t(`Просрочена на ${-left} ${days(-left)}`, `Overdue by ${-left} ${days(-left)}`)}
           </Badge>
         ) : null}
       </div>
 
-      <Field label="Статус">
-        <Select value={task.status} onChange={setStatus} options={STATUS_OPTIONS} searchable={false} />
+      <Field label={t('Статус', 'Status')}>
+        <Select value={task.status} onChange={setStatus} options={statusOptions} searchable={false} />
       </Field>
 
       <KeyValueList
@@ -187,44 +206,44 @@ function TaskDetails({
         items={[
           {
             key: 'facility',
-            label: 'Объект',
-            value: facility?.name,
-            hint: facility ? `${facility.code}, ${facility.region}` : undefined,
+            label: t('Объект', 'Facility'),
+            value: facility ? tx(facility.name) : undefined,
+            hint: facility ? `${facility.code}, ${tx(facility.region)}` : undefined,
           },
           {
             key: 'assignee',
-            label: 'Исполнитель',
+            label: t('Исполнитель', 'Assignee'),
             value: assignee ? (
               <span className={s.person}>
-                <Avatar name={assignee.name} size={22} />
-                {assignee.name}
+                <Avatar name={tx(assignee.name)} size={22} />
+                {tx(assignee.name)}
               </span>
             ) : null,
-            hint: assignee?.position,
+            hint: assignee ? tx(assignee.position) : undefined,
           },
-          { key: 'author', label: 'Автор', value: personName(task.authorId) },
+          { key: 'author', label: t('Автор', 'Author'), value: tx(personName(task.authorId)) },
           {
             key: 'due',
-            label: 'Срок',
+            label: t('Срок', 'Due date'),
             value: <span className={overdue ? s.overdue : undefined}>{formatDate(task.due)}</span>,
             hint:
               task.status === 'done'
                 ? null
                 : overdue
-                  ? 'Срок прошёл'
+                  ? t('Срок прошёл', 'Past due')
                   : left === 0
-                    ? 'Сегодня'
-                    : `Осталось ${left} ${plural(left, 'день', 'дня', 'дней')}`,
+                    ? t('Сегодня', 'Today')
+                    : t(`Осталось ${left} ${days(left)}`, `${left} ${days(left)} left`),
           },
-          { key: 'created', label: 'Создана', value: formatDate(task.createdAt) },
+          { key: 'created', label: t('Создана', 'Created'), value: formatDate(task.createdAt) },
         ]}
       />
 
-      <p className={s.description}>{task.description}</p>
+      <p className={s.description}>{tx(task.description)}</p>
 
       <section className={s.block} aria-labelledby={`${task.id}-check`}>
         <h3 id={`${task.id}-check`} className={s.blockTitle}>
-          Чек-лист
+          {t('Чек-лист', 'Checklist')}
         </h3>
         {task.checklist.length > 0 ? (
           <>
@@ -233,8 +252,8 @@ function TaskDetails({
               max={task.checklist.length}
               size="sm"
               tone={progress === 100 ? 'success' : 'accent'}
-              label="Выполнено"
-              showValue={(v, m) => `${v} из ${m}`}
+              label={t('Выполнено', 'Completed')}
+              showValue={(v, m) => t(`${v} из ${m}`, `${v} of ${m}`)}
             />
             <div className={s.checklist}>
               {task.checklist.map((c) => (
@@ -242,32 +261,32 @@ function TaskDetails({
                   key={c.id}
                   checked={c.done}
                   onChange={(x) => toggleStep(c.id, x)}
-                  label={c.text}
+                  label={tx(c.text)}
                   className={c.done ? s.stepDone : undefined}
                 />
               ))}
             </div>
           </>
         ) : (
-          <span className="ev-muted">Пунктов нет.</span>
+          <span className="ev-muted">{t('Пунктов нет.', 'No items.')}</span>
         )}
       </section>
 
       <section className={s.block} aria-labelledby={`${task.id}-comments`}>
         <h3 id={`${task.id}-comments`} className={s.blockTitle}>
-          Комментарии <span className="ev-muted ev-num">{task.comments.length}</span>
+          {t('Комментарии', 'Comments')} <span className="ev-muted ev-num">{task.comments.length}</span>
         </h3>
         {task.comments.length === 0 ? (
           <EmptyState
             compact
             icon={<MessageSquare size={20} />}
-            title="Комментариев нет"
-            description="Обсуждение задачи появится здесь."
+            title={t('Комментариев нет', 'No comments')}
+            description={t('Обсуждение задачи появится здесь.', 'The task discussion will appear here.')}
           />
         ) : (
           <ul role="list" className={s.comments}>
             {task.comments.map((c) => {
-              const name = personName(c.authorId)
+              const name = tx(personName(c.authorId))
               return (
                 <li key={c.id} className={s.comment}>
                   <Avatar name={name} size={28} />
@@ -276,20 +295,20 @@ function TaskDetails({
                       <span className={s.commentWho}>{name}</span>
                       <span className="ev-muted ev-num">{formatDateTime(c.at)}</span>
                     </div>
-                    <div>{c.text}</div>
+                    <div>{tx(c.text)}</div>
                   </div>
                 </li>
               )
             })}
           </ul>
         )}
-        <Field error={commentError} label="Новый комментарий">
+        <Field error={commentError} label={t('Новый комментарий', 'New comment')}>
           <Textarea
             value={comment}
             rows={2}
             autoResize
             maxRows={6}
-            placeholder="Текст комментария. Ctrl+Enter - отправить"
+            placeholder={t('Текст комментария. Ctrl+Enter - отправить', 'Comment text. Ctrl+Enter to send')}
             onChange={(e) => {
               setComment(e.target.value)
               if (commentError) setCommentError(null)
@@ -304,7 +323,7 @@ function TaskDetails({
         </Field>
         <div className={s.commentActions}>
           <Button size="sm" variant="secondary" icon={<Send size={14} />} onClick={send}>
-            Отправить
+            {t('Отправить', 'Send')}
           </Button>
         </div>
       </section>

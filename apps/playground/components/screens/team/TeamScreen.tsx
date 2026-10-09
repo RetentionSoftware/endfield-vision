@@ -45,13 +45,13 @@ import {
   type Person,
   type Role,
 } from '@/lib/demo/team'
-import { formatDate, plural } from '@/lib/format'
-import { crumbs } from '@/lib/nav'
+import { formatDate } from '@/lib/format'
+import { bi, useCrumbs, useT, type Translator } from '@/lib/i18n'
 import { NoPeople, PeopleGrid, PeopleTable, type PersonActions } from './PeopleViews'
 import {
   emptyInvite,
   InviteForm,
-  ROLE_OPTIONS,
+  roleOptions,
   RoleForm,
   validateInvite,
   type InviteDraft,
@@ -75,7 +75,7 @@ function token(seed: string): string {
   return out
 }
 
-function compare(a: Person, b: Person, key: string): number {
+function compare(a: Person, b: Person, key: string, { tx, intl }: Translator): number {
   switch (key) {
     case 'role':
       return ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role)
@@ -84,11 +84,14 @@ function compare(a: Person, b: Person, key: string): number {
     case 'lastSeen':
       return a.lastSeen.localeCompare(b.lastSeen)
     default:
-      return a.name.localeCompare(b.name, 'ru')
+      return tx(a.name).localeCompare(tx(b.name), intl)
   }
 }
 
 export function TeamScreen() {
+  const tr = useT()
+  const { t, tx, plural } = tr
+  const breadcrumbs = useCrumbs('team')
   const modals = useModals()
   const [people, setPeople] = useState<Person[]>(PEOPLE)
   const [invites, setInvites] = useState<Invite[]>(INVITES)
@@ -113,14 +116,16 @@ export function TeamScreen() {
       if (presence !== 'all' && (!p.active || p.presence !== presence)) return false
       if (!needle) return true
       if (digits.length >= 3 && p.phone.includes(digits)) return true
-      return normalizeSearch(`${p.name} ${p.position} ${p.email}`).includes(needle)
+      return normalizeSearch(`${tx(p.name)} ${tx(p.position)} ${p.email}`).includes(needle)
     })
     if (sort) {
       const k = sort.dir === 'asc' ? 1 : -1
-      list.sort((a, b) => compare(a, b, sort.key) * k || a.name.localeCompare(b.name, 'ru'))
+      list.sort((a, b) => compare(a, b, sort.key, tr) * k || tx(a.name).localeCompare(tx(b.name), tr.intl))
     }
     return list
-  }, [people, q, role, presence, sort])
+  }, [people, q, role, presence, sort, tr, tx])
+
+  const roles = useMemo(() => roleOptions(tr), [tr])
 
   const patch = (id: string, fn: (p: Person) => Person) =>
     setPeople((list) => list.map((p) => (p.id === id ? fn(p) : p)))
@@ -129,26 +134,28 @@ export function TeamScreen() {
     editRole: (p) => {
       let draft: RoleDraft = { role: p.role, access: p.access }
       modals.open({
-        title: 'Роль и доступ',
-        subtitle: p.name,
+        title: t('Роль и доступ', 'Role and access'),
+        subtitle: tx(p.name),
         size: 'sm',
         body: <RoleForm initial={draft} onChange={(d) => (draft = d)} />,
         footer: {
           buttons: [
-            { label: 'Отмена', variant: 'ghost' },
+            { label: t('Отмена', 'Cancel'), variant: 'ghost' },
             {
-              label: 'Сохранить',
+              label: t('Сохранить', 'Save'),
               variant: 'primary',
               onClick: ({ close }) => {
                 if (p.id === CURRENT_USER_ID && draft.access !== 'full') {
-                  toast.warning('Нельзя понизить собственный доступ', {
-                    description: 'Попросите другого администратора.',
+                  toast.warning(t('Нельзя понизить собственный доступ', 'You cannot lower your own access'), {
+                    description: t('Попросите другого администратора.', 'Ask another administrator.'),
                   })
                   return
                 }
                 patch(p.id, (x) => ({ ...x, role: draft.role, access: draft.access }))
                 close()
-                toast.success('Роль изменена', { description: `${p.name}: ${ROLES[draft.role].label}` })
+                toast.success(t('Роль изменена', 'Role changed'), {
+                  description: `${tx(p.name)}: ${tx(ROLES[draft.role].label)}`,
+                })
               },
             },
           ],
@@ -157,36 +164,46 @@ export function TeamScreen() {
     },
     resetAccess: async (p) => {
       const ok = await modals.confirm({
-        title: 'Сбросить доступ?',
-        message: `${p.name} выйдет из всех сессий. Ссылка для входа уйдёт на ${p.email}, старый пароль перестанет действовать.`,
-        okLabel: 'Сбросить доступ',
+        title: t('Сбросить доступ?', 'Reset access?'),
+        message: t(
+          `${tx(p.name)} выйдет из всех сессий. Ссылка для входа уйдёт на ${p.email}, старый пароль перестанет действовать.`,
+          `${tx(p.name)} will be signed out of all sessions. A sign-in link goes to ${p.email}, the old password stops working.`,
+        ),
+        okLabel: t('Сбросить доступ', 'Reset access'),
         onOk: () => new Promise((r) => window.setTimeout(r, 600)),
       })
-      if (ok) toast.success('Доступ сброшен', { description: `Ссылка отправлена на ${p.email}` })
+      if (ok)
+        toast.success(t('Доступ сброшен', 'Access reset'), {
+          description: t(`Ссылка отправлена на ${p.email}`, `Link sent to ${p.email}`),
+        })
     },
     deactivate: async (p) => {
       if (p.id === CURRENT_USER_ID) {
-        toast.warning('Нельзя деактивировать собственную учётную запись')
+        toast.warning(
+          t('Нельзя деактивировать собственную учётную запись', 'You cannot deactivate your own account'),
+        )
         return
       }
       const ok = await modals.confirm({
-        title: `Деактивировать ${p.name}?`,
-        message:
+        title: t(`Деактивировать ${tx(p.name)}?`, `Deactivate ${tx(p.name)}?`),
+        message: t(
           'Сотрудник потеряет доступ к консоли и мобильному приложению. Его задачи останутся без исполнителя. Учётную запись можно восстановить.',
-        okLabel: 'Деактивировать',
+          'The employee loses access to the console and the mobile app. Their tasks will have no assignee. The account can be restored.',
+        ),
+        okLabel: t('Деактивировать', 'Deactivate'),
         okVariant: 'danger',
         okIcon: <Trash2 size={15} />,
       })
       if (!ok) return
       patch(p.id, (x) => ({ ...x, active: false }))
-      toast.success('Учётная запись отключена', {
-        description: p.name,
-        action: { label: 'Отменить', onClick: () => patch(p.id, (x) => ({ ...x, active: true })) },
+      toast.success(t('Учётная запись отключена', 'Account deactivated'), {
+        description: tx(p.name),
+        action: { label: t('Отменить', 'Undo'), onClick: () => patch(p.id, (x) => ({ ...x, active: true })) },
       })
     },
     restore: (p) => {
       patch(p.id, (x) => ({ ...x, active: true }))
-      toast.success('Доступ восстановлен', { description: p.name })
+      toast.success(t('Доступ восстановлен', 'Access restored'), { description: tx(p.name) })
     },
   }
 
@@ -197,32 +214,39 @@ export function TeamScreen() {
     }
     const taken = [...people.map((p) => p.email), ...invites.map((i) => i.email)]
     const handle: ModalHandle = modals.open({
-      title: 'Пригласить сотрудника',
-      subtitle: 'Приглашение действует 7 дней. Роль и доступ можно изменить позже.',
+      title: t('Пригласить сотрудника', 'Invite an employee'),
+      subtitle: t(
+        'Приглашение действует 7 дней. Роль и доступ можно изменить позже.',
+        'The invitation is valid for 7 days. Role and access can be changed later.',
+      ),
       size: 'lg',
       body: <InviteForm initial={draft} showErrors={false} takenEmails={taken} onChange={onChange} />,
       footer: {
         buttons: [
-          { label: 'Отмена', variant: 'ghost' },
+          { label: t('Отмена', 'Cancel'), variant: 'ghost' },
           {
-            label: 'Пригласить',
+            label: t('Пригласить', 'Invite'),
             variant: 'primary',
             icon: <MailPlus size={15} />,
             onClick: async ({ close, setBusy }) => {
-              const errors = validateInvite(draft, taken)
+              const errors = validateInvite(draft, taken, tr)
               if (Object.keys(errors).length > 0) {
                 handle.update({
                   body: <InviteForm initial={draft} showErrors takenEmails={taken} onChange={onChange} />,
                 })
-                toast.warning('Проверьте поля формы', { description: Object.values(errors)[0] })
+                toast.warning(t('Проверьте поля формы', 'Check the form fields'), {
+                  description: Object.values(errors)[0],
+                })
                 return
               }
               setBusy(true)
               await new Promise((r) => window.setTimeout(r, 600))
               const email = draft.email.trim().toLowerCase()
+              // Имя - как его ввёл пользователь, на обоих языках одинаково.
+              const name = draft.name.trim()
               const created: Invite = {
                 id: `inv-${email}`,
-                name: draft.name.trim(),
+                name: bi(name, name),
                 email,
                 role: draft.role!,
                 access: draft.access,
@@ -235,9 +259,16 @@ export function TeamScreen() {
               setInvites((list) => [created, ...list])
               close()
               if (draft.sendNow)
-                toast.success('Приглашение отправлено', { description: `${created.name}, ${created.email}` })
+                toast.success(t('Приглашение отправлено', 'Invitation sent'), {
+                  description: `${name}, ${created.email}`,
+                })
               else
-                toast.info('Приглашение сохранено', { description: 'Отправьте его из списка приглашений.' })
+                toast.info(t('Приглашение сохранено', 'Invitation saved'), {
+                  description: t(
+                    'Отправьте его из списка приглашений.',
+                    'Send it from the invitations list.',
+                  ),
+                })
             },
           },
         ],
@@ -249,21 +280,29 @@ export function TeamScreen() {
     setInvites((list) =>
       list.map((x) => (x.id === i.id ? { ...x, sentAt: TODAY, expiresAt: addDaysIso(TODAY, 7) } : x)),
     )
-    toast.success(i.sentAt ? 'Приглашение отправлено повторно' : 'Приглашение отправлено', {
-      description: i.email,
-    })
+    toast.success(
+      i.sentAt
+        ? t('Приглашение отправлено повторно', 'Invitation resent')
+        : t('Приглашение отправлено', 'Invitation sent'),
+      {
+        description: i.email,
+      },
+    )
   }
 
   const revokeInvite = async (i: Invite) => {
     const ok = await modals.confirm({
-      title: 'Отозвать приглашение?',
-      message: `Ссылка для ${i.name} перестанет работать. Чтобы пригласить снова, создайте новое приглашение.`,
-      okLabel: 'Отозвать',
+      title: t('Отозвать приглашение?', 'Revoke invitation?'),
+      message: t(
+        `Ссылка для ${tx(i.name)} перестанет работать. Чтобы пригласить снова, создайте новое приглашение.`,
+        `The link for ${tx(i.name)} will stop working. To invite again, create a new invitation.`,
+      ),
+      okLabel: t('Отозвать', 'Revoke'),
       okVariant: 'danger',
     })
     if (!ok) return
     setInvites((list) => list.filter((x) => x.id !== i.id))
-    toast.success('Приглашение отозвано', { description: i.email })
+    toast.success(t('Приглашение отозвано', 'Invitation revoked'), { description: i.email })
   }
 
   const resetFilters = () => {
@@ -276,24 +315,24 @@ export function TeamScreen() {
   return (
     <>
       <PageHeader
-        title="Команда"
-        subtitle="Сотрудники, роли и доступ к объектам."
-        breadcrumbs={crumbs('team')}
-        meta={<Badge tone="neutral">{active.length} в штате</Badge>}
+        title={t('Команда', 'Team')}
+        subtitle={t('Сотрудники, роли и доступ к объектам.', 'Employees, roles and facility access.')}
+        breadcrumbs={breadcrumbs}
+        meta={<Badge tone="neutral">{t(`${active.length} в штате`, `${active.length} on staff`)}</Badge>}
         actions={
           <>
             <Button
               icon={<Download size={15} />}
               onClick={() =>
-                toast.success('Список выгружен', {
-                  description: `${filtered.length} ${plural(filtered.length, 'сотрудник', 'сотрудника', 'сотрудников')}, XLSX`,
+                toast.success(t('Список выгружен', 'List exported'), {
+                  description: `${filtered.length} ${plural(filtered.length, ['сотрудник', 'сотрудника', 'сотрудников'], ['employee', 'employees'])}, XLSX`,
                 })
               }
             >
-              Выгрузить
+              {t('Выгрузить', 'Export')}
             </Button>
             <Button variant="primary" icon={<UserPlus size={15} />} onClick={invite}>
-              Пригласить
+              {t('Пригласить', 'Invite')}
             </Button>
           </>
         }
@@ -302,37 +341,45 @@ export function TeamScreen() {
       <div className={s.page}>
         <div className="ev-grid" style={{ '--ev-grid-min': '220px' } as CSSProperties}>
           <StatTile
-            label="Сотрудников"
+            label={t('Сотрудников', 'Employees')}
             value={active.length}
             icon={<Users size={16} />}
             delta={2}
             formatDelta={(d) => `+${d}`}
-            deltaLabel="за месяц"
+            deltaLabel={t('за месяц', 'this month')}
           />
           <StatTile
-            label="На смене"
+            label={t('На смене', 'On shift')}
             value={onShift}
             icon={<UserRoundCheck size={16} />}
             tone="success"
-            hint={`В отпуске: ${onVacation}`}
+            hint={t(`В отпуске: ${onVacation}`, `On vacation: ${onVacation}`)}
           />
           <StatTile
-            label="Приглашения"
+            label={t('Приглашения', 'Invitations')}
             value={invites.length}
             icon={<MailPlus size={16} />}
             tone="info"
-            hint={drafts > 0 ? `Не отправлено: ${drafts}` : 'Все отправлены'}
+            hint={
+              drafts > 0
+                ? t(`Не отправлено: ${drafts}`, `Not sent: ${drafts}`)
+                : t('Все отправлены', 'All sent')
+            }
           />
           <StatTile
-            label="Средняя загрузка"
+            label={t('Средняя загрузка', 'Average load')}
             value={`${avgLoad}%`}
             icon={<Activity size={16} />}
             tone={avgLoad >= 85 ? 'warning' : 'accent'}
             delta={4.5}
             positiveIsGood={false}
-            deltaLabel="за неделю"
+            deltaLabel={t('за неделю', 'this week')}
             trend={
-              <Sparkline values={[61, 63, 62, 66, 64, 67, avgLoad]} width="auto" aria-label="Средняя загрузка за неделю" />
+              <Sparkline
+                values={[61, 63, 62, 66, 64, 67, avgLoad]}
+                width="auto"
+                aria-label={t('Средняя загрузка за неделю', 'Average load this week')}
+              />
             }
           />
         </div>
@@ -343,37 +390,37 @@ export function TeamScreen() {
               wrapperClassName={s.search}
               value={q}
               onChange={setQ}
-              placeholder="Имя, должность, почта, телефон"
-              aria-label="Поиск сотрудников"
+              placeholder={t('Имя, должность, почта, телефон', 'Name, position, email, phone')}
+              aria-label={t('Поиск сотрудников', 'Search employees')}
             />
             <Select
-              aria-label="Роль"
-              placeholder="Все роли"
+              aria-label={t('Роль', 'Role')}
+              placeholder={t('Все роли', 'All roles')}
               width={180}
               value={role}
               onChange={setRole}
-              options={ROLE_OPTIONS}
+              options={roles}
               clearable
               searchable={false}
             />
             <SegmentedControl
-              aria-label="Присутствие"
+              aria-label={t('Присутствие', 'Presence')}
               value={presence}
               onChange={setPresence}
               options={[
-                { value: 'all', label: 'Все', count: people.length },
-                { value: 'shift', label: 'На смене', count: onShift },
-                { value: 'vacation', label: 'В отпуске', count: onVacation },
+                { value: 'all', label: t('Все', 'All'), count: people.length },
+                { value: 'shift', label: t('На смене', 'On shift'), count: onShift },
+                { value: 'vacation', label: t('В отпуске', 'On vacation'), count: onVacation },
               ]}
             />
             <span className="ev-spacer" />
             <SegmentedControl
-              aria-label="Вид списка"
+              aria-label={t('Вид списка', 'List view')}
               value={view}
               onChange={setView}
               options={[
-                { value: 'table', icon: <Rows3 size={16} />, 'aria-label': 'Таблица' },
-                { value: 'cards', icon: <LayoutGrid size={16} />, 'aria-label': 'Карточки' },
+                { value: 'table', icon: <Rows3 size={16} />, 'aria-label': t('Таблица', 'Table') },
+                { value: 'cards', icon: <LayoutGrid size={16} />, 'aria-label': t('Карточки', 'Cards') },
               ]}
             />
           </div>
@@ -394,11 +441,11 @@ export function TeamScreen() {
         </div>
 
         <Card
-          title="Приглашения"
-          description="Ожидают регистрации по ссылке."
+          title={t('Приглашения', 'Invitations')}
+          description={t('Ожидают регистрации по ссылке.', 'Waiting for sign-up via the link.')}
           actions={
             <Button size="sm" variant="ghost" icon={<UserPlus size={14} />} onClick={invite}>
-              Новое
+              {t('Новое', 'New')}
             </Button>
           }
         >
@@ -406,40 +453,45 @@ export function TeamScreen() {
             <EmptyState
               compact
               icon={<MailPlus size={20} />}
-              title="Приглашений нет"
-              description="Новые приглашения появятся здесь."
+              title={t('Приглашений нет', 'No invitations')}
+              description={t('Новые приглашения появятся здесь.', 'New invitations will appear here.')}
             />
           ) : (
             <ul role="list" className={s.invites}>
               {invites.map((i) => (
                 <li key={i.id} className={s.invite}>
                   <div className={s.inviteHead}>
-                    <Avatar name={i.name} size={32} />
+                    <Avatar name={tx(i.name)} size={32} />
                     <div className={s.whoText}>
-                      <span className={s.whoName}>{i.name}</span>
+                      <span className={s.whoName}>{tx(i.name)}</span>
                       <span className="ev-muted ev-truncate">{i.email}</span>
                     </div>
                     <CopyButton
                       text={`${INVITE_BASE_URL}${i.token}`}
-                      tooltip="Скопировать ссылку-приглашение"
+                      tooltip={t('Скопировать ссылку-приглашение', 'Copy invitation link')}
                     />
                   </div>
                   <div className="ev-row">
                     <Badge tone={ROLES[i.role].tone} size="sm">
-                      {ROLES[i.role].label}
+                      {tx(ROLES[i.role].label)}
                     </Badge>
                     {i.sentAt ? (
                       <span className={s.inviteMeta}>
-                        Отправлено {formatDate(i.sentAt)}, до {formatDate(i.expiresAt)}
+                        {t(
+                          `Отправлено ${formatDate(i.sentAt)}, до ${formatDate(i.expiresAt)}`,
+                          `Sent ${formatDate(i.sentAt)}, valid until ${formatDate(i.expiresAt)}`,
+                        )}
                       </span>
                     ) : (
                       <Badge tone="warning" size="sm" dot>
-                        Не отправлено
+                        {t('Не отправлено', 'Not sent')}
                       </Badge>
                     )}
                   </div>
                   <div className={s.inviteActions}>
-                    <span className={s.inviteMeta}>Пригласил: {personName(i.invitedBy)}</span>
+                    <span className={s.inviteMeta}>
+                      {t('Пригласил', 'Invited by')}: {tx(personName(i.invitedBy))}
+                    </span>
                     <span className="ev-spacer" />
                     <Button
                       size="sm"
@@ -447,10 +499,10 @@ export function TeamScreen() {
                       icon={<Send size={14} />}
                       onClick={() => sendInvite(i)}
                     >
-                      {i.sentAt ? 'Повторить' : 'Отправить'}
+                      {i.sentAt ? t('Повторить', 'Resend') : t('Отправить', 'Send')}
                     </Button>
                     <Button size="sm" variant="danger-ghost" onClick={() => void revokeInvite(i)}>
-                      Отозвать
+                      {t('Отозвать', 'Revoke')}
                     </Button>
                   </div>
                 </li>

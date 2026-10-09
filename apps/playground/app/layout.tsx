@@ -4,6 +4,7 @@ import { ThemeScript } from 'endfield-vision'
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { getLang } from '@/lib/lang-server'
 import { Providers } from './providers'
 
 // Шрифты - CSS-переменные; токены библиотеки читают их через --ev-font-sans / --ev-font-mono.
@@ -15,10 +16,13 @@ const mono = JetBrains_Mono({
   weight: ['400', '500', '600'],
 })
 
-export const metadata: Metadata = {
-  title: { default: 'Endfield Vision', template: '%s - Endfield Vision' },
-  description: 'Демо-консоль и витрина компонентов библиотеки Endfield Vision',
-  robots: { index: false, follow: false },
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang()
+  return {
+    title: { default: 'Endfield Vision', template: '%s - Endfield Vision' },
+    description: lang === 'en' ? 'Demo console and component showcase of the Endfield Vision library' : 'Демо-консоль и витрина компонентов библиотеки Endfield Vision',
+    robots: { index: false, follow: false },
+  }
 }
 
 export const viewport: Viewport = {
@@ -28,15 +32,17 @@ export const viewport: Viewport = {
   colorScheme: 'dark light',
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Язык - из cookie: сервер сразу рендерит выбранный язык.
+  const lang = await getLang()
   return (
-    <html lang="ru" data-theme="dark" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang={lang} data-theme="dark" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         {/* Тема и акцент до первой отрисовки: без вспышки. */}
         <ThemeScript />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers lang={lang}>{children}</Providers>
       </body>
     </html>
   )

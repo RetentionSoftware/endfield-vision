@@ -12,6 +12,7 @@ import {
 import { usePathname } from 'next/navigation'
 import { useSyncExternalStore, type ReactNode } from 'react'
 import { Brand } from '@/components/Brand'
+import { useT } from '@/lib/i18n'
 import { activeKey, NAV } from '@/lib/nav'
 import { AccountMenu } from './AccountMenu'
 import { CommandSearch } from './CommandSearch'
@@ -45,25 +46,27 @@ function subscribe(cb: () => void): () => void {
 
 function SidebarBrand() {
   const { collapsed } = useAppShell()
-  return <Brand compact={collapsed} subtitle="Демо-консоль" />
+  const { t } = useT()
+  return <Brand compact={collapsed} subtitle={t('Демо-консоль', 'Demo console')} />
 }
 
 export function ConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false)
   const active = activeKey(pathname)
+  const { tx } = useT()
 
   const sidebar = (
     <Sidebar header={<SidebarBrand />} footer={<SidebarCollapseButton />}>
       {NAV.map((g, i) => (
-        <SidebarSection key={g.title ?? `g${i}`} title={g.title}>
+        <SidebarSection key={g.title?.ru ?? `g${i}`} title={g.title ? tx(g.title) : undefined}>
           {g.items.map((s) => {
             const Icon = s.icon
             return (
               <SidebarItem
                 key={s.key}
                 href={s.href}
-                label={s.label}
+                label={tx(s.label)}
                 icon={<Icon size={18} />}
                 badge={s.badge}
                 active={s.key === active}

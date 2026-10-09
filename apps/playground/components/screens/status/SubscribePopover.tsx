@@ -4,6 +4,7 @@ import { Button, Checkbox, Field, Input, MultiSelect, Popover, SegmentedControl 
 import { Bell, BellRing } from 'lucide-react'
 import { useState } from 'react'
 import { SERVICES } from '@/lib/demo/status'
+import { useT } from '@/lib/i18n'
 import s from './status.module.css'
 
 export interface Subscription {
@@ -20,21 +21,21 @@ interface SubscribePopoverProps {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const SERVICE_OPTIONS = SERVICES.map((sv) => ({ value: sv.id, label: sv.name, group: sv.group }))
 
 /** Кнопка подписки на уведомления о сбоях: форма во всплывающем окне. */
 export function SubscribePopover({ subscription, onSubscribe, onUnsubscribe }: SubscribePopoverProps) {
+  const { t } = useT()
   const [open, setOpen] = useState(false)
   return (
     <Popover
       open={open}
       onOpenChange={setOpen}
       placement="bottom-end"
-      label="Подписка на уведомления"
+      label={t('Подписка на уведомления', 'Notification subscription')}
       padded
       trigger={
         <Button variant={subscription ? 'secondary' : 'primary'} icon={subscription ? <BellRing size={15} /> : <Bell size={15} />}>
-          {subscription ? 'Подписка оформлена' : 'Подписаться на уведомления'}
+          {subscription ? t('Подписка оформлена', 'Subscribed') : t('Подписаться на уведомления', 'Subscribe to updates')}
         </Button>
       }
     >
@@ -67,6 +68,7 @@ function SubscribeForm({
   onCancel: () => void
   onUnsubscribe: () => void
 }) {
+  const { t, tx } = useT()
   const [email, setEmail] = useState(initial?.email ?? '')
   const [services, setServices] = useState<string[]>(initial?.services ?? SERVICES.map((sv) => sv.id))
   const [level, setLevel] = useState<Subscription['level']>(initial?.level ?? 'all')
@@ -76,8 +78,8 @@ function SubscribeForm({
 
   const submit = async () => {
     const e: typeof errors = {}
-    if (!EMAIL_RE.test(email.trim())) e.email = 'Введите адрес почты, например ops@company.ru.'
-    if (services.length === 0) e.services = 'Выберите хотя бы один сервис.'
+    if (!EMAIL_RE.test(email.trim())) e.email = t('Введите адрес почты, например ops@company.ru.', 'Enter an email address, for example ops@company.com.')
+    if (services.length === 0) e.services = t('Выберите хотя бы один сервис.', 'Choose at least one service.')
     setErrors(e)
     if (e.email || e.services) return
     setBusy(true)
@@ -96,10 +98,10 @@ function SubscribeForm({
       }}
     >
       <div className={s.subscribeHead}>
-        <div className={s.subscribeTitle}>Уведомления о сбоях</div>
-        <div className="ev-muted">Письмо при открытии, обновлении и закрытии инцидента.</div>
+        <div className={s.subscribeTitle}>{t('Уведомления о сбоях', 'Incident notifications')}</div>
+        <div className="ev-muted">{t('Письмо при открытии, обновлении и закрытии инцидента.', 'An email when an incident is opened, updated or closed.')}</div>
       </div>
-      <Field label="Почта" required error={errors.email}>
+      <Field label={t('Почта', 'Email')} required error={errors.email}>
         <Input
           type="email"
           autoComplete="email"
@@ -109,47 +111,52 @@ function SubscribeForm({
             setEmail(e.target.value)
             if (errors.email) setErrors((x) => ({ ...x, email: undefined }))
           }}
-          placeholder="ops@company.ru"
+          placeholder={t('ops@company.ru', 'ops@company.com')}
         />
       </Field>
-      <Field label="Сервисы" required error={errors.services}>
+      <Field label={t('Сервисы', 'Services')} required error={errors.services}>
         <MultiSelect
           value={services}
           onChange={(v) => {
             setServices(v)
             if (errors.services) setErrors((x) => ({ ...x, services: undefined }))
           }}
-          options={SERVICE_OPTIONS}
-          placeholder="Не выбрано"
+          options={SERVICES.map((sv) => ({ value: sv.id, label: tx(sv.name), group: tx(sv.group) }))}
+          placeholder={t('Не выбрано', 'None selected')}
           maxLabels={1}
         />
       </Field>
-      <Field label="Какие инциденты">
+      <Field label={t('Какие инциденты', 'Which incidents')}>
         <SegmentedControl
-          aria-label="Какие инциденты"
+          aria-label={t('Какие инциденты', 'Which incidents')}
           size="sm"
           block
           value={level}
           onChange={setLevel}
           options={[
-            { value: 'all', label: 'Все' },
-            { value: 'major', label: 'Только серьёзные' },
+            { value: 'all', label: t('Все', 'All') },
+            { value: 'major', label: t('Только серьёзные', 'Major only') },
           ]}
         />
       </Field>
-      <Checkbox checked={maintenance} onChange={setMaintenance} label="Плановые работы" description="За сутки до начала окна." />
+      <Checkbox
+        checked={maintenance}
+        onChange={setMaintenance}
+        label={t('Плановые работы', 'Scheduled maintenance')}
+        description={t('За сутки до начала окна.', 'A day before the window starts.')}
+      />
       <div className={s.subscribeActions}>
         {initial ? (
           <Button size="sm" variant="danger-ghost" onClick={onUnsubscribe} disabled={busy}>
-            Отписаться
+            {t('Отписаться', 'Unsubscribe')}
           </Button>
         ) : null}
         <span className="ev-spacer" />
         <Button size="sm" variant="ghost" onClick={onCancel} disabled={busy}>
-          Отмена
+          {t('Отмена', 'Cancel')}
         </Button>
         <Button size="sm" variant="primary" type="submit" loading={busy}>
-          {initial ? 'Сохранить' : 'Подписаться'}
+          {initial ? t('Сохранить', 'Save') : t('Подписаться', 'Subscribe')}
         </Button>
       </div>
     </form>

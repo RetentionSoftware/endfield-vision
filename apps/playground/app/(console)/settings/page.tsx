@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import { sectionMetadata } from '@/lib/lang-server'
 import { SettingsScreen } from '@/components/screens/settings/SettingsScreen'
 
-export const metadata: Metadata = { title: 'Настройки' }
+export const generateMetadata = (): Promise<Metadata> => sectionMetadata('settings')
 
 export default function Page() {
   return <SettingsScreen />

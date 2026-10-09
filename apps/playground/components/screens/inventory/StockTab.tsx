@@ -30,7 +30,8 @@ import {
   type Category,
   type StockItem,
 } from '@/lib/demo/inventory'
-import { formatDate, formatNum, formatRub, plural } from '@/lib/format'
+import { formatDate } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { AdjustModal } from './AdjustModal'
 import s from './inventory.module.css'
 
@@ -40,13 +41,11 @@ interface StockTabProps {
   onWriteOff: (ids: string[]) => void
 }
 
-const CATEGORY_OPTIONS = (Object.keys(CATEGORIES) as Category[]).map((c) => ({ value: c, label: CATEGORIES[c] }))
-const WAREHOUSE_OPTIONS = WAREHOUSES.map((w) => ({ value: w.id, label: w.name, hint: w.code }))
-
 const delay = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms))
 
-function sortItems(list: StockItem[], sort: SortState | null): StockItem[] {
-  if (!sort) return list
+/** Сортировка; без выбранной колонки - по названию на текущем языке, затем по складу. */
+function sortItems(list: StockItem[], sort: SortState | null, name: (it: StockItem) => string, locale: string): StockItem[] {
+  if (!sort) return [...list].sort((a, b) => name(a).localeCompare(name(b), locale) || a.warehouse.localeCompare(b.warehouse))
   const dir = sort.dir === 'asc' ? 1 : -1
   const val = (it: StockItem): number | string => {
     switch (sort.key) {
@@ -57,18 +56,21 @@ function sortItems(list: StockItem[], sort: SortState | null): StockItem[] {
       case 'movedAt':
         return it.movedAt
       default:
-        return it.name
+        return name(it)
     }
   }
   return [...list].sort((a, b) => {
     const va = val(a)
     const vb = val(b)
-    return (typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'ru')) * dir
+    return (typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), locale)) * dir
   })
 }
 
 export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
   const modals = useModals()
+  const { t, tx, plural, formatNum, formatRub, intl } = useT()
+  const categoryOptions = (Object.keys(CATEGORIES) as Category[]).map((c) => ({ value: c, label: tx(CATEGORIES[c]) }))
+  const warehouseOptions = WAREHOUSES.map((w) => ({ value: w.id, label: tx(w.name), hint: w.code }))
   const [query, setQuery] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
   const [warehouse, setWarehouse] = useState<string | null>(null)
@@ -84,10 +86,10 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
       (it) =>
         (categories.length === 0 || categories.includes(it.category)) &&
         (!warehouse || it.warehouse === warehouse) &&
-        (!q || normalizeSearch(`${it.name} ${it.sku}`).includes(q)),
+        (!q || normalizeSearch(`${tx(it.name)} ${it.sku}`).includes(q)),
     )
-    return sortItems(list, sort)
-  }, [items, query, categories, warehouse, sort])
+    return sortItems(list, sort, (it) => tx(it.name), intl)
+  }, [items, query, categories, warehouse, sort, tx, intl])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
   const current = Math.min(page, pageCount)
@@ -114,13 +116,16 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
     const total = list.reduce((a, it) => a + it.qty * it.price, 0)
     const one = list.length === 1 ? list[0] : undefined
     const ok = await modals.confirm({
-      title: one ? `Списать остаток «${one.name}»?` : `Списать ${list.length} ${plural(list.length, 'позицию', 'позиции', 'позиций')}?`,
+      title: one
+        ? t(`Списать остаток «${tx(one.name)}»?`, `Write off "${tx(one.name)}"?`)
+        : `${t('Списать', 'Write off')} ${list.length} ${plural(list.length, ['позицию', 'позиции', 'позиций'], ['item', 'items'])}?`,
       message: (
         <>
-          Остаток будет обнулён, в учёт уйдёт акт списания на сумму <b>{formatRub(total)}</b>. Действие нельзя отменить из консоли.
+          {t('Остаток будет обнулён, в учёт уйдёт акт списания на сумму', 'Stock will be set to zero and a write-off report will be posted for')}{' '}
+          <b>{formatRub(total)}</b>. {t('Действие нельзя отменить из консоли.', 'This cannot be undone from the console.')}
         </>
       ),
-      okLabel: 'Списать',
+      okLabel: t('Списать', 'Write off'),
       okVariant: 'danger',
       okIcon: <Trash2 size={15} />,
       onOk: () => delay(700),
@@ -129,34 +134,36 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
     const ids = list.map((it) => it.id)
     onWriteOff(ids)
     setSelected((sel) => sel.filter((k) => !ids.includes(k)))
-    toast.success('Остаток списан', { description: `Акт АС-${1040 + ids.length} на ${formatRub(total)}` })
+    toast.success(t('Остаток списан', 'Stock written off'), {
+      description: t(`Акт АС-${1040 + ids.length} на ${formatRub(total)}`, `Report WO-${1040 + ids.length} for ${formatRub(total)}`),
+    })
   }
 
   const reorder = (list: StockItem[]) => {
-    toast.success('Заявка на пополнение создана', {
-      description: `${list.length} ${plural(list.length, 'позиция', 'позиции', 'позиций')}, отправлена в снабжение`,
+    toast.success(t('Заявка на пополнение создана', 'Restock request created'), {
+      description: `${list.length} ${plural(list.length, ['позиция', 'позиции', 'позиций'], ['item', 'items'])}, ${t('отправлена в снабжение', 'sent to procurement')}`,
     })
   }
 
   const columns: Column<StockItem>[] = [
     {
       key: 'name',
-      header: 'Позиция',
+      header: t('Позиция', 'Item'),
       primary: true,
       sortable: true,
       minWidth: 220,
       cell: (it) => (
         <span className={s.nameCell}>
-          <span className={s.nameText}>{it.name}</span>
+          <span className={s.nameText}>{tx(it.name)}</span>
           <span className="ev-muted ev-mono">{it.sku}</span>
         </span>
       ),
     },
-    { key: 'category', header: 'Категория', hideOnMobile: true, cell: (it) => CATEGORIES[it.category] },
-    { key: 'warehouse', header: 'Склад', cell: (it) => warehouseName(it.warehouse) },
+    { key: 'category', header: t('Категория', 'Category'), hideOnMobile: true, cell: (it) => tx(CATEGORIES[it.category]) },
+    { key: 'warehouse', header: t('Склад', 'Warehouse'), cell: (it) => tx(warehouseName(it.warehouse)) },
     {
       key: 'qty',
-      header: 'Остаток',
+      header: t('Остаток', 'Quantity'),
       sortable: true,
       width: 200,
       cell: (it) => (
@@ -165,38 +172,38 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
           max={it.max}
           size="sm"
           tone={STOCK_STATE[stockState(it)].tone}
-          showValue={(v, max) => `${formatNum(v)} / ${formatNum(max)} ${it.unit}`}
-          aria-label={`Остаток: ${it.name}`}
+          showValue={(v, max) => `${formatNum(v)} / ${formatNum(max)} ${tx(it.unit)}`}
+          aria-label={`${t('Остаток', 'Quantity')}: ${tx(it.name)}`}
         />
       ),
     },
     {
       key: 'state',
-      header: 'Уровень',
+      header: t('Уровень', 'Level'),
       cell: (it) => {
         const st = STOCK_STATE[stockState(it)]
-        return <StatusPill tone={st.tone}>{st.label}</StatusPill>
+        return <StatusPill tone={st.tone}>{tx(st.label)}</StatusPill>
       },
     },
-    { key: 'value', header: 'Стоимость', numeric: true, sortable: true, cell: (it) => formatRub(it.qty * it.price) },
-    { key: 'movedAt', header: 'Движение', sortable: true, hideOnMobile: true, cell: (it) => <span className="ev-muted">{formatDate(it.movedAt)}</span> },
+    { key: 'value', header: t('Стоимость', 'Value'), numeric: true, sortable: true, cell: (it) => formatRub(it.qty * it.price) },
+    { key: 'movedAt', header: t('Движение', 'Last movement'), sortable: true, hideOnMobile: true, cell: (it) => <span className="ev-muted">{formatDate(it.movedAt)}</span> },
     {
       key: 'actions',
-      header: <span className="ev-visually-hidden">Действия</span>,
+      header: <span className="ev-visually-hidden">{t('Действия', 'Actions')}</span>,
       align: 'right',
       width: 56,
       hideOnMobile: true,
       cell: (it) => (
         <Menu
-          label={`Действия: ${it.name}`}
-          trigger={<IconButton label="Действия с позицией" size="sm" icon={<MoreHorizontal size={16} />} />}
+          label={`${t('Действия', 'Actions')}: ${tx(it.name)}`}
+          trigger={<IconButton label={t('Действия с позицией', 'Item actions')} size="sm" icon={<MoreHorizontal size={16} />} />}
           items={[
-            { id: 'adjust', label: 'Корректировать остаток', icon: <SlidersHorizontal size={15} />, onSelect: () => setAdjusting(it) },
-            { id: 'reorder', label: 'Заказать пополнение', icon: <PackagePlus size={15} />, onSelect: () => reorder([it]) },
+            { id: 'adjust', label: t('Корректировать остаток', 'Adjust quantity'), icon: <SlidersHorizontal size={15} />, onSelect: () => setAdjusting(it) },
+            { id: 'reorder', label: t('Заказать пополнение', 'Request restock'), icon: <PackagePlus size={15} />, onSelect: () => reorder([it]) },
             { type: 'separator', id: 'sep' },
             {
               id: 'writeoff',
-              label: 'Списать остаток',
+              label: t('Списать остаток', 'Write off stock'),
               icon: <Trash2 size={15} />,
               danger: true,
               disabled: it.qty === 0,
@@ -213,25 +220,25 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
       {selected.length > 0 ? (
         <Callout
           tone="info"
-          title={`Выбрано: ${selected.length} ${plural(selected.length, 'позиция', 'позиции', 'позиций')}`}
+          title={`${t('Выбрано', 'Selected')}: ${selected.length} ${plural(selected.length, ['позиция', 'позиции', 'позиций'], ['item', 'items'])}`}
           actions={
             <>
               <Button size="sm" icon={<PackagePlus size={14} />} onClick={() => {
                 reorder(selectedItems)
                 setSelected([])
               }}>
-                Заявка на пополнение
+                {t('Заявка на пополнение', 'Restock request')}
               </Button>
               <Button size="sm" variant="danger-ghost" icon={<Trash2 size={14} />} onClick={() => void writeOff(selectedItems)}>
-                Списать
+                {t('Списать', 'Write off')}
               </Button>
               <Button size="sm" variant="ghost" icon={<X size={14} />} onClick={() => setSelected([])}>
-                Снять выбор
+                {t('Снять выбор', 'Clear selection')}
               </Button>
             </>
           }
         >
-          Стоимость выбранного по учётной цене: {formatRub(selectedValue)}.
+          {t('Стоимость выбранного по учётной цене', 'Value of the selection at book price')}: {formatRub(selectedValue)}.
         </Callout>
       ) : null}
 
@@ -239,37 +246,44 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
         flush
         toolbar={
           <FilterBar
-            search={{ value: query, onChange: withReset(setQuery), placeholder: 'Название или артикул' }}
+            search={{ value: query, onChange: withReset(setQuery), placeholder: t('Название или артикул', 'Name or SKU') }}
             activeCount={(categories.length > 0 ? 1 : 0) + (warehouse ? 1 : 0)}
             onReset={reset}
             actions={
-              <Button icon={<Download size={15} />} onClick={() => toast.success('Остатки выгружены', { description: `stock-2026-10-08.xlsx, ${filtered.length} строк` })}>
-                Выгрузить
+              <Button
+                icon={<Download size={15} />}
+                onClick={() =>
+                  toast.success(t('Остатки выгружены', 'Stock exported'), {
+                    description: `stock-2026-10-08.xlsx, ${filtered.length} ${t('строк', 'rows')}`,
+                  })
+                }
+              >
+                {t('Выгрузить', 'Export')}
               </Button>
             }
           >
             <MultiSelect
-              aria-label="Категории"
+              aria-label={t('Категории', 'Categories')}
               width={220}
-              placeholder="Все категории"
+              placeholder={t('Все категории', 'All categories')}
               value={categories}
               onChange={withReset(setCategories)}
-              options={CATEGORY_OPTIONS}
+              options={categoryOptions}
             />
             <Select
-              aria-label="Склад"
+              aria-label={t('Склад', 'Warehouse')}
               width={220}
-              placeholder="Все склады"
+              placeholder={t('Все склады', 'All warehouses')}
               clearable
               value={warehouse}
               onChange={withReset(setWarehouse)}
-              options={WAREHOUSE_OPTIONS}
+              options={warehouseOptions}
             />
           </FilterBar>
         }
       >
         <DataTable
-          aria-label="Остатки на складах"
+          aria-label={t('Остатки на складах', 'Stock by warehouse')}
           columns={columns}
           rows={rows}
           rowKey={(it) => it.id}
@@ -281,8 +295,8 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
           selected={selected}
           onSelectedChange={setSelected}
           rowMuted={(it) => it.qty === 0}
-          empty="Позиции не найдены"
-          emptyDescription="Измените запрос или сбросьте фильтры."
+          empty={t('Позиции не найдены', 'No items found')}
+          emptyDescription={t('Измените запрос или сбросьте фильтры.', 'Change the search or reset the filters.')}
           footer={
             <Pagination
               page={current}
@@ -304,8 +318,8 @@ export function StockTab({ items, onChangeQty, onWriteOff }: StockTabProps) {
         onClose={() => setAdjusting(null)}
         onSave={(it, qty, reason) => {
           onChangeQty(it.id, qty)
-          toast.success('Остаток скорректирован', {
-            description: `${it.name}: ${formatNum(it.qty)} → ${formatNum(qty)} ${it.unit}. Причина: ${reason}.`,
+          toast.success(t('Остаток скорректирован', 'Quantity adjusted'), {
+            description: `${tx(it.name)}: ${formatNum(it.qty)} → ${formatNum(qty)} ${tx(it.unit)}. ${t('Причина', 'Reason')}: ${reason}.`,
           })
         }}
       />

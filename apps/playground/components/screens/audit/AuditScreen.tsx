@@ -35,37 +35,61 @@ import {
 } from '@/lib/demo/audit'
 import { TODAY } from '@/lib/demo/tasks'
 import { personById } from '@/lib/demo/team'
-import { formatDateTime, formatNum, plural } from '@/lib/format'
-import { crumbs } from '@/lib/nav'
+import { formatDateTime } from '@/lib/format'
+import { useCrumbs, useT, type Translator } from '@/lib/i18n'
 import { actorName, AuditDrawer, isExternalIp } from './AuditDrawer'
 import s from './audit.module.css'
 
 /** Пресеты от «сегодня» демо-консоли: данные журнала зафиксированы. */
-const PRESETS: DateRangePreset[] = [
-  { id: 'today', label: 'Сегодня', range: () => ({ from: TODAY, to: TODAY }) },
-  { id: 'yesterday', label: 'Вчера', range: () => ({ from: '2026-10-07', to: '2026-10-07' }) },
-  { id: 'week', label: 'Последние 7 дней', range: () => ({ from: '2026-10-02', to: TODAY }) },
-  { id: 'twoWeeks', label: 'Последние 14 дней', range: () => ({ from: AUDIT_DAYS[0]!, to: TODAY }) },
-  { id: 'september', label: 'Сентябрь', range: () => ({ from: '2026-09-01', to: '2026-09-30' }) },
-]
+function presets({ t }: Translator): DateRangePreset[] {
+  return [
+    { id: 'today', label: t('Сегодня', 'Today'), range: () => ({ from: TODAY, to: TODAY }) },
+    {
+      id: 'yesterday',
+      label: t('Вчера', 'Yesterday'),
+      range: () => ({ from: '2026-10-07', to: '2026-10-07' }),
+    },
+    {
+      id: 'week',
+      label: t('Последние 7 дней', 'Last 7 days'),
+      range: () => ({ from: '2026-10-02', to: TODAY }),
+    },
+    {
+      id: 'twoWeeks',
+      label: t('Последние 14 дней', 'Last 14 days'),
+      range: () => ({ from: AUDIT_DAYS[0]!, to: TODAY }),
+    },
+    {
+      id: 'september',
+      label: t('Сентябрь', 'September'),
+      range: () => ({ from: '2026-09-01', to: '2026-09-30' }),
+    },
+  ]
+}
 
-const ACTION_OPTIONS: SelectOption<AuditAction>[] = (Object.keys(AUDIT_ACTIONS) as AuditAction[]).map(
-  (a) => ({ value: a, label: AUDIT_ACTIONS[a].label }),
-)
+function actionOptions({ tx }: Translator): SelectOption<AuditAction>[] {
+  return (Object.keys(AUDIT_ACTIONS) as AuditAction[]).map((a) => ({
+    value: a,
+    label: tx(AUDIT_ACTIONS[a].label),
+  }))
+}
 
-const ACTOR_OPTIONS: SelectOption[] = Array.from(new Set(AUDIT_EVENTS.map((e) => e.actorId)))
-  .map((id) => {
+const ACTOR_IDS = Array.from(new Set(AUDIT_EVENTS.map((e) => e.actorId)))
+
+function actorOptions({ t, tx, intl }: Translator): SelectOption[] {
+  return ACTOR_IDS.map((id) => {
     const p = personById(id)
+    const name = tx(actorName(id))
     return {
       value: id,
-      label: actorName(id),
-      hint: p ? p.position : 'Автоматические задания',
-      icon: <Avatar name={actorName(id)} size={20} />,
+      label: name,
+      hint: p ? tx(p.position) : t('Автоматические задания', 'Automated jobs'),
+      icon: <Avatar name={name} size={20} />,
     }
-  })
-  .sort((a, b) =>
-    a.value === SYSTEM_ACTOR ? 1 : b.value === SYSTEM_ACTOR ? -1 : a.label.localeCompare(b.label, 'ru'),
+  }).sort((a, b) =>
+    a.value === SYSTEM_ACTOR ? 1 : b.value === SYSTEM_ACTOR ? -1 : a.label.localeCompare(b.label, intl),
   )
+}
 
 const CHANGE_ACTIONS = new Set<AuditAction>(['create', 'update', 'delete'])
 
@@ -73,11 +97,11 @@ function dayLabel(iso: string): string {
   return `${iso.slice(8, 10)}.${iso.slice(5, 7)}`
 }
 
-function eventWord(n: number) {
-  return plural(n, 'событие', 'события', 'событий')
-}
-
 export function AuditScreen() {
+  const tr = useT()
+  const { t, tx, plural, formatNum } = tr
+  const breadcrumbs = useCrumbs('audit')
+  const eventWord = (n: number) => plural(n, ['событие', 'события', 'событий'], ['event', 'events'])
   const [q, setQ] = useState('')
   const [action, setAction] = useState<AuditAction | null>(null)
   const [actors, setActors] = useState<string[]>([])
@@ -94,11 +118,15 @@ export function AuditScreen() {
       if (action && e.action !== action) return false
       if (actors.length > 0 && !actors.includes(e.actorId)) return false
       if (!needle) return true
-      return normalizeSearch(`${e.id} ${e.object} ${e.summary} ${actorName(e.actorId)} ${e.ip}`).includes(
-        needle,
-      )
+      return normalizeSearch(
+        `${e.id} ${tx(e.object)} ${tx(e.summary)} ${tx(actorName(e.actorId))} ${e.ip}`,
+      ).includes(needle)
     })
-  }, [q, action, actors])
+  }, [q, action, actors, tx])
+
+  const rangePresets = useMemo(() => presets(tr), [tr])
+  const actions = useMemo(() => actionOptions(tr), [tr])
+  const actorOpts = useMemo(() => actorOptions(tr), [tr])
 
   const filtered = useMemo(() => {
     const list = range
@@ -137,10 +165,12 @@ export function AuditScreen() {
 
   const exportAs = (format: 'CSV' | 'JSON') => {
     if (filtered.length === 0) {
-      toast.warning('Нечего выгружать', { description: 'По условиям фильтра событий нет.' })
+      toast.warning(t('Нечего выгружать', 'Nothing to export'), {
+        description: t('По условиям фильтра событий нет.', 'No events match the filter.'),
+      })
       return
     }
-    toast.success('Журнал выгружен', {
+    toast.success(t('Журнал выгружен', 'Audit log exported'), {
       description: `${formatNum(filtered.length)} ${eventWord(filtered.length)}, ${format}`,
     })
   }
@@ -148,47 +178,47 @@ export function AuditScreen() {
   const columns: Column<AuditEvent>[] = [
     {
       key: 'at',
-      header: 'Время',
+      header: t('Время', 'Time'),
       sortable: true,
       width: 150,
       cell: (e) => <span className="ev-num">{formatDateTime(e.at)}</span>,
     },
     {
       key: 'actor',
-      header: 'Пользователь',
+      header: t('Пользователь', 'User'),
       cell: (e) => (
         <span className={s.actor}>
           <Avatar
-            name={actorName(e.actorId)}
+            name={tx(actorName(e.actorId))}
             size={24}
             tone={e.actorId === SYSTEM_ACTOR ? 'neutral' : undefined}
           />
-          <span className="ev-truncate">{actorName(e.actorId)}</span>
+          <span className="ev-truncate">{tx(actorName(e.actorId))}</span>
         </span>
       ),
     },
     {
       key: 'action',
-      header: 'Действие',
-      cell: (e) => <Badge tone={AUDIT_ACTIONS[e.action].tone}>{AUDIT_ACTIONS[e.action].label}</Badge>,
+      header: t('Действие', 'Action'),
+      cell: (e) => <Badge tone={AUDIT_ACTIONS[e.action].tone}>{tx(AUDIT_ACTIONS[e.action].label)}</Badge>,
     },
     {
       key: 'object',
-      header: 'Объект',
+      header: t('Объект', 'Object'),
       primary: true,
       minWidth: 260,
       cell: (e) => (
         <span className={s.object}>
-          <span className="ev-truncate">{e.object}</span>
+          <span className="ev-truncate">{tx(e.object)}</span>
           <span className="ev-muted ev-truncate">
-            {e.objectType} - {e.summary}
+            {tx(e.objectType)} - {tx(e.summary)}
           </span>
         </span>
       ),
     },
     {
       key: 'ip',
-      header: 'IP-адрес',
+      header: t('IP-адрес', 'IP address'),
       align: 'right',
       cell: (e) => (
         <span className={isExternalIp(e.ip) ? `${s.ipExternal} ev-mono` : 'ev-mono ev-muted'}>{e.ip}</span>
@@ -199,35 +229,41 @@ export function AuditScreen() {
   return (
     <>
       <PageHeader
-        title="Журнал"
-        subtitle="Действия пользователей и автоматических заданий: изменения данных, входы, выгрузки."
-        breadcrumbs={crumbs('audit')}
-        meta={<Badge tone="neutral">Хранение 365 дней</Badge>}
+        title={t('Журнал', 'Audit log')}
+        subtitle={t(
+          'Действия пользователей и автоматических заданий: изменения данных, входы, выгрузки.',
+          'Actions by users and automated jobs: data changes, sign-ins, exports.',
+        )}
+        breadcrumbs={breadcrumbs}
+        meta={<Badge tone="neutral">{t('Хранение 365 дней', 'Retention 365 days')}</Badge>}
         actions={
           <Menu
-            label="Экспорт журнала"
+            label={t('Экспорт журнала', 'Export audit log')}
             trigger={
               <Button icon={<Download size={15} />} iconRight={<ChevronDown size={14} />}>
-                Экспорт
+                {t('Экспорт', 'Export')}
               </Button>
             }
             items={[
               {
                 type: 'label',
                 id: 'l',
-                label: `По фильтру: ${formatNum(filtered.length)} ${eventWord(filtered.length)}`,
+                label: t(
+                  `По фильтру: ${formatNum(filtered.length)} ${eventWord(filtered.length)}`,
+                  `Filtered: ${formatNum(filtered.length)} ${eventWord(filtered.length)}`,
+                ),
               },
               {
                 id: 'csv',
                 label: 'CSV',
-                hint: 'Таблица для Excel',
+                hint: t('Таблица для Excel', 'Spreadsheet for Excel'),
                 icon: <FileSpreadsheet size={15} />,
                 onSelect: () => exportAs('CSV'),
               },
               {
                 id: 'json',
                 label: 'JSON',
-                hint: 'С полями изменений',
+                hint: t('С полями изменений', 'With changed fields'),
                 icon: <FileJson size={15} />,
                 onSelect: () => exportAs('JSON'),
               },
@@ -241,7 +277,7 @@ export function AuditScreen() {
           search={{
             value: q,
             onChange: withReset(setQ),
-            placeholder: 'Объект, пользователь, IP, ID события',
+            placeholder: t('Объект, пользователь, IP, ID события', 'Object, user, IP, event ID'),
           }}
           activeCount={activeFilters}
           onReset={() => {
@@ -253,27 +289,27 @@ export function AuditScreen() {
           }}
         >
           <Select
-            aria-label="Тип действия"
-            placeholder="Все действия"
+            aria-label={t('Тип действия', 'Action type')}
+            placeholder={t('Все действия', 'All actions')}
             value={action}
             onChange={withReset(setAction)}
-            options={ACTION_OPTIONS}
+            options={actions}
             clearable
             searchable={false}
           />
           <MultiSelect
-            aria-label="Пользователи"
-            placeholder="Все пользователи"
+            aria-label={t('Пользователи', 'Users')}
+            placeholder={t('Все пользователи', 'All users')}
             value={actors}
             onChange={withReset(setActors)}
-            options={ACTOR_OPTIONS}
+            options={actorOpts}
             dropdownMinWidth={300}
           />
           <DateRangePicker
-            aria-label="Период"
+            aria-label={t('Период', 'Period')}
             value={range}
             onChange={withReset(setRange)}
-            presets={PRESETS}
+            presets={rangePresets}
             clearable
             min="2026-09-01"
             max={TODAY}
@@ -281,11 +317,14 @@ export function AuditScreen() {
         </FilterBar>
 
         <Card
-          title="События по дням"
-          description={`${formatNum(filtered.length)} ${eventWord(filtered.length)} за ${range ? 'выбранный период' : 'две недели'}${external > 0 ? `, входов из внешней сети: ${external}` : ''}`}
+          title={t('События по дням', 'Events by day')}
+          description={t(
+            `${formatNum(filtered.length)} ${eventWord(filtered.length)} за ${range ? 'выбранный период' : 'две недели'}${external > 0 ? `, входов из внешней сети: ${external}` : ''}`,
+            `${formatNum(filtered.length)} ${eventWord(filtered.length)} ${range ? 'in the selected period' : 'in two weeks'}${external > 0 ? `, sign-ins from external networks: ${external}` : ''}`,
+          )}
         >
           <BarChart
-            aria-label="Количество событий по дням"
+            aria-label={t('Количество событий по дням', 'Number of events by day')}
             data={chartData}
             x={(d) => dayLabel(d.day)}
             tooltipTitle={(d) => d.day.split('-').reverse().join('.')}
@@ -293,17 +332,17 @@ export function AuditScreen() {
             height={200}
             integer
             series={[
-              { key: 'changes', label: 'Изменения данных', value: (d) => d.changes },
-              { key: 'logins', label: 'Входы', value: (d) => d.logins },
-              { key: 'other', label: 'Доступ и выгрузки', value: (d) => d.other },
+              { key: 'changes', label: t('Изменения данных', 'Data changes'), value: (d) => d.changes },
+              { key: 'logins', label: t('Входы', 'Sign-ins'), value: (d) => d.logins },
+              { key: 'other', label: t('Доступ и выгрузки', 'Access and exports'), value: (d) => d.other },
             ]}
-            emptyText="Нет событий за период"
+            emptyText={t('Нет событий за период', 'No events in this period')}
           />
         </Card>
 
         <Card flush>
           <DataTable
-            aria-label="События журнала"
+            aria-label={t('События журнала', 'Audit log events')}
             columns={columns}
             rows={pageRows}
             rowKey={(e) => e.id}
@@ -317,8 +356,8 @@ export function AuditScreen() {
             empty={
               <EmptyState
                 compact
-                title="Событий не найдено"
-                description="Измените период или условия фильтра."
+                title={t('Событий не найдено', 'No events found')}
+                description={t('Измените период или условия фильтра.', 'Change the period or the filter.')}
               />
             }
             footer={

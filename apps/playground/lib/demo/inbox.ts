@@ -4,221 +4,275 @@
  */
 
 import type { Tone } from 'endfield-vision'
+import { bi, type Bi } from '../lang'
 
 export type MessageKind = 'incident' | 'task' | 'system'
 
-export const MESSAGE_KIND: Record<MessageKind, { label: string; tone: Tone }> = {
-  incident: { label: 'Инцидент', tone: 'danger' },
-  task: { label: 'Задача', tone: 'info' },
-  system: { label: 'Система', tone: 'neutral' },
+export const MESSAGE_KIND: Record<MessageKind, { label: Bi; tone: Tone }> = {
+  incident: { label: bi('Инцидент', 'Incident'), tone: 'danger' },
+  task: { label: bi('Задача', 'Task'), tone: 'info' },
+  system: { label: bi('Система', 'System'), tone: 'neutral' },
 }
 
 export interface ThreadEntry {
   id: string
-  author: string
+  author: Bi
   /** Подпись времени: «08:14», «вчера, 17:40». */
-  time: string
-  text: string
+  time: Bi | string
+  /** Текст: из демо-данных - на двух языках, ответ из формы - как есть. */
+  text: Bi | string
 }
 
 export interface InboxMessage {
   id: string
   kind: MessageKind
-  from: string
+  from: Bi
   /** Должность или источник. */
-  fromRole: string
-  subject: string
+  fromRole: Bi
+  subject: Bi
   /** Подпись времени в списке. */
-  time: string
+  time: Bi | string
   unread: boolean
   /** Упоминание текущего пользователя. */
   mention: boolean
   archived: boolean
   /** Ссылка на связанный раздел. */
-  link?: { label: string; href: string }
+  link?: { label: Bi; href: string }
   thread: ThreadEntry[]
 }
 
 /** Текущий пользователь демо: автор ответов. */
-export const ME = 'Алина Воронцова'
+export const ME = bi('Алина Воронцова', 'Alina Vorontsova')
+
+/** Автор - текущий пользователь демо. */
+export function isMe(author: Bi): boolean {
+  return author.ru === ME.ru
+}
+
+const P = {
+  rumyantsev: bi('Олег Румянцев', 'Oleg Rumyantsev'),
+  akhmedov: bi('Тимур Ахмедов', 'Timur Akhmedov'),
+  sorokin: bi('Глеб Сорокин', 'Gleb Sorokin'),
+  kotova: bi('Мария Котова', 'Maria Kotova'),
+  lebedeva: bi('Ирина Лебедева', 'Irina Lebedeva'),
+  gusev: bi('Павел Гусев', 'Pavel Gusev'),
+  ershov: bi('Святослав Ершов', 'Svyatoslav Ershov'),
+  finance: bi('Финансовый модуль', 'Finance module'),
+  sigma: bi('Лаборатория Сигма', 'Sigma Lab'),
+  security: bi('Служба безопасности', 'Security team'),
+  monitoring: bi('Система мониторинга', 'Monitoring system'),
+  vision: bi('Endfield Vision', 'Endfield Vision'),
+} satisfies Record<string, Bi>
+
+const AUTO = bi('Автоматическое уведомление', 'Automatic notification')
 
 export const MESSAGES: InboxMessage[] = [
   {
     id: 'm1',
     kind: 'incident',
-    from: 'Олег Румянцев',
-    fromRole: 'Начальник объекта, Ретранслятор Южный',
-    subject: 'INC-2291: потеря связи с ретранслятором',
+    from: P.rumyantsev,
+    fromRole: bi('Начальник объекта, Ретранслятор Южный', 'Facility manager, South Relay'),
+    subject: bi('INC-2291: потеря связи с ретранслятором', 'INC-2291: relay connection lost'),
     time: '08:14',
     unread: true,
     mention: true,
     archived: false,
-    link: { label: 'К объекту', href: '/facilities' },
+    link: { label: bi('К объекту', 'Go to facility'), href: '/facilities' },
     thread: [
       {
         id: 't1',
-        author: 'Олег Румянцев',
+        author: P.rumyantsev,
         time: '08:14',
-        text: 'Связь с ретранслятором потеряна в 08:12. Резервный канал не поднялся. Дежурная бригада выехала, ориентировочное прибытие - 09:30.\n\n@Алина Воронцова, прошу согласовать вызов подрядчика по договору обслуживания: без него замену модуля питания сделать не сможем.',
+        text: bi(
+          'Связь с ретранслятором потеряна в 08:12. Резервный канал не поднялся. Дежурная бригада выехала, ориентировочное прибытие - 09:30.\n\n@Алина Воронцова, прошу согласовать вызов подрядчика по договору обслуживания: без него замену модуля питания сделать не сможем.',
+          'Connection to the relay was lost at 08:12. The backup channel did not come up. The on-call crew is on its way, estimated arrival - 09:30.\n\n@Alina Vorontsova, please approve calling in the contractor under the service agreement: we cannot replace the power module without them.',
+        ),
       },
     ],
   },
   {
     id: 'm2',
     kind: 'incident',
-    from: 'Тимур Ахмедов',
-    fromRole: 'Начальник объекта, Хребет',
-    subject: 'INC-2288: перегрев линии сборки №3',
+    from: P.akhmedov,
+    fromRole: bi('Начальник объекта, Хребет', 'Facility manager, Ridge'),
+    subject: bi('INC-2288: перегрев линии сборки №3', 'INC-2288: assembly line 3 overheating'),
     time: '06:52',
     unread: true,
     mention: false,
     archived: false,
-    link: { label: 'К объекту', href: '/facilities' },
+    link: { label: bi('К объекту', 'Go to facility'), href: '/facilities' },
     thread: [
       {
         id: 't1',
-        author: 'Тимур Ахмедов',
+        author: P.akhmedov,
         time: '06:52',
-        text: 'Температура подшипникового узла линии №3 - 94 °C при норме до 80 °C. Линия переведена на 60% мощности, выпуск смены снижен примерно на 140 ед.',
+        text: bi(
+          'Температура подшипникового узла линии №3 - 94 °C при норме до 80 °C. Линия переведена на 60% мощности, выпуск смены снижен примерно на 140 ед.',
+          'Line 3 bearing assembly temperature is 94 °C against a limit of 80 °C. The line is running at 60% capacity, shift output is down by about 140 units.',
+        ),
       },
       {
         id: 't2',
-        author: 'Глеб Сорокин',
+        author: P.sorokin,
         time: '07:20',
-        text: 'Смазку и датчики проверили, отклонений нет. Подозреваем износ подшипника, нужна остановка на 4 часа.',
+        text: bi(
+          'Смазку и датчики проверили, отклонений нет. Подозреваем износ подшипника, нужна остановка на 4 часа.',
+          'Lubrication and sensors checked, no deviations. We suspect bearing wear and need a 4-hour shutdown.',
+        ),
       },
     ],
   },
   {
     id: 'm3',
     kind: 'task',
-    from: 'Мария Котова',
-    fromRole: 'Начальник объекта, Порт Ясный',
-    subject: 'Согласовать график отгрузки на 12-18 октября',
+    from: P.kotova,
+    fromRole: bi('Начальник объекта, Порт Ясный', 'Facility manager, Clearwater Port'),
+    subject: bi(
+      'Согласовать график отгрузки на 12-18 октября',
+      'Approve the shipment schedule for October 12-18',
+    ),
     time: '07:41',
     unread: true,
     mention: true,
     archived: false,
-    link: { label: 'К задачам', href: '/tasks' },
+    link: { label: bi('К задачам', 'Go to tasks'), href: '/tasks' },
     thread: [
       {
         id: 't1',
-        author: 'Мария Котова',
+        author: P.kotova,
         time: '07:41',
-        text: '@Алина Воронцова, приложила график отгрузки на следующую неделю. Изменения: два дополнительных рейса на Терминал Ясный во вторник и четверг. Нужно согласование до 15:00, иначе перевозчик снимет бронь.',
+        text: bi(
+          '@Алина Воронцова, приложила график отгрузки на следующую неделю. Изменения: два дополнительных рейса на Терминал Ясный во вторник и четверг. Нужно согласование до 15:00, иначе перевозчик снимет бронь.',
+          '@Alina Vorontsova, I have attached the shipment schedule for next week. Changes: two extra runs to Clearwater Terminal on Tuesday and Thursday. Approval is needed by 15:00, otherwise the carrier will cancel the booking.',
+        ),
       },
     ],
   },
   {
     id: 'm4',
     kind: 'system',
-    from: 'Финансовый модуль',
-    fromRole: 'Автоматическое уведомление',
-    subject: 'Счёт СЧ-2026-0427 просрочен',
-    time: 'вчера',
+    from: P.finance,
+    fromRole: AUTO,
+    subject: bi('Счёт СЧ-2026-0427 просрочен', 'Invoice INV-2026-0427 is overdue'),
+    time: bi('вчера', 'yesterday'),
     unread: false,
     mention: false,
     archived: false,
-    link: { label: 'К финансам', href: '/finance' },
+    link: { label: bi('К финансам', 'Go to finance'), href: '/finance' },
     thread: [
       {
         id: 't1',
-        author: 'Финансовый модуль',
-        time: 'вчера, 00:05',
-        text: 'Срок оплаты счёта СЧ-2026-0427 (АО «Транзит-Восток», 2 316 000 ₽) истёк 07.10.2026. Напоминание контрагенту отправлено автоматически.',
+        author: P.finance,
+        time: bi('вчера, 00:05', 'yesterday, 00:05'),
+        text: bi(
+          'Срок оплаты счёта СЧ-2026-0427 (АО «Транзит-Восток», 2 316 000 ₽) истёк 07.10.2026. Напоминание контрагенту отправлено автоматически.',
+          'Invoice INV-2026-0427 (Transit East JSC, RUB 2,316,000) was due on 07.10.2026. A reminder was sent to the counterparty automatically.',
+        ),
       },
     ],
   },
   {
     id: 'm5',
     kind: 'task',
-    from: 'Глеб Сорокин',
-    fromRole: 'Главный инженер',
-    subject: 'Калибровка датчиков VAL-01 завершена',
-    time: 'вчера',
+    from: P.sorokin,
+    fromRole: bi('Главный инженер', 'Chief engineer'),
+    subject: bi('Калибровка датчиков VAL-01 завершена', 'VAL-01 sensor calibration complete'),
+    time: bi('вчера', 'yesterday'),
     unread: false,
     mention: false,
     archived: false,
     thread: [
       {
         id: 't1',
-        author: 'Глеб Сорокин',
-        time: 'вчера, 17:40',
-        text: 'Калибровка 48 датчиков давления на линиях VAL-01 завершена. Протокол загружен в карточку объекта. Отклонения в пределах допуска, повторная проверка через 90 дней.',
+        author: P.sorokin,
+        time: bi('вчера, 17:40', 'yesterday, 17:40'),
+        text: bi(
+          'Калибровка 48 датчиков давления на линиях VAL-01 завершена. Протокол загружен в карточку объекта. Отклонения в пределах допуска, повторная проверка через 90 дней.',
+          'Calibration of 48 pressure sensors on the VAL-01 lines is complete. The report is uploaded to the facility card. Deviations are within tolerance, next check in 90 days.',
+        ),
       },
       {
         id: 't2',
         author: ME,
-        time: 'вчера, 18:02',
-        text: 'Принято, спасибо. Закрываю задачу.',
+        time: bi('вчера, 18:02', 'yesterday, 18:02'),
+        text: bi('Принято, спасибо. Закрываю задачу.', 'Got it, thanks. Closing the task.'),
       },
     ],
   },
   {
     id: 'm6',
     kind: 'incident',
-    from: 'Лаборатория Сигма',
-    fromRole: 'Система контроля качества',
-    subject: 'Отклонение состава партии Р-2210',
-    time: 'вчера',
+    from: P.sigma,
+    fromRole: bi('Система контроля качества', 'Quality control system'),
+    subject: bi('Отклонение состава партии Р-2210', 'Composition deviation in batch R-2210'),
+    time: bi('вчера', 'yesterday'),
     unread: true,
     mention: false,
     archived: false,
     thread: [
       {
         id: 't1',
-        author: 'Лаборатория Сигма',
-        time: 'вчера, 15:26',
-        text: 'Содержание примесей в пробе партии Р-2210 - 2,8% при допуске 2,5%. Партия помечена как условно годная до повторного анализа. Отгрузка ООО «Тяжмаш-Логистик» приостановлена.',
+        author: P.sigma,
+        time: bi('вчера, 15:26', 'yesterday, 15:26'),
+        text: bi(
+          'Содержание примесей в пробе партии Р-2210 - 2,8% при допуске 2,5%. Партия помечена как условно годная до повторного анализа. Отгрузка ООО «Тяжмаш-Логистик» приостановлена.',
+          'Impurity content in the batch R-2210 sample is 2.8% against a 2.5% tolerance. The batch is marked as conditionally acceptable pending re-analysis. Shipment to Tyazhmash Logistics LLC is on hold.',
+        ),
       },
     ],
   },
   {
     id: 'm7',
     kind: 'task',
-    from: 'Ирина Лебедева',
-    fromRole: 'Начальник объекта, Долина-2',
-    subject: 'Заявка на дополнительную смену в выходные',
+    from: P.lebedeva,
+    fromRole: bi('Начальник объекта, Долина-2', 'Facility manager, Valley-2'),
+    subject: bi('Заявка на дополнительную смену в выходные', 'Request for an extra weekend shift'),
     time: '06.10',
     unread: false,
     mention: true,
     archived: false,
-    link: { label: 'К команде', href: '/team' },
+    link: { label: bi('К команде', 'Go to team'), href: '/team' },
     thread: [
       {
         id: 't1',
-        author: 'Ирина Лебедева',
+        author: P.lebedeva,
         time: '06.10, 11:15',
-        text: '@Алина Воронцова, для выполнения плана октября нужна дополнительная смена 10 и 11 октября: 12 операторов, 2 инженера. Оценка затрат - 486 000 ₽, укладываемся в лимит месяца.',
+        text: bi(
+          '@Алина Воронцова, для выполнения плана октября нужна дополнительная смена 10 и 11 октября: 12 операторов, 2 инженера. Оценка затрат - 486 000 ₽, укладываемся в лимит месяца.',
+          '@Alina Vorontsova, to meet the October plan we need an extra shift on October 10 and 11: 12 operators, 2 engineers. Estimated cost - RUB 486,000, within the monthly limit.',
+        ),
       },
     ],
   },
   {
     id: 'm8',
     kind: 'system',
-    from: 'Служба безопасности',
-    fromRole: 'Автоматическое уведомление',
-    subject: 'Вход с нового устройства',
+    from: P.security,
+    fromRole: AUTO,
+    subject: bi('Вход с нового устройства', 'Sign-in from a new device'),
     time: '06.10',
     unread: false,
     mention: false,
     archived: false,
-    link: { label: 'Активные сеансы', href: '/settings?tab=security' },
+    link: { label: bi('Активные сеансы', 'Active sessions'), href: '/settings?tab=security' },
     thread: [
       {
         id: 't1',
-        author: 'Служба безопасности',
+        author: P.security,
         time: '06.10, 08:03',
-        text: 'Выполнен вход в учётную запись: Safari, iPadOS, Северодвинск. Если это были не вы, завершите сеанс в настройках безопасности и смените пароль.',
+        text: bi(
+          'Выполнен вход в учётную запись: Safari, iPadOS, Северодвинск. Если это были не вы, завершите сеанс в настройках безопасности и смените пароль.',
+          'Your account was signed in to from Safari, iPadOS, Severodvinsk. If this was not you, end the session in security settings and change your password.',
+        ),
       },
     ],
   },
   {
     id: 'm9',
     kind: 'task',
-    from: 'Павел Гусев',
-    fromRole: 'Начальник объекта, Застава',
-    subject: 'Замена фильтров: нужен доступ подрядчика',
+    from: P.gusev,
+    fromRole: bi('Начальник объекта, Застава', 'Facility manager, Outpost'),
+    subject: bi('Замена фильтров: нужен доступ подрядчика', 'Filter replacement: contractor access needed'),
     time: '05.10',
     unread: false,
     mention: false,
@@ -226,38 +280,47 @@ export const MESSAGES: InboxMessage[] = [
     thread: [
       {
         id: 't1',
-        author: 'Павел Гусев',
+        author: P.gusev,
         time: '05.10, 14:30',
-        text: 'Подрядчик по замене фильтров приезжает 9 октября. Нужно оформить временные пропуска на 4 человек и доступ в зону вентиляции.',
+        text: bi(
+          'Подрядчик по замене фильтров приезжает 9 октября. Нужно оформить временные пропуска на 4 человек и доступ в зону вентиляции.',
+          'The filter replacement contractor arrives on October 9. We need temporary passes for 4 people and access to the ventilation area.',
+        ),
       },
     ],
   },
   {
     id: 'm10',
     kind: 'system',
-    from: 'Система мониторинга',
-    fromRole: 'Автоматическое уведомление',
-    subject: 'Еженедельная сводка: выпуск 39 120 ед. (+4,2%)',
+    from: P.monitoring,
+    fromRole: AUTO,
+    subject: bi(
+      'Еженедельная сводка: выпуск 39 120 ед. (+4,2%)',
+      'Weekly summary: output 39,120 units (+4.2%)',
+    ),
     time: '05.10',
     unread: false,
     mention: false,
     archived: false,
-    link: { label: 'К обзору', href: '/overview' },
+    link: { label: bi('К обзору', 'Go to overview'), href: '/overview' },
     thread: [
       {
         id: 't1',
-        author: 'Система мониторинга',
+        author: P.monitoring,
         time: '05.10, 09:00',
-        text: 'Выпуск за неделю - 39 120 ед., на 4,2% выше прошлой недели. Энергопотребление - 16 410 МВт·ч. Открытых инцидентов на конец недели - 4. Лучший объект недели - Порт Ясный (загрузка 91%).',
+        text: bi(
+          'Выпуск за неделю - 39 120 ед., на 4,2% выше прошлой недели. Энергопотребление - 16 410 МВт·ч. Открытых инцидентов на конец недели - 4. Лучший объект недели - Порт Ясный (загрузка 91%).',
+          'Weekly output - 39,120 units, 4.2% above last week. Energy use - 16,410 MWh. Open incidents at week end - 4. Facility of the week - Clearwater Port (91% load).',
+        ),
       },
     ],
   },
   {
     id: 'm11',
     kind: 'incident',
-    from: 'Святослав Ершов',
-    fromRole: 'Начальник объекта, Рудник Глубокий',
-    subject: 'INC-2276: остановка конвейера закрыта',
+    from: P.ershov,
+    fromRole: bi('Начальник объекта, Рудник Глубокий', 'Facility manager, Deep Mine'),
+    subject: bi('INC-2276: остановка конвейера закрыта', 'INC-2276: conveyor stoppage closed'),
     time: '03.10',
     unread: false,
     mention: false,
@@ -265,18 +328,21 @@ export const MESSAGES: InboxMessage[] = [
     thread: [
       {
         id: 't1',
-        author: 'Святослав Ершов',
+        author: P.ershov,
         time: '03.10, 19:12',
-        text: 'Конвейер К-4 запущен после замены ленты. Простой - 3 ч 40 мин. Акт расследования приложен к инциденту.',
+        text: bi(
+          'Конвейер К-4 запущен после замены ленты. Простой - 3 ч 40 мин. Акт расследования приложен к инциденту.',
+          'Conveyor K-4 restarted after the belt replacement. Downtime - 3 h 40 min. The investigation report is attached to the incident.',
+        ),
       },
     ],
   },
   {
     id: 'm12',
     kind: 'system',
-    from: 'Endfield Vision',
-    fromRole: 'Обновление консоли',
-    subject: 'Версия 0.1.0: новые разделы консоли',
+    from: P.vision,
+    fromRole: bi('Обновление консоли', 'Console update'),
+    subject: bi('Версия 0.1.0: новые разделы консоли', 'Version 0.1.0: new console sections'),
     time: '01.10',
     unread: false,
     mention: false,
@@ -284,9 +350,12 @@ export const MESSAGES: InboxMessage[] = [
     thread: [
       {
         id: 't1',
-        author: 'Endfield Vision',
+        author: P.vision,
         time: '01.10, 10:00',
-        text: 'В консоли появились разделы «Финансы» и «Журнал», настройки уведомлений по каналам и ключи API для интеграций.',
+        text: bi(
+          'В консоли появились разделы «Финансы» и «Журнал», настройки уведомлений по каналам и ключи API для интеграций.',
+          'The console now has Finance and Audit log sections, per-channel notification settings and API keys for integrations.',
+        ),
       },
     ],
   },

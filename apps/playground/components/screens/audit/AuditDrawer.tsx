@@ -14,46 +14,56 @@ import {
 } from 'endfield-vision'
 import { FileJson, FileSearch } from 'lucide-react'
 import { AUDIT_ACTIONS, SYSTEM_ACTOR, type AuditChange, type AuditEvent } from '@/lib/demo/audit'
-import { personById } from '@/lib/demo/team'
+import { personById, personName } from '@/lib/demo/team'
 import { formatDateTime } from '@/lib/format'
+import { bi, useT, type Bi, type Translator } from '@/lib/i18n'
 import s from './audit.module.css'
 
-export function actorName(id: string): string {
-  return id === SYSTEM_ACTOR ? 'Система' : (personById(id)?.name ?? 'Неизвестный')
+const SYSTEM_NAME = bi('Система', 'System')
+
+/** Автор события на двух языках; в компоненте - tx(actorName(id)). */
+export function actorName(id: string): Bi {
+  return id === SYSTEM_ACTOR ? SYSTEM_NAME : personName(id)
 }
 
 export function isExternalIp(ip: string): boolean {
   return !ip.startsWith('10.')
 }
 
-const CHANGE_COLUMNS: Column<AuditChange>[] = [
-  {
-    key: 'field',
-    header: 'Поле',
-    primary: true,
-    width: '28%',
-    cell: (c) => <span className={s.field}>{c.field}</span>,
-  },
-  {
-    key: 'before',
-    header: 'Было',
-    wrap: true,
-    cell: (c) => (c.before === null ? null : <span className={s.removed}>{c.before}</span>),
-  },
-  {
-    key: 'after',
-    header: 'Стало',
-    wrap: true,
-    cell: (c) => (c.after === null ? null : <span className={s.added}>{c.after}</span>),
-  },
-]
+function changeColumns({ t, tx }: Translator): Column<AuditChange>[] {
+  return [
+    {
+      key: 'field',
+      header: t('Поле', 'Field'),
+      primary: true,
+      width: '28%',
+      cell: (c) => <span className={s.field}>{tx(c.field)}</span>,
+    },
+    {
+      key: 'before',
+      header: t('Было', 'Before'),
+      wrap: true,
+      cell: (c) => (c.before === null ? null : <span className={s.removed}>{tx(c.before)}</span>),
+    },
+    {
+      key: 'after',
+      header: t('Стало', 'After'),
+      wrap: true,
+      cell: (c) => (c.after === null ? null : <span className={s.added}>{tx(c.after)}</span>),
+    },
+  ]
+}
 
 export function AuditDrawer({ event, onClose }: { event: AuditEvent | null; onClose: () => void }) {
+  const { t, tx, intl } = useT()
   const exportJson = () => {
     if (!event) return
     const size = new Blob([JSON.stringify(event, null, 2)]).size
-    toast.success('Событие выгружено', {
-      description: `${event.id}.json, ${size.toLocaleString('ru-RU')} байт`,
+    toast.success(t('Событие выгружено', 'Event exported'), {
+      description: t(
+        `${event.id}.json, ${size.toLocaleString(intl)} байт`,
+        `${event.id}.json, ${size.toLocaleString(intl)} bytes`,
+      ),
     })
   }
   return (
@@ -61,15 +71,15 @@ export function AuditDrawer({ event, onClose }: { event: AuditEvent | null; onCl
       open={event !== null}
       onClose={onClose}
       width={600}
-      title={event ? `${AUDIT_ACTIONS[event.action].label}: ${event.object}` : undefined}
+      title={event ? `${tx(AUDIT_ACTIONS[event.action].label)}: ${tx(event.object)}` : undefined}
       subtitle={event ? formatDateTime(event.at) : undefined}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
-            Закрыть
+            {t('Закрыть', 'Close')}
           </Button>
           <Button icon={<FileJson size={15} />} onClick={exportJson}>
-            Экспорт JSON
+            {t('Экспорт JSON', 'Export JSON')}
           </Button>
         </>
       }
@@ -80,72 +90,86 @@ export function AuditDrawer({ event, onClose }: { event: AuditEvent | null; onCl
 }
 
 function EventDetails({ event }: { event: AuditEvent }) {
+  const tr = useT()
+  const { t, tx } = tr
   const person = event.actorId === SYSTEM_ACTOR ? null : personById(event.actorId)
-  const name = actorName(event.actorId)
+  const name = tx(actorName(event.actorId))
   const external = isExternalIp(event.ip)
   return (
     <div className={s.drawer}>
       <div className="ev-row">
-        <Badge tone={AUDIT_ACTIONS[event.action].tone}>{AUDIT_ACTIONS[event.action].label}</Badge>
-        <span className="ev-secondary">{event.summary}</span>
+        <Badge tone={AUDIT_ACTIONS[event.action].tone}>{tx(AUDIT_ACTIONS[event.action].label)}</Badge>
+        <span className="ev-secondary">{tx(event.summary)}</span>
         {external ? (
           <Badge tone="warning" dot size="sm">
-            Внешняя сеть
+            {t('Внешняя сеть', 'External network')}
           </Badge>
         ) : null}
       </div>
 
       <div className={s.idRow}>
-        <span className="ev-muted">ID события</span>
-        <CopyValue value={event.id} label="Скопировать ID события" />
+        <span className="ev-muted">{t('ID события', 'Event ID')}</span>
+        <CopyValue value={event.id} label={t('Скопировать ID события', 'Copy event ID')} />
       </div>
 
       <KeyValueList
         labelWidth={140}
         items={[
-          { key: 'at', label: 'Время', value: formatDateTime(event.at) },
+          { key: 'at', label: t('Время', 'Time'), value: formatDateTime(event.at) },
           {
             key: 'actor',
-            label: 'Пользователь',
+            label: t('Пользователь', 'User'),
             value: (
               <span className={s.actor}>
                 <Avatar name={name} size={22} tone={person ? undefined : 'neutral'} />
                 {name}
               </span>
             ),
-            hint: person ? `${person.position}, ${person.email}` : 'Автоматическое действие',
+            hint: person
+              ? `${tx(person.position)}, ${person.email}`
+              : t('Автоматическое действие', 'Automated action'),
           },
-          { key: 'object', label: 'Объект', value: event.object, hint: event.objectType },
+          {
+            key: 'object',
+            label: t('Объект', 'Object'),
+            value: tx(event.object),
+            hint: tx(event.objectType),
+          },
           {
             key: 'ip',
-            label: 'IP-адрес',
+            label: t('IP-адрес', 'IP address'),
             value: event.ip,
             mono: true,
-            hint: external ? 'Адрес вне корпоративной сети' : 'Корпоративная сеть',
+            hint: external
+              ? t('Адрес вне корпоративной сети', 'Address outside the corporate network')
+              : t('Корпоративная сеть', 'Corporate network'),
           },
-          { key: 'client', label: 'Клиент', value: event.client },
-          { key: 'req', label: 'ID запроса', value: event.requestId, mono: true },
+          { key: 'client', label: t('Клиент', 'Client'), value: tx(event.client) },
+          { key: 'req', label: t('ID запроса', 'Request ID'), value: event.requestId, mono: true },
         ]}
       />
 
       <section className={s.block} aria-labelledby={`${event.id}-diff`}>
         <h3 id={`${event.id}-diff`} className={s.blockTitle}>
-          Изменения
+          {t('Изменения', 'Changes')}
           {event.changes.length > 0 ? <span className="ev-muted ev-num">{event.changes.length}</span> : null}
         </h3>
         {event.changes.length === 0 ? (
           <EmptyState
             compact
             icon={<FileSearch size={20} />}
-            title="Данные не менялись"
-            description="Событие фиксирует действие без изменения записей."
+            title={t('Данные не менялись', 'No data changed')}
+            description={t(
+              'Событие фиксирует действие без изменения записей.',
+              'The event records an action without changing any records.',
+            )}
           />
         ) : (
           <DataTable
-            aria-label="Изменения"
-            columns={CHANGE_COLUMNS}
+            aria-label={t('Изменения', 'Changes')}
+            columns={changeColumns(tr)}
             rows={event.changes}
-            rowKey={(c) => c.field}
+            rowKey={(c) => c.field.ru}
             dense
             mobile="scroll"
           />

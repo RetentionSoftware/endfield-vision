@@ -3,13 +3,15 @@
 import { Badge, Button, Card, CopyButton, EmptyState, KeyValueList, SegmentedControl, StatusPill, Timeline } from 'endfield-vision'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
-import { INCIDENT_SEVERITY, INCIDENT_STATE, serviceName, type StatusIncident } from '@/lib/demo/status'
+import { formatDuration, INCIDENT_SEVERITY, INCIDENT_STATE, serviceName, type StatusIncident } from '@/lib/demo/status'
+import { useT } from '@/lib/i18n'
 import s from './status.module.css'
 
 type Filter = 'all' | 'open' | 'resolved'
 
 /** История инцидентов: раскрываемые карточки с ходом работ. */
 export function IncidentHistory({ incidents }: { incidents: StatusIncident[] }) {
+  const { t } = useT()
   const [filter, setFilter] = useState<Filter>('all')
   const [expanded, setExpanded] = useState<string[]>(() => incidents.filter((i) => i.state !== 'resolved').slice(0, 1).map((i) => i.id))
 
@@ -21,19 +23,19 @@ export function IncidentHistory({ incidents }: { incidents: StatusIncident[] }) 
 
   return (
     <Card
-      title="История инцидентов"
-      description="За последние 90 дней."
+      title={t('История инцидентов', 'Incident history')}
+      description={t('За последние 90 дней.', 'Last 90 days.')}
       actions={
         <>
           <SegmentedControl
-            aria-label="Фильтр инцидентов"
+            aria-label={t('Фильтр инцидентов', 'Incident filter')}
             size="sm"
             value={filter}
             onChange={setFilter}
             options={[
-              { value: 'all', label: 'Все', count: incidents.length },
-              { value: 'open', label: 'Открытые', count: open.length },
-              { value: 'resolved', label: 'Решённые', count: incidents.length - open.length },
+              { value: 'all', label: t('Все', 'All'), count: incidents.length },
+              { value: 'open', label: t('Открытые', 'Open'), count: open.length },
+              { value: 'resolved', label: t('Решённые', 'Resolved'), count: incidents.length - open.length },
             ]}
           />
           <Button
@@ -42,13 +44,13 @@ export function IncidentHistory({ incidents }: { incidents: StatusIncident[] }) 
             disabled={list.length === 0}
             onClick={() => setExpanded(allExpanded ? [] : list.map((i) => i.id))}
           >
-            {allExpanded ? 'Свернуть все' : 'Развернуть все'}
+            {allExpanded ? t('Свернуть все', 'Collapse all') : t('Развернуть все', 'Expand all')}
           </Button>
         </>
       }
     >
       {list.length === 0 ? (
-        <EmptyState compact title="Инцидентов нет" />
+        <EmptyState compact title={t('Инцидентов нет', 'No incidents')} />
       ) : (
         <ul role="list" className={s.incidents}>
           {list.map((inc) => (
@@ -61,9 +63,11 @@ export function IncidentHistory({ incidents }: { incidents: StatusIncident[] }) 
 }
 
 function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusIncident; expanded: boolean; onToggle: () => void }) {
+  const { t, tx, lang } = useT()
   const sev = INCIDENT_SEVERITY[inc.severity]
   const st = INCIDENT_STATE[inc.state]
   const bodyId = `incident-${inc.id}`
+  const duration = formatDuration(inc.minutes, lang)
   return (
     <li
       className={`${s.incident} ev-corners`}
@@ -74,14 +78,14 @@ function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusI
       <div className={s.incidentHead}>
         <div className={s.incidentTitles}>
           <div className={s.incidentTitleRow}>
-            <span className={s.incidentTitle}>{inc.title}</span>
+            <span className={s.incidentTitle}>{tx(inc.title)}</span>
             <span className="ev-mono ev-muted">{inc.id}</span>
           </div>
           <div className={s.incidentMeta}>
-            <StatusPill tone={sev.tone}>{sev.label}</StatusPill>
-            <Badge tone={st.tone}>{st.label}</Badge>
+            <StatusPill tone={sev.tone}>{tx(sev.label)}</StatusPill>
+            <Badge tone={st.tone}>{tx(st.label)}</Badge>
             <span className="ev-muted">
-              {inc.startedAt}, {inc.endedAt ? `длительность ${inc.duration}` : `идёт ${inc.duration}`}
+              {inc.startedAt}, {inc.endedAt ? `${t('длительность', 'lasted')} ${duration}` : `${t('идёт', 'ongoing for')} ${duration}`}
             </span>
           </div>
         </div>
@@ -93,27 +97,27 @@ function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusI
           iconRight={expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           onClick={onToggle}
         >
-          {expanded ? 'Свернуть' : 'Подробнее'}
+          {expanded ? t('Свернуть', 'Collapse') : t('Подробнее', 'Details')}
         </Button>
       </div>
       {expanded ? (
         <div id={bodyId} className={s.incidentBody}>
-          <p>{inc.summary}</p>
+          <p>{tx(inc.summary)}</p>
           <KeyValueList
             columns={2}
             labelWidth={120}
             items={[
-              { key: 'start', label: 'Начало', value: inc.startedAt },
-              { key: 'end', label: 'Окончание', value: inc.endedAt },
-              { key: 'duration', label: 'Длительность', value: inc.duration },
+              { key: 'start', label: t('Начало', 'Started'), value: inc.startedAt },
+              { key: 'end', label: t('Окончание', 'Ended'), value: inc.endedAt },
+              { key: 'duration', label: t('Длительность', 'Duration'), value: duration },
               {
                 key: 'services',
-                label: 'Сервисы',
+                label: t('Сервисы', 'Services'),
                 value: (
                   <span className={s.badges}>
                     {inc.services.map((id) => (
                       <Badge key={id} size="sm">
-                        {serviceName(id)}
+                        {tx(serviceName(id))}
                       </Badge>
                     ))}
                   </span>
@@ -122,17 +126,17 @@ function IncidentItem({ incident: inc, expanded, onToggle }: { incident: StatusI
             ]}
           />
           <Timeline
-            aria-label={`Ход инцидента ${inc.id}`}
+            aria-label={t(`Ход инцидента ${inc.id}`, `${inc.id} timeline`)}
             items={inc.updates.map((u) => ({
               id: u.id,
               tone: INCIDENT_STATE[u.state].tone,
-              title: INCIDENT_STATE[u.state].label,
+              title: tx(INCIDENT_STATE[u.state].label),
               time: u.at,
-              description: u.text,
+              description: tx(u.text),
             }))}
           />
           <div className={s.incidentFoot}>
-            <CopyButton text={`https://status.endfield.example/incidents/${inc.id}`} label="Скопировать ссылку" />
+            <CopyButton text={`https://status.endfield.example/incidents/${inc.id}`} label={t('Скопировать ссылку', 'Copy link')} />
           </div>
         </div>
       ) : null}

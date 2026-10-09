@@ -5,13 +5,15 @@
  * рендер совпадают. «Сегодня» - 08.10.2026.
  */
 
+import { bi, type Bi, type Lang } from '../lang'
+
 export type ServiceStatus = 'operational' | 'degraded' | 'outage' | 'maintenance'
 
-export const SERVICE_STATUS: Record<ServiceStatus, { label: string; tone: 'success' | 'warning' | 'danger' | 'info' }> = {
-  operational: { label: 'Работает', tone: 'success' },
-  degraded: { label: 'Снижена производительность', tone: 'warning' },
-  outage: { label: 'Сбой', tone: 'danger' },
-  maintenance: { label: 'Плановые работы', tone: 'info' },
+export const SERVICE_STATUS: Record<ServiceStatus, { label: Bi; tone: 'success' | 'warning' | 'danger' | 'info' }> = {
+  operational: { label: bi('Работает', 'Operational'), tone: 'success' },
+  degraded: { label: bi('Снижена производительность', 'Degraded performance'), tone: 'warning' },
+  outage: { label: bi('Сбой', 'Outage'), tone: 'danger' },
+  maintenance: { label: bi('Плановые работы', 'Scheduled maintenance'), tone: 'info' },
 }
 
 export type DayState = 'ok' | 'minor' | 'major' | 'maint'
@@ -26,9 +28,9 @@ export interface DayRecord {
 
 export interface Service {
   id: string
-  name: string
-  description: string
-  group: string
+  name: Bi
+  description: Bi
+  group: Bi
   status: ServiceStatus
   days: DayRecord[]
   /** Доступность за 90 дней, %. */
@@ -70,22 +72,26 @@ const MARKS: Mark[] = [
 
 interface ServiceSeed {
   id: string
-  name: string
-  description: string
-  group: string
+  name: Bi
+  description: Bi
+  group: Bi
   status: ServiceStatus
   seed: number
 }
 
+const CORE = bi('Ядро платформы', 'Platform core')
+const SITES = bi('Объекты', 'Facilities')
+const APPS = bi('Сервисы', 'Services')
+
 const SEEDS: ServiceSeed[] = [
-  { id: 'api', name: 'API шлюз', description: 'Внешний и внутренний API консоли', group: 'Ядро платформы', status: 'operational', seed: 3 },
-  { id: 'auth', name: 'Авторизация', description: 'Вход, сессии, единый доступ', group: 'Ядро платформы', status: 'operational', seed: 5 },
-  { id: 'queue', name: 'Очереди сообщений', description: 'Шина событий между сервисами', group: 'Ядро платформы', status: 'operational', seed: 7 },
-  { id: 'storage', name: 'Хранилище данных', description: 'Основная БД и файловое хранилище', group: 'Ядро платформы', status: 'operational', seed: 11 },
-  { id: 'telemetry', name: 'Телеметрия объектов', description: 'Сбор показаний датчиков с площадок', group: 'Объекты', status: 'degraded', seed: 13 },
-  { id: 'relay', name: 'Ретрансляция связи', description: 'Каналы связи с удалёнными объектами', group: 'Объекты', status: 'outage', seed: 17 },
-  { id: 'notify', name: 'Уведомления', description: 'Почта, SMS, сообщения в мессенджер', group: 'Сервисы', status: 'operational', seed: 19 },
-  { id: 'reports', name: 'Отчёты и выгрузки', description: 'Формирование отчётов и файлов', group: 'Сервисы', status: 'operational', seed: 23 },
+  { id: 'api', name: bi('API шлюз', 'API gateway'), description: bi('Внешний и внутренний API консоли', 'External and internal console API'), group: CORE, status: 'operational', seed: 3 },
+  { id: 'auth', name: bi('Авторизация', 'Authentication'), description: bi('Вход, сессии, единый доступ', 'Sign-in, sessions, single sign-on'), group: CORE, status: 'operational', seed: 5 },
+  { id: 'queue', name: bi('Очереди сообщений', 'Message queues'), description: bi('Шина событий между сервисами', 'Event bus between services'), group: CORE, status: 'operational', seed: 7 },
+  { id: 'storage', name: bi('Хранилище данных', 'Data storage'), description: bi('Основная БД и файловое хранилище', 'Primary database and file storage'), group: CORE, status: 'operational', seed: 11 },
+  { id: 'telemetry', name: bi('Телеметрия объектов', 'Facility telemetry'), description: bi('Сбор показаний датчиков с площадок', 'Sensor readings from sites'), group: SITES, status: 'degraded', seed: 13 },
+  { id: 'relay', name: bi('Ретрансляция связи', 'Communications relay'), description: bi('Каналы связи с удалёнными объектами', 'Links to remote facilities'), group: SITES, status: 'outage', seed: 17 },
+  { id: 'notify', name: bi('Уведомления', 'Notifications'), description: bi('Почта, SMS, сообщения в мессенджер', 'Email, SMS, messenger'), group: APPS, status: 'operational', seed: 19 },
+  { id: 'reports', name: bi('Отчёты и выгрузки', 'Reports and exports'), description: bi('Формирование отчётов и файлов', 'Report and file generation'), group: APPS, status: 'operational', seed: 23 },
 ]
 
 function buildDays(s: ServiceSeed): DayRecord[] {
@@ -113,8 +119,16 @@ export const SERVICES: Service[] = SEEDS.map((s) => {
   return { id: s.id, name: s.name, description: s.description, group: s.group, status: s.status, days, uptime: uptimeOf(days) }
 })
 
-export function serviceName(id: string): string {
-  return SERVICES.find((s) => s.id === id)?.name ?? id
+export function serviceName(id: string): Bi {
+  return SERVICES.find((s) => s.id === id)?.name ?? bi(id, id)
+}
+
+/** Длительность для показа: «1 ч 05 мин» / «1 h 05 min». */
+export function formatDuration(minutes: number, lang: Lang): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  const [hu, mu] = lang === 'en' ? ['h', 'min'] : ['ч', 'мин']
+  return h ? `${h} ${hu} ${String(m).padStart(2, '0')} ${mu}` : `${m} ${mu}`
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,17 +170,17 @@ export const LATENCY_7D: LatencyPoint[] = ['02.10', '03.10', '04.10', '05.10', '
 export type IncidentSeverity = 'critical' | 'major' | 'minor'
 export type IncidentState = 'investigating' | 'identified' | 'monitoring' | 'resolved'
 
-export const INCIDENT_SEVERITY: Record<IncidentSeverity, { label: string; tone: 'danger' | 'warning' | 'neutral' }> = {
-  critical: { label: 'Критический', tone: 'danger' },
-  major: { label: 'Серьёзный', tone: 'warning' },
-  minor: { label: 'Незначительный', tone: 'neutral' },
+export const INCIDENT_SEVERITY: Record<IncidentSeverity, { label: Bi; tone: 'danger' | 'warning' | 'neutral' }> = {
+  critical: { label: bi('Критический', 'Critical'), tone: 'danger' },
+  major: { label: bi('Серьёзный', 'Major'), tone: 'warning' },
+  minor: { label: bi('Незначительный', 'Minor'), tone: 'neutral' },
 }
 
-export const INCIDENT_STATE: Record<IncidentState, { label: string; tone: 'danger' | 'warning' | 'info' | 'success' }> = {
-  investigating: { label: 'Выясняем причину', tone: 'danger' },
-  identified: { label: 'Причина найдена', tone: 'warning' },
-  monitoring: { label: 'Наблюдаем', tone: 'info' },
-  resolved: { label: 'Решён', tone: 'success' },
+export const INCIDENT_STATE: Record<IncidentState, { label: Bi; tone: 'danger' | 'warning' | 'info' | 'success' }> = {
+  investigating: { label: bi('Выясняем причину', 'Investigating'), tone: 'danger' },
+  identified: { label: bi('Причина найдена', 'Identified'), tone: 'warning' },
+  monitoring: { label: bi('Наблюдаем', 'Monitoring'), tone: 'info' },
+  resolved: { label: bi('Решён', 'Resolved'), tone: 'success' },
 }
 
 export interface IncidentUpdate {
@@ -174,116 +188,180 @@ export interface IncidentUpdate {
   /** ДД.ММ ЧЧ:ММ */
   at: string
   state: IncidentState
-  text: string
+  text: Bi
 }
 
 export interface StatusIncident {
   id: string
-  title: string
+  title: Bi
   severity: IncidentSeverity
   state: IncidentState
   services: string[]
   /** ДД.ММ.ГГГГ ЧЧ:ММ */
   startedAt: string
   endedAt: string | null
-  /** Длительность для показа. */
-  duration: string
-  summary: string
+  /** Длительность, мин. Для показа - formatDuration. */
+  minutes: number
+  summary: Bi
   updates: IncidentUpdate[]
 }
 
 export const STATUS_INCIDENTS: StatusIncident[] = [
   {
     id: 'INC-2291',
-    title: 'Потеря связи с ретранслятором Южный',
+    title: bi('Потеря связи с ретранслятором Южный', 'Lost connection to South Relay'),
     severity: 'critical',
     state: 'investigating',
     services: ['relay', 'telemetry'],
     startedAt: '08.10.2026 08:12',
     endedAt: null,
-    duration: '1 ч 40 мин',
-    summary: 'Объект RLY-05 не отвечает по основному и резервному каналам. Данные телеметрии Южного сектора не поступают.',
+    minutes: 100,
+    summary: bi(
+      'Объект RLY-05 не отвечает по основному и резервному каналам. Данные телеметрии Южного сектора не поступают.',
+      'RLY-05 does not respond on the primary or backup channel. No telemetry is coming in from South sector.',
+    ),
     updates: [
-      { id: 'u3', at: '08.10 09:40', state: 'investigating', text: 'Резервный спутниковый канал тоже недоступен. Предполагаем отказ питания мачты.' },
-      { id: 'u2', at: '08.10 08:25', state: 'investigating', text: 'Дежурная бригада выехала на объект, расчётное прибытие - 11:00.' },
-      { id: 'u1', at: '08.10 08:12', state: 'investigating', text: 'Мониторинг зафиксировал потерю связи с ретранслятором.' },
+      {
+        id: 'u3',
+        at: '08.10 09:40',
+        state: 'investigating',
+        text: bi(
+          'Резервный спутниковый канал тоже недоступен. Предполагаем отказ питания мачты.',
+          'The backup satellite channel is also down. We suspect a power failure at the mast.',
+        ),
+      },
+      {
+        id: 'u2',
+        at: '08.10 08:25',
+        state: 'investigating',
+        text: bi('Дежурная бригада выехала на объект, расчётное прибытие - 11:00.', 'The on-call crew is on its way to the site, ETA 11:00.'),
+      },
+      { id: 'u1', at: '08.10 08:12', state: 'investigating', text: bi('Мониторинг зафиксировал потерю связи с ретранслятором.', 'Monitoring detected a lost connection to the relay.') },
     ],
   },
   {
     id: 'INC-2288',
-    title: 'Задержка телеметрии с объекта Хребет',
+    title: bi('Задержка телеметрии с объекта Хребет', 'Telemetry delays from Ridge'),
     severity: 'major',
     state: 'monitoring',
     services: ['telemetry'],
     startedAt: '08.10.2026 06:47',
     endedAt: null,
-    duration: '3 ч 05 мин',
-    summary: 'После остановки линии №3 часть датчиков передаёт данные с задержкой до 4 минут.',
+    minutes: 185,
+    summary: bi(
+      'После остановки линии №3 часть датчиков передаёт данные с задержкой до 4 минут.',
+      'After line 3 was stopped, some sensors report data with a delay of up to 4 minutes.',
+    ),
     updates: [
-      { id: 'u3', at: '08.10 08:50', state: 'monitoring', text: 'Буфер шлюза очищен, задержка снизилась до 40 секунд. Наблюдаем.' },
-      { id: 'u2', at: '08.10 07:30', state: 'identified', text: 'Причина - переполнение буфера шлюза при массовом переподключении датчиков.' },
-      { id: 'u1', at: '08.10 06:47', state: 'investigating', text: 'Показания с объекта RDG-04 приходят с задержкой.' },
+      {
+        id: 'u3',
+        at: '08.10 08:50',
+        state: 'monitoring',
+        text: bi('Буфер шлюза очищен, задержка снизилась до 40 секунд. Наблюдаем.', 'Gateway buffer cleared; delay is down to 40 seconds. Monitoring.'),
+      },
+      {
+        id: 'u2',
+        at: '08.10 07:30',
+        state: 'identified',
+        text: bi(
+          'Причина - переполнение буфера шлюза при массовом переподключении датчиков.',
+          'Cause: gateway buffer overflow during a mass sensor reconnect.',
+        ),
+      },
+      { id: 'u1', at: '08.10 06:47', state: 'investigating', text: bi('Показания с объекта RDG-04 приходят с задержкой.', 'Readings from RDG-04 are arriving late.') },
     ],
   },
   {
     id: 'INC-2276',
-    title: 'Задержки доставки уведомлений',
+    title: bi('Задержки доставки уведомлений', 'Notification delivery delays'),
     severity: 'minor',
     state: 'resolved',
     services: ['notify'],
     startedAt: '02.10.2026 14:05',
     endedAt: '02.10.2026 15:10',
-    duration: '1 ч 05 мин',
-    summary: 'SMS-уведомления доставлялись с задержкой до 20 минут из-за ограничений у провайдера.',
+    minutes: 65,
+    summary: bi(
+      'SMS-уведомления доставлялись с задержкой до 20 минут из-за ограничений у провайдера.',
+      'SMS notifications were delayed by up to 20 minutes due to provider limits.',
+    ),
     updates: [
-      { id: 'u2', at: '02.10 15:10', state: 'resolved', text: 'Трафик переключён на резервного провайдера, очередь доставлена.' },
-      { id: 'u1', at: '02.10 14:05', state: 'investigating', text: 'Растёт очередь исходящих SMS.' },
+      {
+        id: 'u2',
+        at: '02.10 15:10',
+        state: 'resolved',
+        text: bi('Трафик переключён на резервного провайдера, очередь доставлена.', 'Traffic switched to the backup provider; the queue has been delivered.'),
+      },
+      { id: 'u1', at: '02.10 14:05', state: 'investigating', text: bi('Растёт очередь исходящих SMS.', 'The outgoing SMS queue is growing.') },
     ],
   },
   {
     id: 'INC-2263',
-    title: 'Недоступность API шлюза',
+    title: bi('Недоступность API шлюза', 'API gateway unavailable'),
     severity: 'major',
     state: 'resolved',
     services: ['api'],
     startedAt: '24.09.2026 03:12',
     endedAt: '24.09.2026 03:41',
-    duration: '29 мин',
-    summary: 'После обновления конфигурации балансировщика запросы к API возвращали ошибку 502.',
+    minutes: 29,
+    summary: bi(
+      'После обновления конфигурации балансировщика запросы к API возвращали ошибку 502.',
+      'After a load balancer config update, API requests returned error 502.',
+    ),
     updates: [
-      { id: 'u3', at: '24.09 03:41', state: 'resolved', text: 'Конфигурация откатана, ошибки прекратились. Разбор - в базе знаний.' },
-      { id: 'u2', at: '24.09 03:25', state: 'identified', text: 'Причина - ошибка в правилах маршрутизации нового релиза.' },
-      { id: 'u1', at: '24.09 03:12', state: 'investigating', text: 'Доля ошибок 5xx превысила 30%.' },
+      {
+        id: 'u3',
+        at: '24.09 03:41',
+        state: 'resolved',
+        text: bi('Конфигурация откатана, ошибки прекратились. Разбор - в базе знаний.', 'Config rolled back and errors stopped. Postmortem is in the knowledge base.'),
+      },
+      { id: 'u2', at: '24.09 03:25', state: 'identified', text: bi('Причина - ошибка в правилах маршрутизации нового релиза.', 'Cause: a routing rule bug in the new release.') },
+      { id: 'u1', at: '24.09 03:12', state: 'investigating', text: bi('Доля ошибок 5xx превысила 30%.', '5xx error rate exceeded 30%.') },
     ],
   },
   {
     id: 'INC-2250',
-    title: 'Рост задержек в очереди событий',
+    title: bi('Рост задержек в очереди событий', 'Rising event queue latency'),
     severity: 'minor',
     state: 'resolved',
     services: ['queue'],
     startedAt: '17.09.2026 11:20',
     endedAt: '17.09.2026 12:12',
-    duration: '52 мин',
-    summary: 'События обрабатывались с задержкой до 3 минут из-за медленного потребителя.',
+    minutes: 52,
+    summary: bi(
+      'События обрабатывались с задержкой до 3 минут из-за медленного потребителя.',
+      'Events were processed with a delay of up to 3 minutes due to a slow consumer.',
+    ),
     updates: [
-      { id: 'u2', at: '17.09 12:12', state: 'resolved', text: 'Потребитель масштабирован до 6 экземпляров, очередь разобрана.' },
-      { id: 'u1', at: '17.09 11:20', state: 'investigating', text: 'Глубина очереди выше порога.' },
+      {
+        id: 'u2',
+        at: '17.09 12:12',
+        state: 'resolved',
+        text: bi('Потребитель масштабирован до 6 экземпляров, очередь разобрана.', 'Consumer scaled to 6 instances; the queue has been drained.'),
+      },
+      { id: 'u1', at: '17.09 11:20', state: 'investigating', text: bi('Глубина очереди выше порога.', 'Queue depth is above the threshold.') },
     ],
   },
   {
     id: 'INC-2231',
-    title: 'Ошибки выгрузки отчётов в XLSX',
+    title: bi('Ошибки выгрузки отчётов в XLSX', 'XLSX report export errors'),
     severity: 'minor',
     state: 'resolved',
     services: ['reports'],
     startedAt: '05.09.2026 09:30',
     endedAt: '05.09.2026 10:50',
-    duration: '1 ч 20 мин',
-    summary: 'Выгрузки больше 50 тыс. строк завершались ошибкой. Остальные форматы работали.',
+    minutes: 80,
+    summary: bi(
+      'Выгрузки больше 50 тыс. строк завершались ошибкой. Остальные форматы работали.',
+      'Exports over 50K rows failed. Other formats worked.',
+    ),
     updates: [
-      { id: 'u2', at: '05.09 10:50', state: 'resolved', text: 'Увеличен лимит памяти сервиса отчётов, выгрузки перезапущены.' },
-      { id: 'u1', at: '05.09 09:30', state: 'investigating', text: 'Пользователи сообщают об ошибке при выгрузке.' },
+      {
+        id: 'u2',
+        at: '05.09 10:50',
+        state: 'resolved',
+        text: bi('Увеличен лимит памяти сервиса отчётов, выгрузки перезапущены.', 'Report service memory limit increased; exports restarted.'),
+      },
+      { id: 'u1', at: '05.09 09:30', state: 'investigating', text: bi('Пользователи сообщают об ошибке при выгрузке.', 'Users report an error when exporting.') },
     ],
   },
 ]
@@ -294,41 +372,41 @@ export const STATUS_INCIDENTS: StatusIncident[] = [
 
 export interface Maintenance {
   id: string
-  title: string
+  title: Bi
   /** ДД.ММ.ГГГГ */
   date: string
   window: string
   services: string[]
-  impact: string
+  impact: Bi
   impactTone: 'info' | 'warning'
 }
 
 export const MAINTENANCE: Maintenance[] = [
   {
     id: 'MW-118',
-    title: 'Обновление кластера хранилища',
+    title: bi('Обновление кластера хранилища', 'Storage cluster upgrade'),
     date: '12.10.2026',
     window: '02:00-04:00',
     services: ['storage', 'reports'],
-    impact: 'Только чтение',
+    impact: bi('Только чтение', 'Read-only'),
     impactTone: 'warning',
   },
   {
     id: 'MW-119',
-    title: 'Замена сертификатов API шлюза',
+    title: bi('Замена сертификатов API шлюза', 'API gateway certificate renewal'),
     date: '15.10.2026',
     window: '22:00-22:30',
     services: ['api'],
-    impact: 'Обрывы до 1 минуты',
+    impact: bi('Обрывы до 1 минуты', 'Drops of up to 1 minute'),
     impactTone: 'info',
   },
   {
     id: 'MW-121',
-    title: 'Перенос очередей на новый кластер',
+    title: bi('Перенос очередей на новый кластер', 'Queue migration to a new cluster'),
     date: '19.10.2026',
     window: '01:00-05:00',
     services: ['queue', 'notify'],
-    impact: 'Уведомления с задержкой до 10 минут',
+    impact: bi('Уведомления с задержкой до 10 минут', 'Notifications delayed by up to 10 minutes'),
     impactTone: 'warning',
   },
 ]

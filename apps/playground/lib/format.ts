@@ -1,26 +1,41 @@
 /*
  * Форматирование для вывода. Деньги хранятся в копейках (целые числа),
- * как в MoneyInput библиотеки; рубли - только при показе.
+ * как в MoneyInput библиотеки; рубли - только при показе. Язык - параметр
+ * (в компонентах удобнее useT() из lib/i18n: функции там уже привязаны к языку).
+ * Даты - «ДД.ММ.ГГГГ» на обоих языках, как в полях библиотеки.
  */
 
-const rub = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 })
-const rubExact = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 2 })
-const num = new Intl.NumberFormat('ru-RU')
+import type { Lang } from './lang'
 
-export function formatRub(kopecks: number): string {
-  return kopecks % 100 === 0 ? rub.format(kopecks / 100) : rubExact.format(kopecks / 100)
+const INTL: Record<Lang, string> = { ru: 'ru-RU', en: 'en-US' }
+
+const rub = {
+  ru: new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }),
+  en: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }),
+}
+const rubExact = {
+  ru: new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 2 }),
+  en: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'RUB', minimumFractionDigits: 2 }),
+}
+const num = { ru: new Intl.NumberFormat('ru-RU'), en: new Intl.NumberFormat('en-US') }
+
+export function formatRub(kopecks: number, lang: Lang = 'ru'): string {
+  return kopecks % 100 === 0 ? rub[lang].format(kopecks / 100) : rubExact[lang].format(kopecks / 100)
 }
 
-/** Короткая сумма для осей графиков: 1,2 млн / 350 тыс. */
-export function formatRubShort(kopecks: number): string {
+/** Короткая сумма для осей графиков: 1,2 млн / 350 тыс (en: 1.2M / 350K). */
+export function formatRubShort(kopecks: number, lang: Lang = 'ru'): string {
   const r = kopecks / 100
-  if (Math.abs(r) >= 1_000_000) return `${(r / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} млн`
-  if (Math.abs(r) >= 1_000) return `${Math.round(r / 1_000)} тыс`
+  if (Math.abs(r) >= 1_000_000) {
+    const v = (r / 1_000_000).toLocaleString(INTL[lang], { maximumFractionDigits: 1 })
+    return lang === 'en' ? `${v}M` : `${v} млн`
+  }
+  if (Math.abs(r) >= 1_000) return lang === 'en' ? `${Math.round(r / 1_000)}K` : `${Math.round(r / 1_000)} тыс`
   return String(Math.round(r))
 }
 
-export function formatNum(n: number): string {
-  return num.format(n)
+export function formatNum(n: number, lang: Lang = 'ru'): string {
+  return num[lang].format(n)
 }
 
 /** YYYY-MM-DD -> ДД.ММ.ГГГГ */
@@ -37,7 +52,7 @@ export function formatDateTime(iso: string): string {
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-/** Склонение: plural(5, 'задача', 'задачи', 'задач'). */
+/** Русское склонение: plural(5, 'задача', 'задачи', 'задач'). Для двух языков - useT().plural. */
 export function plural(n: number, one: string, few: string, many: string): string {
   const m10 = n % 10
   const m100 = n % 100
