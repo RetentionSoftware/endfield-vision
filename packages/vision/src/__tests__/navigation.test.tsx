@@ -58,6 +58,13 @@ describe('CommandPalette: поиск и группы', () => {
     expect(filterCommands(COMMANDS, '  ').length).toBe(COMMANDS.length)
   })
 
+  it('alwaysShow: результат поиска с сервера не отсекается локальным сопоставлением', () => {
+    const found: CommandItem = { id: 'carrier-1', label: 'ООО «Вектор»', hint: 'ИНН 7701234567', group: 'Перевозчики', alwaysShow: true, onSelect: noop }
+    const ids = filterCommands([...COMMANDS, found], '7701').map((c) => c.id)
+    expect(ids).toEqual(['carrier-1'])
+    expect(filterCommands([...COMMANDS, found], 'склад').map((c) => c.id)).toEqual(['stock', 'carrier-1'])
+  })
+
   it('группы - в порядке первого появления, команды группы собраны вместе', () => {
     const groups = groupCommands(COMMANDS)
     expect(groups.map((g) => g.group)).toEqual(['Разделы', 'Действия', undefined])

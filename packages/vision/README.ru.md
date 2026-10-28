@@ -15,7 +15,7 @@ npm i endfield-vision
 Без реестра npm: к каждому релизу на GitHub приложена та же сборка архивом.
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.0/endfield-vision-2.2.0.tgz
 ```
 
 Нужны `react` и `react-dom` 19.
@@ -97,7 +97,7 @@ import { LocaleProvider } from 'endfield-vision'
   - `slim` («Утончённый») - плоский и спокойный: мягкие нейтрали, ничего не светится, выбранное - нейтральным тоном, вторичная и опасная кнопки контуром, подписи без капса, фокус - чёткая линия вместо мягкого ореола.
 - **Акцент** - `data-accent="amber|emerald|cyan|rose|violet|ink"` (без атрибута - indigo). `ink` («Чернила») - нейтральный акцент: основная кнопка чернильная, цвет остаётся только в статусах. У каждого пресета свои значения для каждого стиля и темы; контраст проверяют тесты.
 
-`ThemeScript` ставит все три до отрисовки. Опции: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `themeKey`, `styleKey`, `accentKey`, `nonce` (для CSP).
+`ThemeScript` ставит все три до отрисовки. Опции: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `accents` (свои пресеты), `themeKey`, `styleKey`, `accentKey`, `nonce` (для CSP).
 
 ```tsx
 <ThemeScript defaultTheme="system" defaultStyle="slim" defaultAccent="ink" />
@@ -108,7 +108,29 @@ const { theme, preference, style, accent, setTheme, setStyle, setAccent } = useT
 
 `STYLES` и `ACCENTS` - списки доступных значений; `setTheme`, `setStyle` и `setAccent` работают и вне React.
 
-Свой акцент - переопределите токены в стилях приложения (вне слоёв они сильнее):
+Свой пресет акцента: имя и значения для тёмной и светлой темы (и, по желанию, для Slim). После регистрации в `ThemeScript` он работает как встроенный: в `data-accent`, `defaultAccent`, `setAccent` и `useTheme`, а образец для переключателей - `--ev-accent-swatch-<имя>`.
+
+```tsx
+// lib/accents.ts - без 'use client': его читает серверный layout
+import type { AccentPreset } from 'endfield-vision'
+
+export const BRAND: AccentPreset = {
+  name: 'brand',
+  dark: { accent: '#2dd4bf', text: '#5eead4', strong: '#0f766e', strongHover: '#118479', onStrong: '#ffffff' },
+  light: { accent: '#0d9488', text: '#0f766e', strong: '#0f766e', strongHover: '#0b5f59', onStrong: '#ffffff' },
+  slim: { dark: { /* ... */ } }, // по желанию; без него в Slim те же значения
+}
+
+// app/layout.tsx
+<ThemeScript accents={[BRAND]} defaultAccent="brand" />
+
+// в клиентском коде: тип акцента включает свой пресет
+const { accent, setAccent } = useTheme<Accent | 'brand'>()
+```
+
+Контраст - на вас, как у встроенных пресетов: `text` к `--ev-surface-1` и `onStrong` к `strong` - не ниже 4.5:1 в каждой теме и стиле. `accentPresetCss()` отдаёт тот же CSS строкой, `AccentStyles` - отдельным `<style>`.
+
+Разовый вариант без пресета - переопределите токены в стилях приложения (вне слоёв они сильнее):
 
 ```css
 :root {
@@ -178,10 +200,10 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 - **Действия:** `Button` (`primary | secondary | ghost | danger | danger-ghost | link`, `sm | md | lg`, `loading`, `icon`, `iconRight`, `block`), `LinkButton`, `IconButton` (обязательный `label` = aria-label + подсказка), `Menu`, `Popover`.
 - **Формы:** `Field` (подпись, подсказка, ошибка; сам связывает `id`, `aria-invalid`, `aria-describedby`), `FormSection`, `Input`, `SearchInput`, `PasswordInput`, `Textarea` (`autoResize`), `NumberInput` (`min/max/step`, `decimals`, `unit`, `stepper`), `MoneyInput` (значение в копейках), `PhoneInput` (22 страны с выбором из списка, распознавание кода при вставке, E.164), `SnilsInput`, `PlateInput`, `DigitsInput`, `MaskedDigitsInput`, `TimeInput` (`ЧЧ:ММ`, `min/max`), `ColorField`.
 - **Выбор:** `Select` (поиск при > 7 опций, группы, `clearable`, серверный поиск `onSearch`), `MultiSelect`, `DateField` (`YYYY-MM-DD`), `DateRangePicker`, `Calendar`, `Checkbox` (`indeterminate`), `Switch`, `RadioGroup` (`variant="card"`), `SegmentedControl`, `Tabs` (кнопки или ссылки `href`), `TabPanel`.
-- **Данные:** `DataTable` (колонки конфигом, сортировка, выбор строк, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, на узком экране - карточки), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar` (инициалы или фото), `Progress` (в том числе перерасход), `Timeline` (лента событий, будущие шаги, «показать ещё»), `UptimeBar` (доступность по дням с подсказками), `CopyButton`, `CopyValue`.
+- **Данные:** `DataTable` (колонки конфигом, сортировка, выбор строк, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, на узком экране - карточки; у строки - `rowTone`, `rowAttributes` (свои `data-*` и `aria-*`, например для `ContextMenuProvider`), `rowClassName`, `rowMuted`; раскрывающиеся строки `renderExpanded` с `expanded` / `onExpandedChange`; итоговая строка из `footerCell` колонок; `stickyHeader` - шапка липнет к верху страницы без `maxHeight`), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar` (инициалы или фото), `Progress` (в том числе перерасход), `Timeline` (лента событий, будущие шаги, «показать ещё»), `UptimeBar` (доступность по дням с подсказками), `CopyButton`, `CopyValue`.
 - **Графики:** `BarChart` (рядом или `stacked`), `LineChart`, `AreaChart`, `Sparkline`, `DonutChart` (доли, «Прочее», легенда), `Heatmap` (календарь активности) и `HeatmapMatrix` (матрица «строка x столбец»), `RingProgress` (кольцо, секции, перерасход), `Gauge` (шкала-полукруг с зонами). Подсказка по наведению и стрелками, легенда при 2+ сериях, скрытая таблица для скринридера.
-- **Состояния и окна:** `Callout`, `EmptyState`, `ErrorState`, `Skeleton`, `SkeletonText`, `Spinner`, `LoadingBlock`, `Modal`, `useModals()` (`open`, `confirm`, `alert`), `Drawer`, `toast.*` / `useToast()` (вызов и вне React), `FileDrop`.
-- **Навигация и структура:** `CommandPalette` (Ctrl+K, группы, поиск по словам), `Steps` (шаги мастера, горизонтально и вертикально), `Accordion` и `Disclosure`, `TreeView` (выбор одного или нескольких с частичным состоянием, клавиатура WAI-ARIA).
+- **Состояния и окна:** `Callout`, `EmptyState`, `ErrorState`, `Skeleton`, `SkeletonText`, `Spinner`, `LoadingBlock`, `Modal`, `useModals()` (`open`, `confirm`, `alert`, `prompt` - окно с полем ввода и проверкой), `Drawer`, `toast.*` / `useToast()` (вызов и вне React; `onClick` - клик по всей карточке), `FileDrop`.
+- **Навигация и структура:** `CommandPalette` (Ctrl+K, группы, поиск по словам; поиск с сервера: `query` / `onQueryChange`, `loading`, `alwaysShow` у пунктов или `filter={false}`, `highlight`), `Steps` (шаги мастера, горизонтально и вертикально), `Accordion` и `Disclosure`, `TreeView` (выбор одного или нескольких с частичным состоянием, клавиатура WAI-ARIA).
 - **Ввод (дополнительно):** `Slider` (значение и диапазон, метки), `TagInput` (метки, подсказки, лимит, проверка), `Chip` и `ChipGroup` (фильтры и метки), `OtpInput` (код подтверждения, вставка целиком), `InlineEdit` (правка на месте с асинхронным сохранением).
 - **Контент:** `Banner` (объявление на всю ширину, скрытие запоминается), `CodeBlock` и `InlineCode` (номера строк, подсветка строк и синтаксиса без зависимостей, сворачивание), `Highlight` (совпадения поиска, ё = е), `RelativeTime` («5 минут назад» на обоих языках), `ExpandableText` («Показать полностью»).
 - **Каркас:** `AppShell` (слот `statusBar`), `Topbar`, `Sidebar`, `SidebarSection`, `SidebarItem`, `SidebarCollapseButton`, `useAppShell()`, `PageHeader`, `Breadcrumbs`, `SectionTitle`, `Card`, `Panel`, `Divider`, `Kbd`, `StatusBar` (`StatusBarItem`, `StatusBarClock`), `WorkspaceSwitcher`, `ScreenOverlay` (техработы, новая версия), `ContextMenu` и `ContextMenuProvider` (правый клик, реестр по `data-ctx-kind`).
@@ -190,7 +212,7 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 - **CRM - коммуникации:** `NotificationCenter` и `NotificationList` (история, прочитано, действия), `toast` с несколькими действиями, `ChatThread`, `ChatMessage`, `Composer` (вложения, вставка скриншотов, перетаскивание), `Lightbox`, `ConnectionStatus`.
 - **Фильтры в адресе:** `useUrlFilters` - синхронизация с URL и память по области.
 - **Язык:** `LocaleProvider`, `useMessages`, `useLocale`, `useNumberFormat`, словари `ru`, `en`.
-- **Тема:** `ThemeScript` (`nonce` для CSP), `themeBootstrap`, `useTheme`, `setTheme`, `setAccent`, `ACCENTS`.
+- **Тема:** `ThemeScript` (`nonce` для CSP, `accents`), `themeBootstrap`, `useTheme`, `setTheme`, `setStyle`, `setAccent`, `ACCENTS`, `STYLES`, `AccentPreset`, `accentPresetCss`, `AccentStyles`.
 - **Утилиты:** `cx`, `normalizeSearch`, `formatPhone`, `isCompletePhone`, `normalizePlate`, `normalizeHexColor`, `useMediaQuery`, `useDebouncedValue`, `useControllable`, `LinkProvider`. Классы раскладки: `ev-stack`, `ev-row`, `ev-grid` (`--ev-gap`, `--ev-grid-min`), `ev-mono`, `ev-num`, `ev-muted`, `ev-truncate`, `ev-link`, `ev-visually-hidden`.
 
 ## Доработка под себя

@@ -131,12 +131,109 @@
     box-shadow: inset 0 1px 0 var(--ev-selected-edge), inset 0 -1px 0 var(--ev-selected-edge);
   }
 
+  /* Тон строки (rowTone): тонированный фон, наведение - тинт поверх него. */
+  .ev-table tbody tr[data-tone],
+  .ev-table-card[data-tone] {
+    --ev-tone-row: color-mix(in srgb, var(--ev-tone-soft) 65%, transparent);
+  }
+
+  .ev-table tbody tr[data-tone] > td {
+    background: var(--ev-tone-row);
+  }
+
+  .ev-table tbody tr[data-tone]:hover > td {
+    background: linear-gradient(var(--ev-hover), var(--ev-hover)), var(--ev-tone-row);
+  }
+
   .ev-table tbody tr[data-selected] td {
     background: var(--ev-selected-bg-subtle);
   }
 
   .ev-table tbody tr[data-muted] td {
     color: var(--ev-text-muted);
+  }
+
+  /* --- Раскрывающиеся строки --- */
+  .ev-table .ev-table-expand {
+    width: 40px;
+    padding-right: 0;
+  }
+
+  .ev-table-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 -4px;
+    border-radius: var(--ev-radius-xs);
+    color: var(--ev-text-muted);
+    vertical-align: middle;
+  }
+
+  .ev-table-expand-btn:hover {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
+  .ev-table-expand-btn svg {
+    transition: transform var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-table-expand-btn[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+  }
+
+  .ev-table tbody tr[data-expanded]:not([data-tone], [data-selected]) > td {
+    background: var(--ev-tint-1);
+  }
+
+  .ev-table tbody tr[data-expanded] > td {
+    border-bottom-color: transparent;
+  }
+
+  .ev-table .ev-table-detail-row > td {
+    height: auto;
+    padding: 0;
+    white-space: normal;
+    background: var(--ev-tint-1);
+  }
+
+  .ev-table-detail {
+    padding: var(--ev-space-2) var(--ev-space-5) var(--ev-space-5);
+  }
+
+  .ev-card-body-flush .ev-table-detail {
+    padding-inline: var(--ev-space-6);
+  }
+
+  /* --- Итоговая строка --- */
+  .ev-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--ev-z-sticky);
+    height: 40px;
+    background: var(--ev-surface-2);
+    border-top: 1px solid var(--ev-border);
+    border-bottom: 0;
+    font-weight: var(--ev-fw-medium);
+  }
+
+  :is(.ev-card, .ev-panel, .ev-modal, .ev-drawer) .ev-table tfoot td {
+    background: var(--ev-surface-3);
+  }
+
+  .ev-card-body-flush .ev-table tfoot td {
+    background: var(--ev-surface-2);
+  }
+
+  /* --- Шапка, липнущая к странице (stickyHeader): сдвиг считает DataTable --- */
+  .ev-table[data-sticky-page] thead th {
+    transform: translateY(var(--ev-thead-shift, 0px));
+  }
+
+  .ev-table[data-stuck] thead th {
+    box-shadow: var(--ev-shadow-sm);
   }
 
   .ev-table-select {
@@ -256,6 +353,29 @@
 
   .ev-table-card[data-muted] {
     opacity: 0.7;
+  }
+
+  .ev-table-card[data-tone]:not([data-selected]) {
+    background-image: linear-gradient(var(--ev-tone-row), var(--ev-tone-row));
+  }
+
+  .ev-table-card[data-tone][data-clickable]:not([data-selected]):active {
+    background-image: linear-gradient(var(--ev-active), var(--ev-active)), linear-gradient(var(--ev-tone-row), var(--ev-tone-row));
+  }
+
+  .ev-table-card-head .ev-table-expand-btn {
+    flex: 0 0 auto;
+    margin: -2px -4px 0 0;
+  }
+
+  .ev-table-card-detail {
+    padding-top: var(--ev-space-3);
+    border-top: 1px solid var(--ev-border-soft);
+    min-width: 0;
+  }
+
+  .ev-table-card-total {
+    background: var(--ev-surface-2);
   }
 
   .ev-table-card-head {

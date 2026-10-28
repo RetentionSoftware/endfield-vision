@@ -6,6 +6,7 @@ import {
   STYLE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   type Accent,
+  type AccentName,
   type Style,
   type Theme,
   type ThemePreference,
@@ -49,8 +50,8 @@ function readPreference(): ThemePreference {
   return p === 'system' || p === 'light' ? p : p === 'dark' ? 'dark' : readTheme()
 }
 
-function readAccent(): Accent {
-  return (document.documentElement.dataset.accent as Accent | undefined) ?? 'indigo'
+function readAccent(): string {
+  return document.documentElement.dataset.accent ?? 'indigo'
 }
 
 function readStyle(): Style {
@@ -66,8 +67,8 @@ export function setTheme(pref: ThemePreference, { persist = true, storageKey = T
   emit()
 }
 
-/** Акцент из пресетов (styles/accents.css). 'indigo' - базовый, атрибут снимается. */
-export function setAccent(accent: Accent, { persist = true, storageKey = ACCENT_STORAGE_KEY } = {}): void {
+/** Акцент: встроенный пресет (styles/accents.css) или свой (AccentPreset). 'indigo' - базовый, атрибут снимается. */
+export function setAccent(accent: AccentName, { persist = true, storageKey = ACCENT_STORAGE_KEY } = {}): void {
   const root = document.documentElement
   if (accent === 'indigo') delete root.dataset.accent
   else root.dataset.accent = accent
@@ -84,22 +85,26 @@ export function setStyle(style: Style, { persist = true, storageKey = STYLE_STOR
   emit()
 }
 
-export interface ThemeState {
+/**
+ * Состояние темы. A - имена акцентов приложения: по умолчанию встроенные;
+ * со своими пресетами - useTheme<Accent | 'brand'>().
+ */
+export interface ThemeState<A extends string = Accent> {
   /** Действующая тема. */
   theme: Theme
   /** Выбор пользователя (может быть 'system'). */
   preference: ThemePreference
-  accent: Accent
+  accent: A
   style: Style
   setTheme: typeof setTheme
   setAccent: typeof setAccent
   setStyle: typeof setStyle
 }
 
-export function useTheme(): ThemeState {
+export function useTheme<A extends string = Accent>(): ThemeState<A> {
   const theme = useSyncExternalStore(subscribe, readTheme, () => 'dark' as Theme)
   const preference = useSyncExternalStore(subscribe, readPreference, () => 'dark' as ThemePreference)
-  const accent = useSyncExternalStore(subscribe, readAccent, () => 'indigo' as Accent)
+  const accent = useSyncExternalStore(subscribe, readAccent, () => 'indigo') as A
   const style = useSyncExternalStore(subscribe, readStyle, () => 'default' as Style)
 
   // Режим 'system': следим за сменой темы ОС.

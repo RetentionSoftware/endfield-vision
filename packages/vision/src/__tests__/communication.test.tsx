@@ -454,6 +454,15 @@ describe('Toast: несколько действий', () => {
     expect(single).not.toContain('ev-toast-actions')
   })
 
+  it('onClick: заголовок - кнопка на всю карточку, карточка помечена', () => {
+    const out = renderRu(<ToastCard item={{ ...base, onClick: () => undefined }} />)
+    expect(out).toContain('data-clickable=""')
+    expect(out).toContain('<button type="button" class="ev-toast-title ev-toast-open">Файл загружен</button>')
+    const plain = renderRu(<ToastCard item={base} />)
+    expect(plain).not.toContain('data-clickable')
+    expect(plain).toContain('<div class="ev-toast-title">Файл загружен</div>')
+  })
+
   it('toast.show принимает actions и возвращает id', () => {
     const id = toast.show({
       title: 'Готово',

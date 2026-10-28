@@ -15,10 +15,10 @@
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
 
-[![Components](https://img.shields.io/badge/components-136-7b93ff)](#что-внутри)
+[![Components](https://img.shields.io/badge/components-137-7b93ff)](#что-внутри)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#что-внутри)
 [![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.ru.md#токены-главное)
-[![Tests](https://img.shields.io/badge/tests-497-2f9e44)](packages/vision/src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-520-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.ru.md#язык)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
@@ -38,7 +38,7 @@
 Endfield Vision - для экранов, за которыми работают весь день: админки, CRM, диспетчерские и консоли мониторинга. Компактные контролы, таблицы, которые выдерживают реальные данные, графики, которые читаются с одного взгляда, и тёмная тема по умолчанию, а не «на потом».
 
 - **Всё на токенах.** Цвета, отступы, радиусы, тени и слои - CSS-переменные `--ev-*`. Тема, стиль и акцент меняются без правок компонентов.
-- **Две темы, два стиля, семь акцентов.** Тёмная (по умолчанию), светлая и «как в системе». Стиль меняет подачу, а размеры и раскладка остаются: «Стандартный» (`default`) - контрастный, с выделением акцентом; «Утончённый» (`slim`) - плоский и спокойный, мягкие нейтрали, ничего не светится. Пресеты `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` и нейтральный `ink` или свой акцент в пять строк CSS. `ThemeScript` ставит всё это до первой отрисовки - без вспышки.
+- **Две темы, два стиля, семь акцентов.** Тёмная (по умолчанию), светлая и «как в системе». Стиль меняет подачу, а размеры и раскладка остаются: «Стандартный» (`default`) - контрастный, с выделением акцентом; «Утончённый» (`slim`) - плоский и спокойный, мягкие нейтрали, ничего не светится. Пресеты `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` и нейтральный `ink` или свой пресет, зарегистрированный в `ThemeScript`. `ThemeScript` ставит всё это до первой отрисовки - без вспышки.
 - **Доступность по умолчанию.** Клавиатура по паттернам WAI-ARIA в меню, списках, деревьях, вкладках и таблицах; управление фокусом в окнах; Escape закрывает верхний слой; контраст текстовых токенов проверен; у графиков скрытая таблица для скринридера; `prefers-reduced-motion` учтён везде.
 - **Английский и русский из коробки.** Подписи, aria-label, плейсхолдеры и пустые состояния - из типизированного словаря. Любую строку можно переопределить, а словарь взять за основу третьего языка.
 - **Уживается с вашим кодом.** Стили лежат в каскадных слоях (`@layer ev.*`) и с префиксом `ev-`: ваш CSS и Tailwind всегда сильнее, специфичность бороться не нужно.
@@ -86,7 +86,7 @@ bun add endfield-vision
 К каждому [релизу на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases) приложена та же сборка - архив `endfield-vision-<версия>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.0/endfield-vision-2.2.0.tgz
 ```
 
 </details>

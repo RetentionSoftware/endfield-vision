@@ -12,6 +12,8 @@ import { Button } from './Button'
  * четырёх карточек, остальные сворачиваются в строку «и ещё N».
  * Повторный показ с тем же id заменяет карточку - без дублей.
  * Действия: одно (action) - текстовая кнопка, несколько (actions) - строка кнопок.
+ * onClick - действие по клику на саму карточку (открыть диалог): заголовок
+ * становится кнопкой, растянутой на карточку, - с клавиатуры тоже доступно.
  */
 
 export type ToastTone = 'info' | 'success' | 'warning' | 'error'
@@ -35,6 +37,8 @@ export interface ToastOptions {
   action?: { label: string; onClick: () => void }
   /** Несколько действий - строка небольших кнопок («Открыть», «Отменить»). Вместе с action оно идёт первым. */
   actions?: ToastAction[]
+  /** Клик по карточке (не по её кнопкам): открыть диалог, запись. После него уведомление закрывается. */
+  onClick?: () => void
 }
 
 /** Карточка в хранилище. Экспортируется для тестов, в публичный API не входит. */
@@ -44,6 +48,7 @@ export interface ToastItem extends Required<Pick<ToastOptions, 'id' | 'tone'>> {
   duration: number | null
   action?: ToastOptions['action']
   actions?: ToastAction[]
+  onClick?: () => void
   createdAt: number
 }
 
@@ -74,6 +79,7 @@ function show(opts: ToastOptions): string {
     duration: opts.duration === undefined ? DEFAULT_DURATION[tone] : opts.duration,
     action: opts.action,
     actions: opts.actions && opts.actions.length > 0 ? opts.actions : undefined,
+    onClick: opts.onClick,
     createdAt: Date.now(),
   }
   const exists = items.some((t) => t.id === id)
@@ -166,6 +172,7 @@ export function ToastCard({ item }: { item: ToastItem }) {
       className="ev-toast ev-corners"
       data-corners="diagonal"
       data-tone={item.tone}
+      data-clickable={item.onClick ? '' : undefined}
       role={item.tone === 'error' ? 'alert' : 'status'}
       onMouseEnter={stop}
       onMouseLeave={start}
@@ -174,7 +181,20 @@ export function ToastCard({ item }: { item: ToastItem }) {
         {ICONS[item.tone]}
       </span>
       <div className="ev-toast-body">
-        <div className="ev-toast-title">{item.title}</div>
+        {item.onClick ? (
+          <button
+            type="button"
+            className="ev-toast-title ev-toast-open"
+            onClick={() => {
+              item.onClick?.()
+              dismiss(item.id)
+            }}
+          >
+            {item.title}
+          </button>
+        ) : (
+          <div className="ev-toast-title">{item.title}</div>
+        )}
         {item.description ? <div className="ev-toast-desc">{item.description}</div> : null}
         {item.actions ? (
           <div className="ev-toast-actions">

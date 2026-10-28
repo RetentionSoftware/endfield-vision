@@ -15,10 +15,10 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
 
-[![Components](https://img.shields.io/badge/components-136-7b93ff)](#whats-inside)
+[![Components](https://img.shields.io/badge/components-137-7b93ff)](#whats-inside)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#whats-inside)
 [![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.md#tokens)
-[![Tests](https://img.shields.io/badge/tests-497-2f9e44)](packages/vision/src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-520-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.md#language)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
@@ -38,7 +38,7 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 Endfield Vision is built for the screens people stare at all day: admin panels, CRMs, dispatch and monitoring consoles. Compact controls, tables that hold up with real data, charts that read at a glance, and a dark theme that is the default rather than an afterthought.
 
 - **Tokens all the way down.** Colors, spacing, radii, shadows and z-layers are CSS variables (`--ev-*`). Swap the theme, style or accent without touching a single component.
-- **Two themes, two styles, seven accents.** Dark (default), light and "follow the system". Styles change how elements look while sizes and layout stay put: `default` is contrasting with accent-colored selection, `slim` is flat and calm with soft neutrals and nothing that glows. Accent presets `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` and the neutral `ink`, or your own in five lines of CSS. `ThemeScript` applies all of it before the first paint, so there is no flash.
+- **Two themes, two styles, seven accents.** Dark (default), light and "follow the system". Styles change how elements look while sizes and layout stay put: `default` is contrasting with accent-colored selection, `slim` is flat and calm with soft neutrals and nothing that glows. Accent presets `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` and the neutral `ink`, or your own preset registered in `ThemeScript`. `ThemeScript` applies all of it before the first paint, so there is no flash.
 - **Accessible by default.** WAI-ARIA keyboard patterns for menus, lists, trees, tabs and grids; focus management in overlays; layered Escape handling; contrast-checked text tokens; hidden data tables for chart readers; `prefers-reduced-motion` respected everywhere.
 - **English and Russian built in.** Every label, aria-label, placeholder and empty state comes from a typed dictionary. Override any string, or use a dictionary as the base for a third language.
 - **Plays well with others.** Styles live in cascade layers (`@layer ev.*`) and use the `ev-` prefix, so your own CSS and Tailwind always win without specificity fights.
@@ -86,7 +86,7 @@ bun add endfield-vision
 Every [GitHub release](https://github.com/RetentionSoftware/endfield-vision/releases) has the same build attached as `endfield-vision-<version>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.0/endfield-vision-2.2.0.tgz
 ```
 
 </details>

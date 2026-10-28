@@ -3,7 +3,7 @@ import s from '@/components/screens/auth/auth.module.css'
 import { getLang } from '@/lib/lang-server'
 
 /** Версия демо в подвале экранов входа. */
-const VERSION = '2.1.1'
+const VERSION = '2.2.0'
 
 /** Экраны входа: без каркаса консоли, карточка по центру на свечении акцента. */
 export default async function AuthLayout({ children }: { children: ReactNode }) {

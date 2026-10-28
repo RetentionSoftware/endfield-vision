@@ -2,7 +2,6 @@
 
 import {
   ACCENT_STORAGE_KEY,
-  ACCENTS,
   Badge,
   Button,
   Callout,
@@ -22,13 +21,13 @@ import {
   THEME_STORAGE_KEY,
   themeBootstrap,
   useTheme,
-  type Accent,
   type Style,
   type ThemePreference,
 } from 'endfield-vision'
 import { Plus, RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { ACCENT_LABELS, STYLE_HINTS, STYLE_ICONS, STYLE_LABELS, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
+import { APP_ACCENTS, type AppAccent } from '@/lib/accents'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { CodeBlock } from './parts'
 import s from './vision.module.css'
@@ -82,6 +81,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   )
 }`
+
+const presetCode = (en: boolean) => `// lib/accents.ts - ${L(en, "модуль без 'use client': его читает серверный layout", "no 'use client': the server layout reads it")}
+import type { AccentPreset } from 'endfield-vision'
+
+export const COPPER: AccentPreset = {
+  name: 'copper', // data-accent="copper"
+  dark: { accent: '#e8915a', text: '#f0a878', strong: '#b4532a', strongHover: '#a54b25', onStrong: '#ffffff' },
+  light: { accent: '#b4532a', text: '#9a4521', strong: '#b4532a', strongHover: '#9e4722', onStrong: '#ffffff' },
+  // ${L(en, 'Slim - свои значения (или те же, что в стандартном стиле)', 'Slim gets its own values (or reuses the default style ones)')}
+  slim: { dark: { accent: '#d99a70', text: '#e3ae8a', strong: '#e3ae8a', strongHover: '#ecbe9e', onStrong: '#181817' } },
+}
+
+// app/layout.tsx - ${L(en, 'токены пресета рядом со скриптом темы, до первой отрисовки', 'preset tokens next to the theme script, before the first paint')}
+<ThemeScript accents={[COPPER]} defaultAccent="copper" />
+
+// ${L(en, 'Дальше - как встроенный', 'From here on it works like a built-in one')}
+setAccent('copper')
+const { accent } = useTheme<Accent | 'copper'>()
+// ${L(en, 'Образец для переключателя', 'Swatch for pickers')}: var(--ev-accent-swatch-copper)`
 
 const customAccent = (en: boolean) => `/* app/globals.css - ${L(en, 'стили приложения вне слоёв сильнее ev.tokens', 'unlayered app styles beat ev.tokens')} */
 :root {
@@ -182,7 +200,7 @@ function AccentPreview() {
 }
 
 export function ThemeSection() {
-  const { theme, preference, accent, style, setTheme: setThemePref, setAccent: setAccentPreset, setStyle: setStylePref } = useTheme()
+  const { theme, preference, accent, style, setTheme: setThemePref, setAccent: setAccentPreset, setStyle: setStylePref } = useTheme<AppAccent>()
   const { t, tx, lang } = useT()
   const en = lang === 'en'
   return (
@@ -213,13 +231,13 @@ export function ThemeSection() {
                 options={THEME_OPTIONS.map((o) => ({ value: o.value, label: tx(THEME_LABEL[o.value]), icon: o.icon }))}
               />
             </div>
-            <RadioGroup<Accent>
+            <RadioGroup<AppAccent>
               aria-label={t('Акцент', 'Accent')}
               variant="card"
               direction="horizontal"
               value={accent}
               onChange={(a) => setAccentPreset(a)}
-              options={ACCENTS.map((a) => ({
+              options={APP_ACCENTS.map((a) => ({
                 value: a,
                 label: tx(ACCENT_LABELS[a]),
                 description: <code>{a}</code>,
@@ -319,12 +337,13 @@ export function ThemeSection() {
         <Card
           title={t('Свой акцент', 'Custom accent')}
           description={t(
-            'Пресет не нужен: достаточно переопределить пять переменных на :root в стилях приложения.',
-            'No preset needed: override five variables on :root in your app styles.',
+            'Свой пресет: имя и значения для тёмной и светлой темы (и для Slim). После регистрации в ThemeScript он работает в data-accent, setAccent и useTheme, как встроенный, - «Медь» в переключателе слева сделана так. Одноразовый вариант без пресета - переопределить пять переменных на :root.',
+            'Your own preset: a name plus values for the dark and light themes (and Slim). Once registered in ThemeScript it works in data-accent, setAccent and useTheme just like a built-in one - "Copper" in the picker on the left is built this way. A one-off option without a preset is to override five variables on :root.',
           )}
         >
           <div className="ev-stack">
-            <CodeBlock label="globals.css" code={customAccent(en)} />
+            <CodeBlock label="AccentPreset" code={presetCode(en)} />
+            <CodeBlock label={t('globals.css: без пресета', 'globals.css: without a preset')} code={customAccent(en)} />
             <Callout tone="warning" title={t('Проверьте контраст', 'Check the contrast')}>
               {t(
                 '--ev-accent-text к --ev-surface-1 и --ev-text-on-accent к --ev-accent-strong - не ниже 4.5:1 в обеих темах.',

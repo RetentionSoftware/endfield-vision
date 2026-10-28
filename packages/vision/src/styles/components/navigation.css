@@ -34,6 +34,12 @@
     color: var(--ev-text-muted);
   }
 
+  .ev-cmdk-spinner {
+    display: inline-flex;
+    width: 17px;
+    justify-content: center;
+  }
+
   .ev-cmdk-input {
     flex: 1 1 auto;
     min-width: 0;

@@ -3,10 +3,12 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cx, normalizeSearch } from '../lib/cx'
-import { useEventCallback, useIsoLayoutEffect } from '../lib/hooks'
+import { useControllable, useEventCallback, useIsoLayoutEffect } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
 import { Kbd } from './Display'
+import { Highlight } from './Highlight'
+import { Spinner } from './Spinner'
 
 /*
  * Палитра команд: окно поиска по командам и разделам (Ctrl/Cmd+K).
@@ -14,6 +16,10 @@ import { Kbd } from './Display'
  * aria-activedescendant, фокус всё время остаётся в поле. Окно - в портале
  * на слое модалок, прижато к верху экрана; Escape закрывает, фокус
  * возвращается на прежний элемент.
+ *
+ * Поиск с сервера: запрос уходит наружу через onQueryChange, пункты из
+ * ответа помечаются alwaysShow (или вся палитра filter={false}) - тогда
+ * локальное сопоставление их не отсекает; loading - индикатор ожидания.
  */
 
 export interface CommandItem {
@@ -28,6 +34,11 @@ export interface CommandItem {
   /** Дополнительные слова для поиска (синонимы, коды, английские названия). */
   keywords?: string[]
   disabled?: boolean
+  /**
+   * Показывать при любом запросе: пункт уже отобран снаружи (результат поиска
+   * с сервера, совпадение по ИНН или телефону, которого нет в подписи).
+   */
+  alwaysShow?: boolean
   /** Выполнить команду. Палитра закрывается перед вызовом. */
   onSelect: () => void
 }
@@ -42,6 +53,21 @@ export interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   items: CommandItem[]
+  /** Текст поиска (управляемо). Без него палитра хранит запрос сама и сбрасывает при открытии. */
+  query?: string
+  /** Начальный запрос при открытии (неуправляемый режим). */
+  defaultQuery?: string
+  /** Запрос изменился: поиск с сервера. Задержку (debounce) выдерживает приложение. */
+  onQueryChange?: (query: string) => void
+  /**
+   * Отбирать пункты по запросу (по умолчанию да). false - список показывается
+   * как есть: приложение фильтрует само. Для отдельных пунктов - alwaysShow.
+   */
+  filter?: boolean
+  /** Ждём результатов: индикатор в поле, при пустом списке - «Поиск...». */
+  loading?: boolean
+  /** Подсветить совпадения с запросом в названии и строковой подсказке. */
+  highlight?: boolean
   /** Плейсхолдер поля. По умолчанию - из словаря. */
   placeholder?: string
   /** Текст при пустом результате. По умолчанию - «Ничего не найдено». */
@@ -66,9 +92,17 @@ export function commandMatches(item: CommandItem, query: string): boolean {
   return words.every((w) => hay.includes(w))
 }
 
-/** Отбор команд по запросу (без учёта регистра и «ё/е»), порядок сохраняется. */
+/**
+ * Отбор команд по запросу (без учёта регистра и «ё/е»), порядок сохраняется.
+ * Пункты с alwaysShow остаются при любом запросе.
+ */
 export function filterCommands(items: CommandItem[], query: string): CommandItem[] {
-  return items.filter((it) => commandMatches(it, query))
+  return items.filter((it) => it.alwaysShow || commandMatches(it, query))
+}
+
+/** Слова запроса для подсветки совпадений. */
+function queryWords(query: string): string[] {
+  return query.split(/\s+/).filter(Boolean)
 }
 
 /**
@@ -155,6 +189,12 @@ function optionDomId(listId: string, index: number) {
 function PalettePanel({
   onOpenChange,
   items,
+  query: queryProp,
+  defaultQuery = '',
+  onQueryChange,
+  filter = true,
+  loading = false,
+  highlight = false,
   placeholder,
   emptyText,
   footer,
@@ -164,8 +204,9 @@ function PalettePanel({
   const t = useMessages()
   const listId = useId()
   const ref = useRef<HTMLDivElement | null>(null)
-  const [query, setQuery] = useState('')
-  const groups = useMemo(() => groupCommands(filterCommands(items, query)), [items, query])
+  const [query, setQuery] = useControllable(queryProp, defaultQuery, onQueryChange)
+  const groups = useMemo(() => groupCommands(filter ? filterCommands(items, query) : items), [items, query, filter])
+  const marks = highlight ? queryWords(query) : []
   const flat = useMemo(() => groups.flatMap((g) => g.items), [groups])
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -240,7 +281,14 @@ function PalettePanel({
         className={cx('ev-cmdk', className)}
       >
         <div className="ev-cmdk-head">
-          <Search size={17} className="ev-cmdk-search-icon" aria-hidden="true" />
+          {loading ? (
+            // Ожидание объявляет строка состояния под списком; индикатор - только для глаз.
+            <span className="ev-cmdk-search-icon ev-cmdk-spinner" aria-hidden="true">
+              <Spinner size={16} />
+            </span>
+          ) : (
+            <Search size={17} className="ev-cmdk-search-icon" aria-hidden="true" />
+          )}
           <input
             className="ev-cmdk-input"
             type="text"
@@ -266,7 +314,13 @@ function PalettePanel({
             <X size={16} />
           </button>
         </div>
-        <div id={listId} role="listbox" aria-label={ariaLabel ?? t.commandPalette.label} className="ev-cmdk-list">
+        <div
+          id={listId}
+          role="listbox"
+          aria-label={ariaLabel ?? t.commandPalette.label}
+          aria-busy={loading || undefined}
+          className="ev-cmdk-list"
+        >
           {groups.map((g, gi) => {
             const headId = `${listId}-g${gi}`
             const options = g.items.map((it) => (
@@ -287,8 +341,12 @@ function PalettePanel({
                     {it.icon}
                   </span>
                 ) : null}
-                <span className="ev-cmdk-item-label">{it.label}</span>
-                {it.hint ? <span className="ev-cmdk-item-hint">{it.hint}</span> : null}
+                <span className="ev-cmdk-item-label">{marks.length > 0 ? <Highlight text={it.label} query={marks} /> : it.label}</span>
+                {it.hint ? (
+                  <span className="ev-cmdk-item-hint">
+                    {marks.length > 0 && typeof it.hint === 'string' ? <Highlight text={it.hint} query={marks} /> : it.hint}
+                  </span>
+                ) : null}
               </div>
             ))
             if (g.group === undefined) {
@@ -311,7 +369,7 @@ function PalettePanel({
           })}
         </div>
         <div className="ev-cmdk-empty" role="status">
-          {flat.length === 0 ? (emptyText ?? t.common.nothingFound) : null}
+          {flat.length === 0 ? (loading ? t.commandPalette.searching : (emptyText ?? t.common.nothingFound)) : null}
         </div>
         <div className="ev-cmdk-foot">
           <div className="ev-cmdk-foot-left">{footer}</div>

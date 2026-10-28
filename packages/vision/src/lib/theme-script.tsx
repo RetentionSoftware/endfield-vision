@@ -1,3 +1,5 @@
+import { AccentStyles, type AccentPreset } from './accent-preset'
+
 /*
  * Скрипт темы для <head>. Модуль без 'use client': серверный layout
  * вставляет строку как есть, до первой отрисовки - без вспышки другой темы.
@@ -8,8 +10,11 @@
 
 export type Theme = 'dark' | 'light'
 export type ThemePreference = Theme | 'system'
+/** Встроенные пресеты акцента (styles/accents.css). */
 export const ACCENTS = ['indigo', 'amber', 'emerald', 'cyan', 'rose', 'violet', 'ink'] as const
 export type Accent = (typeof ACCENTS)[number]
+/** Имя акцента: встроенный пресет или свой (AccentPreset, ThemeScript accents). */
+export type AccentName = Accent | (string & {})
 /** Стили оформления: те же размеры и раскладка, другая подача. */
 export const STYLES = ['default', 'slim'] as const
 export type Style = (typeof STYLES)[number]
@@ -21,8 +26,8 @@ export const STYLE_STORAGE_KEY = 'ev-style'
 export interface ThemeScriptOptions {
   /** Тема без сохранённого выбора. По умолчанию - 'dark'. */
   defaultTheme?: ThemePreference
-  /** Акцент без сохранённого выбора. По умолчанию - 'indigo'. */
-  defaultAccent?: Accent
+  /** Акцент без сохранённого выбора: встроенный или свой. По умолчанию - 'indigo'. */
+  defaultAccent?: AccentName
   /** Стиль без сохранённого выбора. По умолчанию - 'default'. */
   defaultStyle?: Style
   themeKey?: string
@@ -44,11 +49,20 @@ export function themeBootstrap({
 }
 
 export interface ThemeScriptProps extends ThemeScriptOptions {
-  /** nonce для строгой CSP (script-src 'nonce-...'): тот же, что у остальных скриптов страницы. */
+  /** nonce для строгой CSP (script-src / style-src 'nonce-...'): тот же, что у остальных скриптов страницы. */
   nonce?: string
+  /** Свои пресеты акцента: их токены вставляются рядом со скриптом (<style>). */
+  accents?: readonly AccentPreset[]
 }
 
 /** Скрипт для <head> корневого layout. Не требует клиента: подходит для серверных компонентов. */
-export function ThemeScript({ nonce, ...options }: ThemeScriptProps) {
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeBootstrap(options) }} />
+export function ThemeScript({ nonce, accents, ...options }: ThemeScriptProps) {
+  const script = <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeBootstrap(options) }} />
+  if (!accents || accents.length === 0) return script
+  return (
+    <>
+      <AccentStyles accents={accents} nonce={nonce} />
+      {script}
+    </>
+  )
 }

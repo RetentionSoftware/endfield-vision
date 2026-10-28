@@ -2,6 +2,8 @@
 
 @layer ev.shell {
   .ev-shell {
+    /* Шапка таблицы со stickyHeader липнет под шапкой приложения. */
+    --ev-table-sticky-top: var(--ev-topbar-h);
     display: flex;
     min-height: 100dvh;
     width: 100%;

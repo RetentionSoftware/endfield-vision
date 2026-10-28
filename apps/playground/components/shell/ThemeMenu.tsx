@@ -1,13 +1,14 @@
 'use client'
 
-import { ACCENTS, IconButton, Menu, STYLES, useTheme, type Accent, type Style, type ThemePreference } from 'endfield-vision'
+import { IconButton, Menu, STYLES, useTheme, type Style, type ThemePreference } from 'endfield-vision'
 import { Feather, LayoutDashboard, Monitor, Moon, Palette, Sparkles, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { APP_ACCENTS, type AppAccent } from '@/lib/accents'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { setMotionPref, useMotionPref } from '@/lib/motion-pref'
 
-/** Названия акцентов. В компоненте - tx(ACCENT_LABELS[a]). */
-export const ACCENT_LABELS: Record<Accent, Bi> = {
+/** Названия акцентов: встроенные и свой пресет консоли. В компоненте - tx(ACCENT_LABELS[a]). */
+export const ACCENT_LABELS: Record<AppAccent, Bi> = {
   indigo: bi('Индиго', 'Indigo'),
   amber: bi('Янтарь', 'Amber'),
   emerald: bi('Изумруд', 'Emerald'),
@@ -15,6 +16,7 @@ export const ACCENT_LABELS: Record<Accent, Bi> = {
   rose: bi('Роза', 'Rose'),
   violet: bi('Фиалка', 'Violet'),
   ink: bi('Чернила', 'Ink'),
+  copper: bi('Медь', 'Copper'),
 }
 
 /** Стили оформления. В компоненте - tx(STYLE_LABELS[s]). */
@@ -41,13 +43,13 @@ export const THEME_OPTIONS: Array<{ value: ThemePreference; label: Bi; icon: Rea
 ]
 
 /** Образец акцента: токен --ev-accent-swatch-<имя>. */
-export function AccentDot({ accent }: { accent: Accent }) {
+export function AccentDot({ accent }: { accent: AppAccent }) {
   return <span className="pg-accent-dot" style={{ background: `var(--ev-accent-swatch-${accent})` }} aria-hidden="true" />
 }
 
 /** Стиль, тема и акцент в шапке. */
 export function ThemeMenu() {
-  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme()
+  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme<AppAccent>()
   const { t, tx } = useT()
   const motion = useMotionPref()
   return (
@@ -76,7 +78,7 @@ export function ThemeMenu() {
         })),
         { type: 'separator' as const, id: 's' },
         { type: 'label' as const, id: 'accent', label: t('Акцент', 'Accent') },
-        ...ACCENTS.map((a) => ({
+        ...APP_ACCENTS.map((a) => ({
           id: `a-${a}`,
           label: tx(ACCENT_LABELS[a]),
           icon: <AccentDot accent={a} />,

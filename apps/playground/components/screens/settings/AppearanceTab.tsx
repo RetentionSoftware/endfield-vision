@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  ACCENTS,
   Badge,
   Button,
   Card,
@@ -20,6 +19,7 @@ import {
 import { Check, Download, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { ACCENT_LABELS, AccentDot, STYLE_HINTS, STYLE_ICONS, STYLE_LABELS, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
+import { APP_ACCENTS, type AppAccent } from '@/lib/accents'
 import { bi, useT, type Bi, type Translator } from '@/lib/i18n'
 import s from './settings.module.css'
 
@@ -64,7 +64,7 @@ function previewColumns({ t, tx }: Translator): Column<PreviewRow>[] {
 }
 
 export function AppearanceTab() {
-  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme()
+  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme<AppAccent>()
   const tr = useT()
   const { t, tx } = tr
   const [density, setDensity] = useState<Density>('comfortable')
@@ -112,7 +112,7 @@ export function AppearanceTab() {
           description={t('Цвет кнопок, выделения, графиков и активных пунктов меню.', 'Color of buttons, selection, charts and active menu items.')}
         >
           <div className={s.swatches} role="group" aria-label={t('Цвет акцента', 'Accent color')}>
-            {ACCENTS.map((a) => {
+            {APP_ACCENTS.map((a) => {
               const on = accent === a
               return (
                 <button key={a} type="button" className={s.swatch} aria-pressed={on} data-active={on || undefined} onClick={() => setAccent(a)}>

@@ -11,6 +11,7 @@ import {
   Steps,
   toast,
   TreeView,
+  useDebouncedValue,
   type AccordionItem,
   type CommandItem,
   type StepItem,
@@ -18,6 +19,8 @@ import {
 } from 'endfield-vision'
 import {
   Boxes,
+  Building2,
+  Car,
   ClipboardList,
   Cog,
   Container,
@@ -34,8 +37,8 @@ import {
   Warehouse,
   Wrench,
 } from 'lucide-react'
-import { useMemo, useState, type CSSProperties } from 'react'
-import { useT, type Translator } from '@/lib/i18n'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { bi, useT, type Bi, type Translator } from '@/lib/i18n'
 
 type T = Translator['t']
 
@@ -195,6 +198,103 @@ function CommandPaletteCard() {
         items={items}
         hotkey={false}
         footer={<span>{t('12 команд', '12 commands')}</span>}
+      />
+    </Card>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Палитра: поиск с сервера                                            */
+/* ------------------------------------------------------------------ */
+
+interface Found {
+  id: string
+  kind: 'carrier' | 'vehicle'
+  label: Bi
+  /** Поле, по которому ищет «сервер»: ИНН, госномер, телефон. В подписи его нет. */
+  code: string
+}
+
+const DIRECTORY: Found[] = [
+  { id: 'c1', kind: 'carrier', label: bi('ООО «Северный путь»', 'Northern Route LLC'), code: 'ИНН 7704211836' },
+  { id: 'c2', kind: 'carrier', label: bi('ИП Гарипов Р. Ф.', 'Sole trader R. Garipov'), code: 'ИНН 166011735029' },
+  { id: 'c3', kind: 'carrier', label: bi('АО «Трансгрупп»', 'Transgroup JSC'), code: '+7 912 400-17-35' },
+  { id: 'v1', kind: 'vehicle', label: bi('Тягач Volvo FH', 'Volvo FH tractor'), code: 'А 177 ВС 116' },
+  { id: 'v2', kind: 'vehicle', label: bi('Фургон ГАЗель Next', 'GAZelle Next van'), code: 'О 704 КМ 77' },
+  { id: 'v3', kind: 'vehicle', label: bi('Самосвал КамАЗ', 'KAMAZ dump truck'), code: 'Т 211 ЕН 16' },
+]
+
+/** «Сервер»: совпадение по коду без пробелов и знаков - по цифрам ИНН, номера, телефона. */
+function searchDirectory(query: string): Found[] {
+  const digits = query.replace(/\D/g, '')
+  const text = query.trim().toLowerCase()
+  if (!text) return []
+  return DIRECTORY.filter((f) => (digits.length >= 3 && f.code.replace(/\D/g, '').includes(digits)) || f.code.toLowerCase().includes(text))
+}
+
+function ServerSearchCard() {
+  const { t, tx } = useT()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const debounced = useDebouncedValue(query, 300)
+  // Последний ответ «сервера» и запрос, на который он пришёл.
+  const [answer, setAnswer] = useState<{ q: string; found: Found[] }>({ q: '', found: [] })
+
+  // Запрос к «серверу» с задержкой ответа; ответ на устаревший запрос не приходит (таймер снят).
+  useEffect(() => {
+    if (!debounced.trim()) return
+    const timer = window.setTimeout(() => setAnswer({ q: debounced, found: searchDirectory(debounced) }), 450)
+    return () => window.clearTimeout(timer)
+  }, [debounced])
+
+  // Пока ждём ответ, на экране остаются прежние результаты.
+  const results = query.trim() && answer.q.trim() ? answer.found : []
+  const loading = query.trim() !== '' && answer.q !== query
+
+  const openItem = (label: string) => () => toast.info(t('Открыть карточку', 'Open record'), { description: label })
+  const items: CommandItem[] = [
+    ...results.map<CommandItem>((f) => ({
+      id: f.id,
+      group: f.kind === 'carrier' ? t('Перевозчики', 'Carriers') : t('Транспорт', 'Vehicles'),
+      label: tx(f.label),
+      hint: f.code,
+      icon: f.kind === 'carrier' ? <Building2 /> : <Car />,
+      // Уже отобрано сервером: совпадение по ИНН или номеру, которого нет в подписи.
+      alwaysShow: true,
+      onSelect: openItem(tx(f.label)),
+    })),
+    { id: 'p-carriers', group: t('Разделы', 'Sections'), label: t('Перевозчики', 'Carriers'), icon: <Building2 />, onSelect: openItem(t('Перевозчики', 'Carriers')) },
+    { id: 'p-fleet', group: t('Разделы', 'Sections'), label: t('Транспорт', 'Vehicles'), icon: <Truck />, onSelect: openItem(t('Транспорт', 'Vehicles')) },
+    { id: 'p-drivers', group: t('Разделы', 'Sections'), label: t('Водители', 'Drivers'), icon: <Users />, onSelect: openItem(t('Водители', 'Drivers')) },
+  ]
+
+  return (
+    <Card
+      title={t('CommandPalette: поиск с сервера', 'CommandPalette: server search')}
+      description={t(
+        'Запрос уходит наружу (query, onQueryChange), приложение ищет на сервере с задержкой. Найденное помечено alwaysShow: локальное сопоставление его не отсекает, хотя совпадение - по ИНН, госномеру или телефону, а не по подписи. Разделы фильтруются как обычно. loading - индикатор ожидания, highlight - подсветка совпадений.',
+        'The query goes out (query, onQueryChange) and the app searches the server with a delay. Results are marked alwaysShow, so local matching keeps them even though the match is on a tax ID, plate or phone rather than the label. Sections are filtered as usual. loading shows a spinner, highlight marks the matches.',
+      )}
+    >
+      <div className="ev-row">
+        <Button variant="primary" onClick={() => setOpen(true)}>
+          {t('Открыть поиск', 'Open search')}
+        </Button>
+        <span className="ev-secondary">{t('Попробуйте «7704», «177» или «400-17»', 'Try "7704", "177" or "400-17"')}</span>
+      </div>
+      <CommandPalette
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) setQuery('')
+        }}
+        items={items}
+        query={query}
+        onQueryChange={setQuery}
+        loading={loading}
+        highlight
+        hotkey={false}
+        placeholder={t('Перевозчик, ИНН, госномер или телефон', 'Carrier, tax ID, plate or phone')}
       />
     </Card>
   )
@@ -546,6 +646,7 @@ export function NavigationCards() {
   return (
     <div className="ev-stack">
       <CommandPaletteCard />
+      <ServerSearchCard />
       <StepsCard />
       <AccordionCard />
       <DisclosureCard />

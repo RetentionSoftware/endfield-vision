@@ -276,6 +276,12 @@
     padding: 0;
   }
 
+  .ev-modal-prompt {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-4);
+  }
+
   .ev-modal-message {
     color: var(--ev-text-secondary);
     line-height: 1.55;
@@ -460,6 +466,43 @@
   .ev-toast-title {
     font-size: var(--ev-fs-sm);
     font-weight: var(--ev-fw-semibold);
+  }
+
+  /* Карточка с onClick: заголовок - кнопка, растянутая на карточку; кнопки карточки - поверх неё. */
+  .ev-toast-open {
+    display: block;
+    padding: 0;
+    color: inherit;
+    text-align: left;
+  }
+
+  .ev-toast-open::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .ev-toast-open:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .ev-toast-open:focus-visible::after {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-toast[data-clickable] {
+    cursor: pointer;
+  }
+
+  .ev-toast[data-clickable]:hover {
+    background-image: linear-gradient(var(--ev-tint-2), var(--ev-tint-2));
+  }
+
+  .ev-toast[data-clickable] :is(.ev-toast-action, .ev-toast-actions, .ev-toast-close) {
+    position: relative;
+    z-index: 1;
   }
 
   .ev-toast-desc {

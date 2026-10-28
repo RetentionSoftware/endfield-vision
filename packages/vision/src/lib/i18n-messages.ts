@@ -81,6 +81,10 @@ export interface Messages {
     selectAllOnPage: string
     selectRow: string
     selectAllRows: string
+    expandRow: string
+    collapseRow: string
+    /** Заголовок итоговой карточки на узком экране. */
+    total: string
   }
   pagination: {
     noRecords: string
@@ -107,7 +111,7 @@ export interface Messages {
     /** Названия стран в списке кодов телефона. */
     countries: Record<PhoneCountry, string>
   }
-  modal: { actionFailed: string }
+  modal: { actionFailed: string; required: string }
   select: {
     placeholder: string
     multiPlaceholder: string
@@ -163,6 +167,8 @@ export interface Messages {
     hintNavigate: string
     hintSelect: string
     hintClose: string
+    /** Идёт поиск (результаты с сервера). */
+    searching: string
   }
   steps: {
     label: string
@@ -423,6 +429,9 @@ export const ru: Messages = {
     selectAllOnPage: 'Выбрать все на странице',
     selectRow: 'Выбрать строку',
     selectAllRows: 'Выбрать все строки на странице',
+    expandRow: 'Раскрыть строку',
+    collapseRow: 'Свернуть строку',
+    total: 'Итого',
   },
   pagination: {
     noRecords: 'Нет записей',
@@ -471,7 +480,7 @@ export const ru: Messages = {
       CN: 'Китай',
     },
   },
-  modal: { actionFailed: 'Не удалось выполнить действие' },
+  modal: { actionFailed: 'Не удалось выполнить действие', required: 'Заполните поле' },
   select: {
     placeholder: 'Выберите',
     multiPlaceholder: 'Не выбрано',
@@ -525,6 +534,7 @@ export const ru: Messages = {
     hintNavigate: 'выбор',
     hintSelect: 'открыть',
     hintClose: 'закрыть',
+    searching: 'Поиск...',
   },
   steps: {
     label: 'Шаги',
@@ -771,6 +781,9 @@ export const en: Messages = {
     selectAllOnPage: 'Select all on this page',
     selectRow: 'Select row',
     selectAllRows: 'Select all rows on this page',
+    expandRow: 'Expand row',
+    collapseRow: 'Collapse row',
+    total: 'Total',
   },
   pagination: {
     noRecords: 'No records',
@@ -819,7 +832,7 @@ export const en: Messages = {
       CN: 'China',
     },
   },
-  modal: { actionFailed: 'The action failed' },
+  modal: { actionFailed: 'The action failed', required: 'This field is required' },
   select: {
     placeholder: 'Select',
     multiPlaceholder: 'None selected',
@@ -873,6 +886,7 @@ export const en: Messages = {
     hintNavigate: 'navigate',
     hintSelect: 'open',
     hintClose: 'close',
+    searching: 'Searching...',
   },
   steps: {
     label: 'Progress',

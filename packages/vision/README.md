@@ -15,7 +15,7 @@ npm i endfield-vision
 Without the npm registry: every GitHub release has the same build attached as an archive.
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.0/endfield-vision-2.2.0.tgz
 ```
 
 Requires `react` and `react-dom` 19.
@@ -97,7 +97,7 @@ Three independent settings on `<html>`:
   - `slim` - flat and calm: soft neutrals, nothing glows, selection is a neutral tone, outlined secondary and danger buttons, sentence-case labels, a crisp focus line instead of a soft halo.
 - **Accent** - `data-accent="amber|emerald|cyan|rose|violet|ink"` (no attribute means indigo). `ink` is a neutral accent: the primary button is ink-colored and color stays in statuses only. Each preset has its own values for each style and theme; contrast is checked by tests.
 
-`ThemeScript` sets all three before rendering. Options: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `themeKey`, `styleKey`, `accentKey`, `nonce` (for CSP).
+`ThemeScript` sets all three before rendering. Options: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `accents` (your own presets), `themeKey`, `styleKey`, `accentKey`, `nonce` (for CSP).
 
 ```tsx
 <ThemeScript defaultTheme="system" defaultStyle="slim" defaultAccent="ink" />
@@ -108,7 +108,29 @@ const { theme, preference, style, accent, setTheme, setStyle, setAccent } = useT
 
 `STYLES` and `ACCENTS` list the available values; `setTheme`, `setStyle` and `setAccent` also work outside React.
 
-Your own accent: override the tokens in your app styles (unlayered styles always win):
+Your own accent preset: a name plus values for the dark and light themes (and, optionally, for Slim). Registered in `ThemeScript`, it works like a built-in one: in `data-accent`, `defaultAccent`, `setAccent` and `useTheme`, with a `--ev-accent-swatch-<name>` swatch for pickers.
+
+```tsx
+// lib/accents.ts - no 'use client': the server layout reads it
+import type { AccentPreset } from 'endfield-vision'
+
+export const BRAND: AccentPreset = {
+  name: 'brand',
+  dark: { accent: '#2dd4bf', text: '#5eead4', strong: '#0f766e', strongHover: '#118479', onStrong: '#ffffff' },
+  light: { accent: '#0d9488', text: '#0f766e', strong: '#0f766e', strongHover: '#0b5f59', onStrong: '#ffffff' },
+  slim: { dark: { /* ... */ } }, // optional; without it Slim reuses the values above
+}
+
+// app/layout.tsx
+<ThemeScript accents={[BRAND]} defaultAccent="brand" />
+
+// client code: the accent type includes your preset
+const { accent, setAccent } = useTheme<Accent | 'brand'>()
+```
+
+Contrast is on you, as with the built-in presets: `text` against `--ev-surface-1` and `onStrong` against `strong` at least 4.5:1 in every theme and style. `accentPresetCss()` returns the same CSS as a string, `AccentStyles` renders it as a `<style>` on its own.
+
+A one-off alternative without a preset: override the tokens in your app styles (unlayered styles always win):
 
 ```css
 :root {
@@ -178,10 +200,10 @@ Component tone (`Badge`, `StatusPill`, `Callout`, `StatTile`, `Avatar`, `Progres
 - **Actions:** `Button` (`primary | secondary | ghost | danger | danger-ghost | link`, `sm | md | lg`, `loading`, `icon`, `iconRight`, `block`), `LinkButton`, `IconButton` (required `label` = aria-label + tooltip), `Menu`, `Popover`.
 - **Forms:** `Field` (label, hint, error; wires up `id`, `aria-invalid` and `aria-describedby` itself), `FormSection`, `Input`, `SearchInput`, `PasswordInput`, `Textarea` (`autoResize`), `NumberInput` (`min/max/step`, `decimals`, `unit`, `stepper`), `MoneyInput` (value in minor units), `PhoneInput` (22 countries with a picker, country code detection on paste, E.164), `SnilsInput`, `PlateInput`, `DigitsInput`, `MaskedDigitsInput`, `TimeInput` (`HH:MM`, `min/max`), `ColorField`.
 - **Choice:** `Select` (search with more than 7 options, groups, `clearable`, server search via `onSearch`), `MultiSelect`, `DateField` (`YYYY-MM-DD`), `DateRangePicker`, `Calendar`, `Checkbox` (`indeterminate`), `Switch`, `RadioGroup` (`variant="card"`), `SegmentedControl`, `Tabs` (buttons or `href` links), `TabPanel`.
-- **Data:** `DataTable` (column config, sorting, row selection, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, cards on narrow screens), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar` (initials or photo), `Progress` (including overrun), `Timeline` (event feed, upcoming steps, "show more"), `UptimeBar` (daily availability with tooltips), `CopyButton`, `CopyValue`.
+- **Data:** `DataTable` (column config, sorting, row selection, `loading`, `fetching`, `error` + `onRetry`, `empty`, `maxHeight`, cards on narrow screens; per row - `rowTone`, `rowAttributes` (your own `data-*` and `aria-*`, for example for `ContextMenuProvider`), `rowClassName`, `rowMuted`; expandable rows `renderExpanded` with `expanded` / `onExpandedChange`; a totals row from `footerCell` on columns; `stickyHeader` keeps the header at the top of the page without `maxHeight`), `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar` (initials or photo), `Progress` (including overrun), `Timeline` (event feed, upcoming steps, "show more"), `UptimeBar` (daily availability with tooltips), `CopyButton`, `CopyValue`.
 - **Charts:** `BarChart` (grouped or `stacked`), `LineChart`, `AreaChart`, `Sparkline`, `DonutChart` (shares, "Other", legend), `Heatmap` (activity calendar) and `HeatmapMatrix` ("row x column" matrix), `RingProgress` (ring, segments, overrun), `Gauge` (half-circle scale with zones). Tooltips on hover and arrow keys, a legend for 2+ series, a hidden table for screen readers.
-- **Feedback and overlays:** `Callout`, `EmptyState`, `ErrorState`, `Skeleton`, `SkeletonText`, `Spinner`, `LoadingBlock`, `Modal`, `useModals()` (`open`, `confirm`, `alert`), `Drawer`, `toast.*` / `useToast()` (callable outside React too), `FileDrop`.
-- **Navigation and structure:** `CommandPalette` (Ctrl+K, groups, word search), `Steps` (wizard steps, horizontal and vertical), `Accordion` and `Disclosure`, `TreeView` (single or multiple selection with a partial state, WAI-ARIA keyboard).
+- **Feedback and overlays:** `Callout`, `EmptyState`, `ErrorState`, `Skeleton`, `SkeletonText`, `Spinner`, `LoadingBlock`, `Modal`, `useModals()` (`open`, `confirm`, `alert`, `prompt` - a dialog with a text field and validation), `Drawer`, `toast.*` / `useToast()` (callable outside React too; `onClick` makes the whole card clickable), `FileDrop`.
+- **Navigation and structure:** `CommandPalette` (Ctrl+K, groups, word search; server search: `query` / `onQueryChange`, `loading`, `alwaysShow` on items or `filter={false}`, `highlight`), `Steps` (wizard steps, horizontal and vertical), `Accordion` and `Disclosure`, `TreeView` (single or multiple selection with a partial state, WAI-ARIA keyboard).
 - **More inputs:** `Slider` (value and range, marks), `TagInput` (tags, suggestions, limit, validation), `Chip` and `ChipGroup` (filters and tags), `OtpInput` (verification code, paste as a whole), `InlineEdit` (edit in place with async save).
 - **Content:** `Banner` (full-width announcement, dismissal is remembered), `CodeBlock` and `InlineCode` (line numbers, line and syntax highlighting with no dependencies, collapsing), `Highlight` (search matches), `RelativeTime` ("5 minutes ago" in both languages), `ExpandableText` ("Show more").
 - **App shell:** `AppShell` (`statusBar` slot), `Topbar`, `Sidebar`, `SidebarSection`, `SidebarItem`, `SidebarCollapseButton`, `useAppShell()`, `PageHeader`, `Breadcrumbs`, `SectionTitle`, `Card`, `Panel`, `Divider`, `Kbd`, `StatusBar` (`StatusBarItem`, `StatusBarClock`), `WorkspaceSwitcher`, `ScreenOverlay` (maintenance, new version), `ContextMenu` and `ContextMenuProvider` (right click, registry by `data-ctx-kind`).
@@ -190,7 +212,7 @@ Component tone (`Badge`, `StatusPill`, `Callout`, `StatTile`, `Avatar`, `Progres
 - **CRM, communication:** `NotificationCenter` and `NotificationList` (history, read state, actions), `toast` with several actions, `ChatThread`, `ChatMessage`, `Composer` (attachments, pasted screenshots, drag and drop), `Lightbox`, `ConnectionStatus`.
 - **Filters in the URL:** `useUrlFilters` syncs filters with the address and remembers them per scope.
 - **Language:** `LocaleProvider`, `useMessages`, `useLocale`, `useNumberFormat`, dictionaries `ru`, `en`.
-- **Theme:** `ThemeScript` (`nonce` for CSP), `themeBootstrap`, `useTheme`, `setTheme`, `setAccent`, `ACCENTS`.
+- **Theme:** `ThemeScript` (`nonce` for CSP, `accents`), `themeBootstrap`, `useTheme`, `setTheme`, `setStyle`, `setAccent`, `ACCENTS`, `STYLES`, `AccentPreset`, `accentPresetCss`, `AccentStyles`.
 - **Utilities:** `cx`, `normalizeSearch`, `formatPhone`, `isCompletePhone`, `normalizePlate`, `normalizeHexColor`, `useMediaQuery`, `useDebouncedValue`, `useControllable`, `LinkProvider`. Layout classes: `ev-stack`, `ev-row`, `ev-grid` (`--ev-gap`, `--ev-grid-min`), `ev-mono`, `ev-num`, `ev-muted`, `ev-truncate`, `ev-link`, `ev-visually-hidden`.
 
 ## Making it yours

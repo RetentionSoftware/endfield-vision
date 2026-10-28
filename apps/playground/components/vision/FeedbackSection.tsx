@@ -77,8 +77,8 @@ function ToastsCard() {
     <Card
       title={t('Уведомления', 'Toasts')}
       description={t(
-        'toast - короткий итог действия, не требующий ответа. Ошибки живут дольше и могут нести действие. Toaster ставится один раз в корне (или ToastProvider вокруг приложения); useToast() - тот же API в хуке.',
-        'toast reports the brief result of an action that needs no response. Errors stay on screen longer and can carry an action. Place Toaster once at the root (or wrap the app in ToastProvider); useToast() exposes the same API as a hook.',
+        'toast - короткий итог действия, не требующий ответа. Ошибки живут дольше и могут нести действие. onClick - действие по клику на саму карточку (открыть диалог), доступно и с клавиатуры. Toaster ставится один раз в корне (или ToastProvider вокруг приложения); useToast() - тот же API в хуке.',
+        'toast reports the brief result of an action that needs no response. Errors stay on screen longer and can carry an action. onClick runs when the card itself is clicked (open a conversation) and works from the keyboard too. Place Toaster once at the root (or wrap the app in ToastProvider); useToast() exposes the same API as a hook.',
       )}
     >
       <div className="ev-stack">
@@ -129,6 +129,21 @@ function ToastsCard() {
           >
             {t('Пачка из шести', 'Batch of six')}
           </Button>
+          <Button
+            variant="ghost"
+            onClick={() =>
+              toasts.info(t('Новое сообщение от диспетчера', 'New message from dispatch'), {
+                description: t('«Машина А 123 ВС на въезде, откройте ворота 3»', '"Truck A 123 BC at the gate, please open gate 3"'),
+                onClick: () =>
+                  void modals.alert({
+                    title: t('Диалог с диспетчером', 'Conversation with dispatch'),
+                    message: t('Карточка уведомления открыла диалог.', 'The notification card opened the conversation.'),
+                  }),
+              })
+            }
+          >
+            {t('Клик по карточке', 'Clickable card')}
+          </Button>
           <Button variant="ghost" onClick={() => toasts.dismissAll()}>
             {t('Убрать все', 'Dismiss all')}
           </Button>
@@ -145,8 +160,8 @@ function ModalsCard() {
     <Card
       title="useModals"
       description={t(
-        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, open - своё окно с кнопками. Требует ModalsProvider; modals - тот же API вне компонентов.',
-        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, open builds a custom dialog with buttons. Requires ModalsProvider; modals is the same API for use outside components.',
+        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, prompt - окно с полем ввода (причина, новое имя), open - своё окно с кнопками. Требует ModalsProvider; modals - тот же API вне компонентов.',
+        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, prompt asks for a value (a reason, a new name), open builds a custom dialog with buttons. Requires ModalsProvider; modals is the same API for use outside components.',
       )}
     >
       <div className={s.row}>
@@ -178,6 +193,39 @@ function ModalsCard() {
           }
         >
           {t('Сообщение', 'Alert')}
+        </Button>
+        <Button
+          onClick={async () => {
+            const reason = await m.prompt({
+              title: t('Отклонить заявку?', 'Reject the request?'),
+              message: t('Заявка REQ-3381 вернётся автору с причиной.', 'Request REQ-3381 goes back to its author with the reason.'),
+              label: t('Причина', 'Reason'),
+              placeholder: t('Например, не хватает документов', 'For example, documents are missing'),
+              multiline: true,
+              maxLength: 200,
+              hint: t('Ctrl+Enter - отклонить', 'Ctrl+Enter to reject'),
+              okLabel: t('Отклонить', 'Reject'),
+              okVariant: 'danger',
+              onOk: () => wait(700),
+            })
+            if (reason) toast.success(t('Заявка отклонена', 'Request rejected'), { description: reason })
+          }}
+        >
+          {t('Поле ввода', 'Prompt')}
+        </Button>
+        <Button
+          onClick={async () => {
+            const name = await m.prompt({
+              title: t('Переименовать склад', 'Rename warehouse'),
+              label: t('Название', 'Name'),
+              defaultValue: t('Долина-1', 'Valley-1'),
+              okLabel: t('Сохранить', 'Save'),
+              validate: (v) => (v.length < 3 ? t('Не короче трёх символов', 'At least three characters') : null),
+            })
+            if (name) toast.success(t('Склад переименован', 'Warehouse renamed'), { description: name })
+          }}
+        >
+          {t('Переименовать', 'Rename')}
         </Button>
         <Button
           onClick={() => {

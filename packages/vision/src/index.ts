@@ -25,6 +25,7 @@ export {
   themeBootstrap,
   ThemeScript,
   type Accent,
+  type AccentName,
   type Style,
   type Theme,
   type ThemePreference,
@@ -32,6 +33,7 @@ export {
   type ThemeScriptProps,
 } from './lib/theme-script'
 export { setAccent, setStyle, setTheme, useTheme, type ThemeState } from './lib/theme'
+export { AccentStyles, accentPresetCss, type AccentColors, type AccentPreset, type AccentStylesProps } from './lib/accent-preset'
 export { LocaleProvider, useLocale, useMessages, useNumberFormat, type LocaleProviderProps } from './lib/i18n'
 export { en, MESSAGES, resolveMessages, ru, type Locale, type Messages, type MessagesOverride } from './lib/i18n-messages'
 export { LinkProvider, UiLink, useLinkComponent, type LinkComponent } from './lib/link'
@@ -163,6 +165,7 @@ export {
   type DataTableProps,
   type FilterBarProps,
   type PaginationProps,
+  type RowAttributes,
   type SortDir,
   type SortState,
 } from './components/DataTable'
@@ -181,6 +184,7 @@ export {
   type ModalProps,
   type ModalsApi,
   type ModalSize,
+  type PromptOptions,
 } from './components/Modal'
 export { toast, Toaster, ToastProvider, useToast, type ToastAction, type ToastApi, type ToastOptions, type ToastTone } from './components/Toast'
 export { Timeline, type TimelineItem, type TimelineProps } from './components/Timeline'

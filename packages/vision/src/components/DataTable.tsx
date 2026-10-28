@@ -1,22 +1,23 @@
 'use client'
 
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from 'lucide-react'
-import { useEffect, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react'
 import { useMessages } from '../lib/i18n'
 import { cx, EMPTY_VALUE } from '../lib/cx'
-import { useMediaQuery } from '../lib/hooks'
+import { useControllable, useMediaQuery } from '../lib/hooks'
 import { Button } from './Button'
 import { Checkbox } from './Choice'
-import { Skeleton } from './Display'
+import { Skeleton, type Tone } from './Display'
 import { SearchInput } from './Input'
 import { EmptyState, ErrorState } from './Page'
 import { Select } from './Select'
 
 /*
  * Таблица данных: колонки конфигом, сортируемые заголовки (сортирует
- * вызывающий - обычно сервер), выбор строк, клик по строке, скелетон при
- * первой загрузке, приглушение при перезапросе (старые строки остаются на
- * экране), пустое состояние и ошибка. На узком экране - карточки.
+ * вызывающий - обычно сервер), выбор строк, клик по строке, раскрывающиеся
+ * строки, итоговая строка, скелетон при первой загрузке, приглушение при
+ * перезапросе (старые строки остаются на экране), пустое состояние и ошибка.
+ * На узком экране - карточки.
  */
 
 export type SortDir = 'asc' | 'desc'
@@ -30,6 +31,11 @@ export interface Column<T> {
   header: ReactNode
   /** Содержимое ячейки. Пустое значение (null, undefined, '') - приглушённый дефис. */
   cell: (row: T, index: number) => ReactNode
+  /**
+   * Ячейка итоговой строки (<tfoot>): значение или функция от строк таблицы.
+   * Строка итогов появляется, если она задана хотя бы у одной колонки.
+   */
+  footerCell?: ReactNode | ((rows: T[]) => ReactNode)
   /** Колонка сортируется; ключ сортировки - sortKey или key. */
   sortable?: boolean
   sortKey?: string
@@ -48,6 +54,9 @@ export interface Column<T> {
   mobileLabel?: ReactNode
   className?: string
 }
+
+/** Атрибуты строки от приложения: только data-* и aria-*. */
+export type RowAttributes = Partial<Record<`data-${string}` | `aria-${string}`, string | number | boolean | undefined>>
 
 export interface DataTableProps<T> {
   columns: Column<T>[]
@@ -75,9 +84,31 @@ export interface DataTableProps<T> {
   onSelectedChange?: (keys: string[]) => void
   /** Приглушить строку (заблокированный, архивный). */
   rowMuted?: (row: T) => boolean
+  /** Тон строки - тонированный фон: просрочено, новое, требует внимания. */
+  rowTone?: (row: T) => Tone | undefined
+  /**
+   * Свои атрибуты строки (<tr> или карточки): data-* и aria-*, например
+   * метки контекстного меню. Служебные атрибуты таблицы важнее.
+   */
+  rowAttributes?: (row: T) => RowAttributes | undefined
+  rowClassName?: (row: T) => string | undefined
+  /** Содержимое раскрытой строки: под ней, на всю ширину таблицы. */
+  renderExpanded?: (row: T) => ReactNode
+  /** Можно ли раскрыть строку (по умолчанию - любую, если задан renderExpanded). */
+  rowExpandable?: (row: T) => boolean
+  /** Раскрытые строки по ключам (управляемо). */
+  expanded?: string[]
+  defaultExpanded?: string[]
+  onExpandedChange?: (keys: string[]) => void
   skeletonRows?: number
   /** Высота области прокрутки: шапка липнет к её верху. */
   maxHeight?: number | string
+  /**
+   * Шапка липнет к верху страницы (или ближайшей области прокрутки) без maxHeight.
+   * true - под шапкой приложения (--ev-table-sticky-top, в AppShell - высота шапки),
+   * число - отступ сверху в px.
+   */
+  stickyHeader?: boolean | number
   dense?: boolean
   /** Подвал: пагинация, итоги. */
   footer?: ReactNode
@@ -93,6 +124,16 @@ function isEmpty(v: ReactNode): boolean {
 
 function renderCell(v: ReactNode): ReactNode {
   return isEmpty(v) ? <span className="ev-empty-value">{EMPTY_VALUE}</span> : v
+}
+
+/** Атрибуты строки от приложения: всё, кроме data-* и aria-*, отбрасывается. */
+export function pickRowAttributes(attrs: RowAttributes | undefined): RowAttributes {
+  const out: RowAttributes = {}
+  if (!attrs) return out
+  for (const [k, v] of Object.entries(attrs) as [keyof RowAttributes, RowAttributes[keyof RowAttributes]][]) {
+    if (v !== undefined && /^(data|aria)-[\w-]+$/.test(k)) out[k] = v
+  }
+  return out
 }
 
 /**
@@ -117,6 +158,65 @@ export function nextSort(current: SortState | null | undefined, key: string, cle
   return clearable ? null : { key, dir: 'asc' }
 }
 
+/**
+ * Сдвиг шапки, липнущей к странице: насколько верх таблицы ушёл выше границы
+ * (верх области прокрутки плюс отступ), но не дальше конца таблицы.
+ */
+export function stickyHeadShift(boundary: number, tableTop: number, tableHeight: number, headHeight: number, footHeight = 0): number {
+  const max = Math.max(0, tableHeight - headHeight - footHeight)
+  return Math.min(max, Math.max(0, boundary - tableTop))
+}
+
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+    const oy = getComputedStyle(p).overflowY
+    if (oy === 'auto' || oy === 'scroll' || oy === 'overlay') return p
+  }
+  return null
+}
+
+/**
+ * Шапка таблицы у верха страницы. Обёртка таблицы прокручивается по
+ * горизонтали, поэтому position: sticky внутри неё к странице не липнет:
+ * шапку сдвигает transform по прокрутке (кадр за кадром, без перерисовки React).
+ */
+function usePageStickyHead(ref: RefObject<HTMLTableElement | null>, enabled: boolean, offset: number | undefined) {
+  useEffect(() => {
+    const table = ref.current
+    const head = table?.tHead
+    if (!enabled || !table || !head) return
+    const scroller = scrollParent(table.closest<HTMLElement>('.ev-table-wrap') ?? table)
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const top = offset ?? (scroller ? 0 : parseFloat(getComputedStyle(table).getPropertyValue('--ev-table-sticky-top')) || 0)
+      const boundary = (scroller ? scroller.getBoundingClientRect().top : 0) + top
+      const shift = stickyHeadShift(boundary, table.getBoundingClientRect().top, table.offsetHeight, head.offsetHeight, table.tFoot?.offsetHeight)
+      table.style.setProperty('--ev-thead-shift', `${shift}px`)
+      if (shift > 0) table.dataset.stuck = ''
+      else delete table.dataset.stuck
+    }
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    update()
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule)
+    ro?.observe(table)
+    window.addEventListener('scroll', schedule, { capture: true, passive: true })
+    window.addEventListener('resize', schedule)
+    return () => {
+      cancelAnimationFrame(frame)
+      ro?.disconnect()
+      window.removeEventListener('scroll', schedule, { capture: true })
+      window.removeEventListener('resize', schedule)
+      table.style.removeProperty('--ev-thead-shift')
+      delete table.dataset.stuck
+    }
+  }, [ref, enabled, offset])
+}
+
+const NO_KEYS: string[] = []
+
 export function DataTable<T>({
   columns,
   rows,
@@ -134,8 +234,17 @@ export function DataTable<T>({
   selected,
   onSelectedChange,
   rowMuted,
+  rowTone,
+  rowAttributes,
+  rowClassName,
+  renderExpanded,
+  rowExpandable,
+  expanded: expandedProp,
+  defaultExpanded = NO_KEYS,
+  onExpandedChange,
   skeletonRows = 6,
   maxHeight,
+  stickyHeader = false,
   dense = false,
   footer,
   mobile = 'cards',
@@ -143,6 +252,8 @@ export function DataTable<T>({
   ...aria
 }: DataTableProps<T>) {
   const t = useMessages()
+  const uid = useId()
+  const tableRef = useRef<HTMLTableElement | null>(null)
   const empty = emptyProp ?? t.table.empty
   const narrow = useMediaQuery('(max-width: 720px)')
   const asCards = narrow && mobile === 'cards'
@@ -152,6 +263,14 @@ export function DataTable<T>({
   const pageKeys = list.map(rowKey)
   const allOnPage = pageKeys.length > 0 && pageKeys.every((k) => selSet.has(k))
   const someOnPage = pageKeys.some((k) => selSet.has(k))
+  const [expanded, setExpanded] = useControllable(expandedProp, defaultExpanded, onExpandedChange)
+  const expSet = new Set(expanded)
+  const withExpand = Boolean(renderExpanded)
+  const canExpand = (row: T) => withExpand && (rowExpandable?.(row) ?? true)
+  const withTotals = columns.some((c) => c.footerCell !== undefined)
+  const colCount = columns.length + (selectable ? 1 : 0) + (withExpand ? 1 : 0)
+  const pageSticky = stickyHeader !== false && maxHeight === undefined
+  usePageStickyHead(tableRef, pageSticky && !asCards, typeof stickyHeader === 'number' ? stickyHeader : undefined)
 
   const toggleAll = () => {
     if (!onSelectedChange) return
@@ -162,6 +281,9 @@ export function DataTable<T>({
     if (!onSelectedChange) return
     onSelectedChange(selSet.has(k) ? (selected ?? []).filter((x) => x !== k) : [...(selected ?? []), k])
   }
+  const toggleExpanded = (k: string) => {
+    setExpanded(expSet.has(k) ? expanded.filter((x) => x !== k) : [...expanded, k])
+  }
 
   const cycleSort = (col: Column<T>) => {
     onSortChange?.(nextSort(sort, col.sortKey ?? col.key, sortClearable))
@@ -170,23 +292,55 @@ export function DataTable<T>({
   const showSkeleton = loading && list.length === 0
   const showError = !showSkeleton && error && list.length === 0
   const showEmpty = !showSkeleton && !showError && list.length === 0
+  const totalOf = (c: Column<T>): ReactNode => (typeof c.footerCell === 'function' ? c.footerCell(list) : c.footerCell)
 
-  const rowProps = (row: T) =>
-    onRowClick
-      ? {
-          tabIndex: 0,
-          'data-clickable': true,
-          onClick: (e: MouseEvent) => {
-            if (!isInteractiveTarget(e)) onRowClick(row)
-          },
-          onKeyDown: (e: KeyboardEvent) => {
-            if (e.key === 'Enter' && !isInteractiveTarget(e)) {
-              e.preventDefault()
-              onRowClick(row)
-            }
-          },
-        }
-      : {}
+  /** Атрибуты строки: свои от приложения, поверх - служебные (клик, выбор, тон). */
+  const rowProps = (row: T, k: string) => {
+    // Без onRowClick клик по раскрываемой строке раскрывает её.
+    const activate = onRowClick ? () => onRowClick(row) : canExpand(row) ? () => toggleExpanded(k) : undefined
+    return {
+      ...pickRowAttributes(rowAttributes?.(row)),
+      className: rowClassName?.(row) || undefined,
+      'data-tone': rowTone?.(row) || undefined,
+      'data-muted': rowMuted?.(row) || undefined,
+      'data-selected': selSet.has(k) || undefined,
+      'data-expanded': (withExpand && expSet.has(k)) || undefined,
+      ...(activate
+        ? {
+            tabIndex: 0,
+            'data-clickable': true,
+            onClick: (e: MouseEvent) => {
+              if (!isInteractiveTarget(e)) activate()
+            },
+            onKeyDown: (e: KeyboardEvent) => {
+              if (e.key === 'Enter' && !isInteractiveTarget(e)) {
+                e.preventDefault()
+                activate()
+              }
+            },
+          }
+        : {}),
+    }
+  }
+
+  // id содержимого раскрытой строки - по позиции: ключ строки может содержать пробелы.
+  const detailId = (i: number) => `${uid}-x${i}`
+  const expandButton = (row: T, k: string, i: number) => {
+    if (!canExpand(row)) return null
+    const open = expSet.has(k)
+    return (
+      <button
+        type="button"
+        className="ev-table-expand-btn"
+        aria-expanded={open}
+        aria-controls={open ? detailId(i) : undefined}
+        aria-label={open ? t.table.collapseRow : t.table.expandRow}
+        onClick={() => toggleExpanded(k)}
+      >
+        <ChevronRight size={15} aria-hidden="true" />
+      </button>
+    )
+  }
 
   const stateBlock = showError ? (
     <ErrorState compact message={error?.message} onRetry={onRetry} />
@@ -197,6 +351,8 @@ export function DataTable<T>({
   if (asCards) {
     const primary = columns.find((c) => c.primary) ?? columns[0]
     const rest = columns.filter((c) => c !== primary && !c.hideOnMobile)
+    const restTotals = withTotals ? rest.filter((c) => !isEmpty(totalOf(c))) : []
+    const primaryTotal = withTotals && primary ? totalOf(primary) : null
     return (
       <div className={cx('ev-table-cards', className)} data-fetching={fetching || undefined} aria-busy={loading || fetching || undefined}>
         {selectable && list.length > 0 ? (
@@ -216,8 +372,9 @@ export function DataTable<T>({
         {stateBlock ? <div className="ev-table-state">{stateBlock}</div> : null}
         {list.map((row, i) => {
           const k = rowKey(row)
+          const { className: own, ...props } = rowProps(row, k)
           return (
-            <div key={k} className="ev-table-card" data-muted={rowMuted?.(row) || undefined} data-selected={selSet.has(k) || undefined} {...rowProps(row)}>
+            <div key={k} className={cx('ev-table-card', own)} {...props}>
               <div className="ev-table-card-head">
                 {selectable ? (
                   <span data-row-stop="">
@@ -225,6 +382,7 @@ export function DataTable<T>({
                   </span>
                 ) : null}
                 <div className="ev-table-card-title">{primary ? renderCell(primary.cell(row, i)) : null}</div>
+                {expandButton(row, k, i)}
               </div>
               {rest.length > 0 ? (
                 <dl className="ev-table-card-fields">
@@ -236,9 +394,31 @@ export function DataTable<T>({
                   ))}
                 </dl>
               ) : null}
+              {renderExpanded && expSet.has(k) && canExpand(row) ? (
+                <div className="ev-table-card-detail" id={detailId(i)}>
+                  {renderExpanded(row)}
+                </div>
+              ) : null}
             </div>
           )
         })}
+        {withTotals && list.length > 0 ? (
+          <div className="ev-table-card ev-table-card-total">
+            <div className="ev-table-card-head">
+              <div className="ev-table-card-title">{isEmpty(primaryTotal) ? t.table.total : primaryTotal}</div>
+            </div>
+            {restTotals.length > 0 ? (
+              <dl className="ev-table-card-fields">
+                {restTotals.map((c) => (
+                  <div key={c.key} className="ev-table-card-field">
+                    <dt>{c.mobileLabel ?? c.header}</dt>
+                    <dd className={cx(c.numeric && 'ev-num')}>{totalOf(c)}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </div>
+        ) : null}
         {footer ? <div className="ev-table-foot">{footer}</div> : null}
       </div>
     )
@@ -247,9 +427,17 @@ export function DataTable<T>({
   return (
     <div className={cx('ev-table-wrap', className)} data-fetching={fetching || undefined}>
       <div className="ev-table-scroll" style={maxHeight !== undefined ? { maxHeight } : undefined}>
-        <table className="ev-table" data-dense={dense || undefined} aria-label={aria['aria-label']} aria-busy={loading || fetching || undefined}>
+        <table
+          ref={tableRef}
+          className="ev-table"
+          data-dense={dense || undefined}
+          data-sticky-page={pageSticky || undefined}
+          aria-label={aria['aria-label']}
+          aria-busy={loading || fetching || undefined}
+        >
           <thead>
             <tr>
+              {withExpand ? <th className="ev-table-expand" aria-hidden="true" /> : null}
               {selectable ? (
                 <th className="ev-table-select" scope="col">
                   <Checkbox
@@ -298,6 +486,7 @@ export function DataTable<T>({
             {showSkeleton
               ? Array.from({ length: skeletonRows }, (_, i) => (
                   <tr key={`sk${i}`} className="ev-table-skeleton-row">
+                    {withExpand ? <td className="ev-table-expand" /> : null}
                     {selectable ? (
                       <td className="ev-table-select">
                         <Skeleton width={16} height={16} />
@@ -313,32 +502,60 @@ export function DataTable<T>({
               : null}
             {stateBlock ? (
               <tr className="ev-table-state-row">
-                <td colSpan={columns.length + (selectable ? 1 : 0)}>{stateBlock}</td>
+                <td colSpan={colCount}>{stateBlock}</td>
               </tr>
             ) : null}
             {list.map((row, i) => {
               const k = rowKey(row)
+              const open = renderExpanded && expSet.has(k) && canExpand(row)
               return (
-                <tr key={k} data-muted={rowMuted?.(row) || undefined} data-selected={selSet.has(k) || undefined} {...rowProps(row)}>
-                  {selectable ? (
-                    <td className="ev-table-select" data-row-stop="">
-                      <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label={t.table.selectRow} />
-                    </td>
+                <Fragment key={k}>
+                  <tr {...rowProps(row, k)}>
+                    {withExpand ? (
+                      <td className="ev-table-expand" data-row-stop="">
+                        {expandButton(row, k, i)}
+                      </td>
+                    ) : null}
+                    {selectable ? (
+                      <td className="ev-table-select" data-row-stop="">
+                        <Checkbox checked={selSet.has(k)} onChange={() => toggleOne(k)} aria-label={t.table.selectRow} />
+                      </td>
+                    ) : null}
+                    {columns.map((c) => (
+                      <td
+                        key={c.key}
+                        data-align={c.align ?? (c.numeric ? 'right' : 'left')}
+                        data-wrap={c.wrap || undefined}
+                        className={cx(c.numeric && 'ev-num', c.className)}
+                      >
+                        {renderCell(c.cell(row, i))}
+                      </td>
+                    ))}
+                  </tr>
+                  {open ? (
+                    <tr className="ev-table-detail-row" id={detailId(i)}>
+                      <td colSpan={colCount}>
+                        <div className="ev-table-detail">{renderExpanded(row)}</div>
+                      </td>
+                    </tr>
                   ) : null}
-                  {columns.map((c) => (
-                    <td
-                      key={c.key}
-                      data-align={c.align ?? (c.numeric ? 'right' : 'left')}
-                      data-wrap={c.wrap || undefined}
-                      className={cx(c.numeric && 'ev-num', c.className)}
-                    >
-                      {renderCell(c.cell(row, i))}
-                    </td>
-                  ))}
-                </tr>
+                </Fragment>
               )
             })}
           </tbody>
+          {withTotals && list.length > 0 ? (
+            <tfoot>
+              <tr>
+                {withExpand ? <td className="ev-table-expand" /> : null}
+                {selectable ? <td className="ev-table-select" /> : null}
+                {columns.map((c) => (
+                  <td key={c.key} data-align={c.align ?? (c.numeric ? 'right' : 'left')} className={cx(c.numeric && 'ev-num', c.className)}>
+                    {totalOf(c)}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          ) : null}
         </table>
       </div>
       {footer ? <div className="ev-table-foot">{footer}</div> : null}

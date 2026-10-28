@@ -32,6 +32,7 @@ import { bi, useT, type Bi, type Translator } from '@/lib/i18n'
 import { HelpersCard } from './HelpersCard'
 import { Subhead } from './parts'
 import { TimelineCard, UptimeCard } from './StatusCards'
+import { TableRowsCard } from './TableRowsCard'
 import s from './vision.module.css'
 
 type StockStatus = 'ok' | 'low' | 'out' | 'reserved'
@@ -483,6 +484,7 @@ export function DataSection() {
       </div>
 
       <TableCard />
+      <TableRowsCard />
 
       <div className={`${s.grid} ${s.gridWide}`}>
         <TimelineCard />

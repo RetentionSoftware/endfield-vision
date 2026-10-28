@@ -17,11 +17,13 @@ import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
 import { Button, type ButtonVariant } from './Button'
+import { Field } from './Field'
+import { Input, Textarea } from './Input'
 import { toast } from './Toast'
 
 /*
  * Окна. Modal - декларативный компонент; useModals() - императивный API
- * (open / confirm / alert) поверх него. Ловушка фокуса, возврат фокуса на
+ * (open / confirm / alert / prompt) поверх него. Ловушка фокуса, возврат фокуса на
  * инициатора, Escape закрывает только верхнее окно, подложка не закрывает
  * окно во время сохранения. На узком экране окно - на весь экран.
  */
@@ -281,6 +283,31 @@ export interface ConfirmOptions {
   onOk?: () => unknown
 }
 
+export interface PromptOptions {
+  title: ReactNode
+  message?: ReactNode
+  subtitle?: ReactNode
+  /** Подпись поля. */
+  label?: ReactNode
+  placeholder?: string
+  defaultValue?: string
+  /** Подсказка под полем. */
+  hint?: ReactNode
+  /** Многострочное поле (причина, комментарий): Enter - перенос строки, Ctrl/Cmd+Enter - подтвердить. */
+  multiline?: boolean
+  /** Пустое значение не принимается (по умолчанию да). */
+  required?: boolean
+  maxLength?: number
+  okLabel?: string
+  cancelLabel?: string
+  okVariant?: 'primary' | 'danger'
+  size?: ModalSize
+  /** Проверка значения (без пробелов по краям): текст ошибки под полем или пусто. */
+  validate?: (value: string) => ReactNode
+  /** Выполнить действие внутри окна: false - не закрывать. Ошибка остаётся в окне. */
+  onOk?: (value: string) => unknown
+}
+
 export interface AlertOptions {
   title: ReactNode
   message?: ReactNode
@@ -292,6 +319,8 @@ export interface ModalsApi {
   open: <R = unknown>(opts: ModalOptions<R>) => ModalHandle<R>
   confirm: (opts: ConfirmOptions) => Promise<boolean>
   alert: (opts: AlertOptions) => Promise<void>
+  /** Окно с полем ввода. Значение без пробелов по краям; null - окно закрыли без ответа. */
+  prompt: (opts: PromptOptions) => Promise<string | null>
   close: (id: string, result?: unknown) => void
   closeAll: () => void
 }
@@ -315,6 +344,7 @@ export const modals: ModalsApi = {
   },
   confirm: (o) => (globalApi ? globalApi.confirm(o) : Promise.resolve(false)),
   alert: (o) => (globalApi ? globalApi.alert(o) : Promise.resolve()),
+  prompt: (o) => (globalApi ? globalApi.prompt(o) : Promise.resolve(null)),
   close: (id, r) => globalApi?.close(id, r),
   closeAll: () => globalApi?.closeAll(),
 }
@@ -434,10 +464,55 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         footer: { buttons: [{ label: o.okLabel ?? tRef.current.common.ok, variant: 'primary', autoFocus: true }] },
       }).result.then(() => undefined)
 
+    const prompt = (o: PromptOptions): Promise<string | null> => {
+      const submitRef: PromptSubmitRef = { current: () => undefined }
+      // Enter в поле во время сохранения не запускает действие второй раз.
+      let pending = false
+      const accept = async (ctx: ModalButtonContext<string>, value: string) => {
+        if (!o.onOk) {
+          ctx.close(value)
+          return
+        }
+        if (pending) return
+        pending = true
+        ctx.setBusy(true)
+        try {
+          const r = await o.onOk(value)
+          if (r !== false) ctx.close(value)
+        } catch (err) {
+          toast.error(tRef.current.modal.actionFailed, { description: errorMessage(err) })
+        } finally {
+          pending = false
+          ctx.setBusy(false)
+        }
+      }
+      const h = open<string>({
+        title: o.title,
+        subtitle: o.subtitle,
+        size: o.size ?? 'sm',
+        body: (ctx) => <PromptBody options={o} submitRef={submitRef} onAccept={(v) => void accept(ctx, v)} />,
+        footer: {
+          buttons: [
+            { label: o.cancelLabel ?? tRef.current.common.cancel, variant: 'ghost' },
+            {
+              label: o.okLabel ?? tRef.current.common.ok,
+              variant: o.okVariant ?? 'primary',
+              // Фокус всё равно получает поле (оно раньше в разметке); флаг - для спиннера занятости.
+              autoFocus: true,
+              closeOnClick: false,
+              onClick: () => submitRef.current(),
+            },
+          ],
+        },
+      })
+      return h.result.then((r) => (typeof r === 'string' ? r : null))
+    }
+
     return {
       open,
       confirm,
       alert,
+      prompt,
       close,
       closeAll: () => {
         const list = listRef.current
@@ -465,6 +540,78 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         <ModalEntry key={e.id} entry={e} close={close} setBusy={setBusy} />
       ))}
     </ModalsContext.Provider>
+  )
+}
+
+interface PromptSubmitRef {
+  current: () => void
+}
+
+/** Тело prompt: поле со своей проверкой. Кнопка подтверждения в подвале вызывает submitRef.current. */
+function PromptBody({
+  options: o,
+  submitRef,
+  onAccept,
+}: {
+  options: PromptOptions
+  submitRef: PromptSubmitRef
+  onAccept: (value: string) => void
+}) {
+  const t = useMessages()
+  const [value, setValue] = useState(o.defaultValue ?? '')
+  const [error, setError] = useState<ReactNode>(null)
+  const required = o.required ?? true
+  const submit = () => {
+    const v = value.trim()
+    const problem = required && !v ? t.modal.required : o.validate?.(v)
+    if (problem) setError(problem)
+    else onAccept(v)
+  }
+  useIsoLayoutEffect(() => {
+    submitRef.current = submit
+  })
+  const change = (next: string) => {
+    setValue(next)
+    if (error) setError(null)
+  }
+  const common = {
+    value,
+    placeholder: o.placeholder,
+    maxLength: o.maxLength,
+    'data-autofocus': '',
+    'aria-label': o.label ? undefined : typeof o.title === 'string' ? o.title : undefined,
+  }
+  return (
+    <div className="ev-modal-prompt">
+      {o.message ? <div className="ev-modal-message">{o.message}</div> : null}
+      <Field label={o.label} hint={o.hint} error={error} required={required && Boolean(o.label)}>
+        {o.multiline ? (
+          <Textarea
+            {...common}
+            autoResize
+            showCount={Boolean(o.maxLength)}
+            onChange={(e) => change(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) {
+                e.preventDefault()
+                submit()
+              }
+            }}
+          />
+        ) : (
+          <Input
+            {...common}
+            onChange={(e) => change(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                e.preventDefault()
+                submit()
+              }
+            }}
+          />
+        )}
+      </Field>
+    </div>
   )
 }
 

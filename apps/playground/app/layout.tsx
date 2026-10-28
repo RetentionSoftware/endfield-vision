@@ -4,6 +4,7 @@ import { ThemeScript } from 'endfield-vision'
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { COPPER } from '@/lib/accents'
 import { getLang } from '@/lib/lang-server'
 import { Providers } from './providers'
 
@@ -38,8 +39,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={lang} data-theme="dark" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
-        {/* Тема и акцент до первой отрисовки: без вспышки. */}
-        <ThemeScript />
+        {/* Тема и акцент до первой отрисовки: без вспышки. Свой пресет акцента - рядом со скриптом. */}
+        <ThemeScript accents={[COPPER]} />
       </head>
       <body>
         <Providers lang={lang}>{children}</Providers>
