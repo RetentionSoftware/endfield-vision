@@ -929,6 +929,54 @@
   }
 
   /* ================================================================ */
+  /* Видео                                                             */
+  /* ================================================================ */
+
+  /* Плеер по ширине контейнера, высота ограничена: вертикальное видео не растягивает страницу. */
+  .ev-video {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-media-scrim);
+  }
+
+  .ev-video-el {
+    display: block;
+    width: 100%;
+    max-height: var(--ev-video-max-h, 72vh);
+    object-fit: contain;
+  }
+
+  .ev-video-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ev-space-2);
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: var(--ev-video-max-h, 72vh);
+    padding: var(--ev-space-4);
+    color: var(--ev-on-media);
+    font-size: var(--ev-fs-sm);
+    text-align: center;
+  }
+
+  /* В окне просмотра плеер вписан в сцену. */
+  .ev-lightbox-video {
+    --ev-video-max-h: 100%;
+    width: min(100%, 1100px);
+    max-height: 100%;
+    box-shadow: var(--ev-shadow-modal);
+    animation: ev-pop-in var(--ev-dur) var(--ev-ease-out);
+  }
+
+  /* ================================================================ */
   /* Состояние связи                                                   */
   /* ================================================================ */
 

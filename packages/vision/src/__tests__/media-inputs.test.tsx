@@ -2,8 +2,11 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Autocomplete, filterAutocomplete } from '../components/Autocomplete'
 import { Field } from '../components/Field'
+import { Input, NumberInput } from '../components/Input'
+import { LightboxFrame } from '../components/Lightbox'
 import { MultiSelect, Select } from '../components/Select'
 import { Thumbnail, ThumbnailGrid } from '../components/Thumbnail'
+import { VideoPlayer } from '../components/VideoPlayer'
 import { renderRu } from './render-ru'
 
 /* Миниатюры, поле с подсказками, раскрытие выпадающего списка при монтировании. */
@@ -107,5 +110,63 @@ describe('Select / MultiSelect: defaultOpen', () => {
       <MultiSelect aria-label="Метки" defaultOpen value={[]} onChange={noop} options={[{ value: 'a', label: 'A' }]} />,
     )
     expect(many).toContain('aria-expanded="false"')
+  })
+})
+
+describe('Видео: Thumbnail kind="video", VideoPlayer, Lightbox', () => {
+  it('превью видео: немой первый кадр, значок «Видео», знак воспроизведения после загрузки', () => {
+    const out = renderRu(<Thumbnail kind="video" src="/dmo.webm" alt="Видео медосмотра" aspect="16/9" />)
+    expect(out).toContain('data-kind="video"')
+    expect(out).toMatch(/<video class="ev-thumb-img" src="\/dmo\.webm#t=0\.1" role="img" aria-label="Видео медосмотра" preload="metadata"[^>]*muted=""[^>]*playsInline=""/)
+    expect(out).toContain('<span class="ev-thumb-badge"><svg')
+    expect(out).toContain('Видео</span>')
+    expect(out).not.toContain('<img')
+    // Своя отметка времени в адресе сохраняется; badge={null} убирает значок.
+    expect(renderRu(<Thumbnail kind="video" src="blob:x#t=2" alt="" badge={null} />)).toContain('src="blob:x#t=2"')
+    expect(renderRu(<Thumbnail kind="video" src="blob:x" alt="" badge={null} />)).not.toContain('ev-thumb-badge')
+  })
+
+  it('превью видео в кнопке: подпись у кнопки, кадр скрыт от скринридера', () => {
+    const out = renderRu(<Thumbnail kind="video" src="/dmo.webm" alt="Видео медосмотра" onClick={noop} />)
+    expect(out).toContain('<button type="button" class="ev-thumb-frame" aria-label="Видео медосмотра"')
+    expect(out).toContain('aria-hidden="true" preload="metadata"')
+    expect(out).not.toContain('tabindex')
+  })
+
+  it('VideoPlayer: элементы управления, предел высоты, подпись', () => {
+    const out = renderRu(<VideoPlayer src="blob:abc" poster="/p.jpg" aria-label="Медосмотр" maxHeight={480} />)
+    expect(out).toContain('class="ev-video" style="--ev-video-max-h:480px"')
+    expect(out).toMatch(/<video class="ev-video-el" src="blob:abc" poster="\/p\.jpg" aria-label="Медосмотр" controls=""[^>]*playsInline=""[^>]*preload="metadata"/)
+    expect(renderRu(<VideoPlayer src="/a.mp4" maxHeight="60vh" />)).toContain('--ev-video-max-h:60vh')
+    expect(renderRu(<VideoPlayer src="/a.mp4" />)).toContain('<div class="ev-video">')
+  })
+
+  it('Lightbox: видео - в плеере, изображение - картинкой', () => {
+    const images = [
+      { src: '/a.png', name: 'a.png' },
+      { src: '/dmo.webm', kind: 'video' as const, name: 'dmo.webm', alt: 'Медосмотр' },
+    ]
+    const video = renderRu(<LightboxFrame images={images} index={1} onClose={noop} />)
+    expect(video).toContain('class="ev-video ev-lightbox-video"')
+    expect(video).toContain('aria-label="Медосмотр" controls=""')
+    expect(video).not.toContain('ev-lightbox-img')
+    expect(renderRu(<LightboxFrame images={images} index={0} onClose={noop} />)).toContain('class="ev-lightbox-img"')
+  })
+})
+
+describe('Ширина контролов: width', () => {
+  it('Input и NumberInput: токен, px или CSS-длина на обёртке, не шире контейнера', () => {
+    expect(renderRu(<Input aria-label="Поиск" width="lg" />)).toContain('style="width:var(--ev-control-w-lg);max-width:100%"')
+    expect(renderRu(<NumberInput aria-label="Рейсы" value={3} onChange={noop} width="xs" />)).toContain('width:var(--ev-control-w-xs)')
+    expect(renderRu(<Input aria-label="A" width={180} />)).toContain('width:180px')
+    expect(renderRu(<Input aria-label="A" width="12rem" />)).toContain('width:12rem')
+    // Атрибут width не уходит на сам input.
+    expect(renderRu(<Input aria-label="A" width={180} />)).not.toMatch(/<input[^>]*width=/)
+    expect(renderRu(<Input aria-label="A" />)).not.toContain('style=')
+  })
+
+  it('Select и MultiSelect: те же значения', () => {
+    expect(renderRu(<Select aria-label="S" value={null} onChange={noop} options={[]} width="md" />)).toContain('width:var(--ev-control-w-md)')
+    expect(renderRu(<MultiSelect aria-label="M" value={[]} onChange={noop} options={[]} width={240} />)).toContain('width:240px')
   })
 })

@@ -1,15 +1,16 @@
 'use client'
 
-import { ImageOff } from 'lucide-react'
+import { ImageOff, Play, Video, VideoOff } from 'lucide-react'
 import { useCallback, useState, type CSSProperties, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { useMessages } from '../lib/i18n'
 import { Lightbox, type LightboxImage } from './Lightbox'
 
 /*
- * Миниатюра изображения: кадр с заданными пропорциями (обрезка cover или
- * вписывание contain), подпись снизу, значок поверх (например «видео»),
- * состояния загрузки и ошибки. С onClick кадр - кнопка. ThumbnailGrid -
+ * Миниатюра изображения или видео: кадр с заданными пропорциями (обрезка
+ * cover или вписывание contain), подпись снизу, значок поверх, состояния
+ * загрузки и ошибки. У видео (kind="video") - немой первый кадр, знак
+ * воспроизведения и значок «Видео». С onClick кадр - кнопка. ThumbnailGrid -
  * сетка превью с переходом в Lightbox по индексу.
  */
 
@@ -17,7 +18,10 @@ import { Lightbox, type LightboxImage } from './Lightbox'
 export type ThumbnailAspect = number | string
 
 export interface ThumbnailProps {
+  /** Адрес изображения или видео (у видео - и blob URL). */
   src: string
+  /** image (по умолчанию) или video: превью - первый кадр без звука. */
+  kind?: 'image' | 'video'
   /** Описание для скринридера; '' - декоративное изображение. */
   alt: string
   /** Подпись под кадром. */
@@ -26,9 +30,9 @@ export interface ThumbnailProps {
   aspect?: ThumbnailAspect
   /** cover - обрезать по кадру (по умолчанию), contain - вписать целиком. */
   fit?: 'cover' | 'contain'
-  /** Значок в углу кадра: «видео», «3 стр.». */
+  /** Значок в углу кадра: «3 стр.». У видео по умолчанию - «Видео», null - без значка. */
   badge?: ReactNode
-  /** Знак по центру кадра, например иконка воспроизведения у видео. */
+  /** Знак по центру кадра. У видео по умолчанию - иконка воспроизведения, null - без знака. */
   overlay?: ReactNode
   /** Кадр ещё готовится снаружи (загрузка файла, обработка): скелетон поверх. */
   loading?: boolean
@@ -48,23 +52,34 @@ function aspectValue(aspect: ThumbnailAspect): string {
 
 /**
  * Состояние загрузки по src: смена адреса - снова загрузка, без сброса в эффекте.
- * Ref-callback ловит снимки, загруженные до гидратации (их onLoad React не видит).
+ * Ref-callback ловит снимки и кадры, загруженные до гидратации (их onLoad React не видит).
  */
-function useImageState(src: string): [LoadState, (next: LoadState) => void, (img: HTMLImageElement | null) => void] {
+function useMediaState(src: string): [LoadState, (next: LoadState) => void, (el: HTMLImageElement | HTMLVideoElement | null) => void] {
   const [state, setState] = useState<{ src: string; value: LoadState } | null>(null)
   const value: LoadState = state?.src === src ? state.value : 'loading'
   const settle = useCallback((next: LoadState) => setState({ src, value: next }), [src])
   const watch = useCallback(
-    (img: HTMLImageElement | null) => {
-      if (img?.complete) settle(img.naturalWidth > 0 ? 'loaded' : 'error')
+    (el: HTMLImageElement | HTMLVideoElement | null) => {
+      if (!el) return
+      if (el instanceof HTMLVideoElement) {
+        if (el.error) settle('error')
+        // HAVE_CURRENT_DATA: первый кадр уже есть.
+        else if (el.readyState >= 2) settle('loaded')
+      } else if (el.complete) settle(el.naturalWidth > 0 ? 'loaded' : 'error')
     },
     [settle],
   )
   return [value, settle, watch]
 }
 
+/** Адрес первого кадра: без отметки времени Safari не рисует кадр до запуска. */
+function firstFrameSrc(src: string): string {
+  return src.includes('#') ? src : `${src}#t=0.1`
+}
+
 export function Thumbnail({
   src,
+  kind = 'image',
   alt,
   caption,
   aspect = '4/3',
@@ -78,42 +93,77 @@ export function Thumbnail({
   className,
 }: ThumbnailProps) {
   const t = useMessages()
-  const [loadState, settle, watchImage] = useImageState(src)
+  const [loadState, settle, watchMedia] = useMediaState(src)
   const state: LoadState = loading ? 'loading' : loadState
   const style = { '--ev-thumb-aspect': aspectValue(aspect), width } as CSSProperties
+  const video = kind === 'video'
+  const videoBadge = (
+    <>
+      <Video size={12} aria-hidden="true" />
+      {t.thumbnail.video}
+    </>
+  )
+  const shownBadge = badge !== undefined ? badge : video ? videoBadge : null
+  const shownOverlay = overlay !== undefined ? overlay : video ? <Play size={18} /> : null
+
+  const media = video ? (
+    <video
+      ref={watchMedia}
+      className="ev-thumb-img"
+      src={firstFrameSrc(src)}
+      // Без кнопки кадр - картинка с подписью; в кнопке подпись у самой кнопки.
+      role={onClick ? undefined : 'img'}
+      aria-label={onClick ? undefined : alt || undefined}
+      aria-hidden={onClick ? true : undefined}
+      preload="metadata"
+      muted
+      playsInline
+      disablePictureInPicture
+      onLoadedData={() => settle('loaded')}
+      onError={() => settle('error')}
+    />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      ref={watchMedia}
+      className="ev-thumb-img"
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+      onLoad={() => settle('loaded')}
+      onError={() => settle('error')}
+    />
+  )
 
   const frame = (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={watchImage}
-        className="ev-thumb-img"
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-        onLoad={() => settle('loaded')}
-        onError={() => settle('error')}
-      />
+      {media}
       {state === 'loading' ? <span className="ev-thumb-skeleton" aria-hidden="true" /> : null}
       {state === 'error' ? (
         <span className="ev-thumb-error">
-          <ImageOff size={20} aria-hidden="true" />
+          {video ? <VideoOff size={20} aria-hidden="true" /> : <ImageOff size={20} aria-hidden="true" />}
           <span>{t.thumbnail.error}</span>
         </span>
       ) : null}
-      {overlay && state === 'loaded' ? (
+      {shownOverlay && state === 'loaded' ? (
         <span className="ev-thumb-overlay" aria-hidden="true">
-          {overlay}
+          {shownOverlay}
         </span>
       ) : null}
-      {badge ? <span className="ev-thumb-badge">{badge}</span> : null}
+      {shownBadge ? <span className="ev-thumb-badge">{shownBadge}</span> : null}
     </>
   )
 
   return (
-    <figure className={cx('ev-thumb', className)} data-state={state} data-fit={fit} style={style}>
+    <figure
+      className={cx('ev-thumb', className)}
+      data-state={state}
+      data-fit={fit}
+      data-kind={video ? 'video' : undefined}
+      style={style}
+    >
       {onClick ? (
         <button
           type="button"
@@ -137,8 +187,10 @@ export function Thumbnail({
 export interface ThumbnailGridItem {
   /** Ключ элемента; по умолчанию - src. */
   key?: string
-  /** Превью. */
+  /** Превью; у видео - адрес самого видео (первый кадр). */
   src: string
+  /** image (по умолчанию) или video: в Lightbox видео открывается в плеере. */
+  kind?: 'image' | 'video'
   alt: string
   caption?: ReactNode
   badge?: ReactNode
@@ -189,7 +241,7 @@ export function ThumbnailGrid({
   const shots: LightboxImage[] = []
   const shotIndex = items.map((it) => {
     if (it.onClick) return -1
-    shots.push({ src: it.fullSrc ?? it.src, alt: it.alt, name: it.name, downloadUrl: it.downloadUrl })
+    shots.push({ src: it.fullSrc ?? it.src, kind: it.kind, alt: it.alt, name: it.name, downloadUrl: it.downloadUrl })
     return shots.length - 1
   })
   const clickable = lightbox || Boolean(onItemClick)
@@ -215,6 +267,7 @@ export function ThumbnailGrid({
             <li key={it.key ?? it.src}>
               <Thumbnail
                 src={it.src}
+                kind={it.kind}
                 alt={it.alt}
                 caption={it.caption}
                 badge={it.badge}

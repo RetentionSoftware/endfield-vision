@@ -16,7 +16,7 @@ import { cx, normalizeSearch } from '../lib/cx'
 import { useEventCallback, useIsoLayoutEffect, useMounted, useOutsideClick } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFloating } from '../lib/overlay'
 import { useFieldProps } from './Field'
-import type { ControlSize } from './Input'
+import { controlWidthStyle, type ControlSize, type ControlWidth } from './Input'
 import { Spinner } from './Spinner'
 
 /*
@@ -157,8 +157,8 @@ interface CommonSelectProps<V extends string> {
   size?: ControlSize
   id?: string
   className?: string
-  /** Ширина триггера (по умолчанию 100% контейнера). */
-  width?: number | string
+  /** Ширина: 'xs' | 'sm' | 'md' | 'lg' (токены), px или CSS-длина. По умолчанию - на всю ширину контейнера. */
+  width?: ControlWidth
   /** Минимальная ширина выпадающего списка. */
   dropdownMinWidth?: number
   /** Серверный поиск: опции приходят снаружи, локальной фильтрации нет. */
@@ -367,7 +367,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
       data-open={core.open || undefined}
       data-invalid={f.invalid || undefined}
       data-disabled={f.disabled || undefined}
-      style={width !== undefined ? { width } : undefined}
+      style={controlWidthStyle(width)}
     >
       <button
         ref={(n) => setRefs(n, triggerRef, ref)}
@@ -515,7 +515,7 @@ export function MultiSelect<V extends string = string>(props: MultiSelectProps<V
       data-open={core.open || undefined}
       data-invalid={f.invalid || undefined}
       data-disabled={f.disabled || undefined}
-      style={width !== undefined ? { width } : undefined}
+      style={controlWidthStyle(width)}
     >
       <button
         ref={(n) => setRefs(n, triggerRef, ref)}

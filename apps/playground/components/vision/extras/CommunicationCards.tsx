@@ -9,12 +9,14 @@ import {
   ContextMenu,
   copyText,
   Lightbox,
+  LoadingBlock,
   NotificationCenter,
   NotificationList,
   Switch,
   Thumbnail,
   ThumbnailGrid,
   toast,
+  VideoPlayer,
   type ChatAttachment,
   type ChatAuthor,
   type ChatMessageData,
@@ -26,7 +28,7 @@ import {
   type NotificationItem,
   type ThumbnailGridItem,
 } from 'endfield-vision'
-import { Copy, Play, Reply, Video } from 'lucide-react'
+import { Copy, Reply } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { Subhead } from '../parts'
@@ -746,26 +748,115 @@ function LightboxCard() {
 /** Битый адрес без сетевого запроса: показывает состояние ошибки. */
 const BROKEN_IMAGE = 'data:image/png;base64,AAAA'
 
+/*
+ * Демо-видео пишется в браузере: canvas -> MediaRecorder -> blob URL. Файла
+ * в репозитории нет, а витрина заодно показывает источник из blob URL и
+ * состояние загрузки превью. Кадры детерминированные; цвета - содержимое
+ * ролика, а не оформление интерфейса.
+ */
+type DemoVideo = { status: 'recording' } | { status: 'ready'; url: string } | { status: 'failed' }
+
+const VIDEO_W = 480
+const VIDEO_H = 270
+const VIDEO_FPS = 24
+const VIDEO_SECONDS = 4
+
+function drawVideoFrame(g: CanvasRenderingContext2D, frame: number) {
+  const time = frame / VIDEO_FPS
+  g.fillStyle = '#141a24'
+  g.fillRect(0, 0, VIDEO_W, VIDEO_H)
+  g.fillStyle = '#1d2533'
+  g.fillRect(0, 0, VIDEO_W, 34)
+  g.fillStyle = '#2a3446'
+  g.fillRect(32, 12, 120, 10)
+  g.strokeStyle = '#3fbf86'
+  g.lineWidth = 3
+  g.beginPath()
+  for (let x = 0; x <= VIDEO_W; x += 4) {
+    const spike = Math.abs(((x / 4 + frame * 3) % 60) - 30) < 2 ? -40 : 0
+    const y = 150 + Math.sin((x / VIDEO_W) * 6 * Math.PI - time * 1.5 * Math.PI) * 18 + spike
+    if (x === 0) g.moveTo(x, y)
+    else g.lineTo(x, y)
+  }
+  g.stroke()
+  g.fillStyle = '#f0a33a'
+  g.font = '600 28px sans-serif'
+  g.fillText(`HR ${72 + Math.round(Math.sin(time * 2) * 3)} bpm`, 24, 236)
+  g.fillStyle = '#e6e9ef'
+  g.font = '16px monospace'
+  g.fillText(`00:0${Math.floor(time)}.${String(frame % VIDEO_FPS).padStart(2, '0')}`, VIDEO_W - 110, 236)
+  if (frame % VIDEO_FPS < VIDEO_FPS / 2) {
+    g.fillStyle = '#e34948'
+    g.beginPath()
+    g.arc(VIDEO_W - 24, 17, 6, 0, Math.PI * 2)
+    g.fill()
+  }
+}
+
+async function recordDemoVideo(): Promise<string> {
+  const canvas = document.createElement('canvas')
+  canvas.width = VIDEO_W
+  canvas.height = VIDEO_H
+  const g = canvas.getContext('2d')
+  const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(
+    (m) => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m),
+  )
+  if (!g || !mime || typeof canvas.captureStream !== 'function') throw new Error('MediaRecorder is not available')
+  drawVideoFrame(g, 0)
+  const recorder = new MediaRecorder(canvas.captureStream(VIDEO_FPS), { mimeType: mime, videoBitsPerSecond: 250_000 })
+  const chunks: Blob[] = []
+  recorder.ondataavailable = (e) => chunks.push(e.data)
+  const stopped = new Promise((resolve) => (recorder.onstop = resolve))
+  recorder.start()
+  for (let frame = 0; frame < VIDEO_FPS * VIDEO_SECONDS; frame++) {
+    drawVideoFrame(g, frame)
+    await new Promise((resolve) => window.setTimeout(resolve, 1000 / VIDEO_FPS))
+  }
+  recorder.stop()
+  await stopped
+  return URL.createObjectURL(new Blob(chunks, { type: mime.split(';')[0] }))
+}
+
+/** Демо-видео витрины: пишется один раз за показ карточки, blob URL освобождается при уходе. */
+function useDemoVideo(): DemoVideo {
+  const [video, setVideo] = useState<DemoVideo>({ status: 'recording' })
+  useEffect(() => {
+    let alive = true
+    let url: string | null = null
+    recordDemoVideo().then(
+      (u) => {
+        url = u
+        if (alive) setVideo({ status: 'ready', url: u })
+        else URL.revokeObjectURL(u)
+      },
+      () => alive && setVideo({ status: 'failed' }),
+    )
+    return () => {
+      alive = false
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [])
+  return video
+}
+
 function ThumbnailCard() {
   const { t } = useT()
   const [uploading, setUploading] = useState(true)
+  const video = useDemoVideo()
+  // Пока ролик пишется, адрес - заглушка без сетевого запроса; превью при этом в состоянии загрузки.
+  const videoSrc = video.status === 'ready' ? video.url : BROKEN_IMAGE
   const items: ThumbnailGridItem[] = [
     { src: SHOTS[0]!, alt: t('Приборная панель, пробег', 'Dashboard, mileage'), caption: t('Одометр', 'Odometer'), name: 'odometer.svg' },
     { src: SHOTS[1]!, alt: t('Вид спереди', 'Front view'), caption: t('Спереди', 'Front'), name: 'front.svg' },
     { src: SHOTS[2]!, alt: t('Вид сзади', 'Rear view'), caption: t('Сзади', 'Rear'), name: 'rear.svg' },
     {
       key: 'video',
-      src: SHOTS[3]!,
-      alt: t('Видео осмотра', 'Inspection video'),
-      caption: t('Видео осмотра, 0:42', 'Inspection video, 0:42'),
-      badge: (
-        <>
-          <Video size={12} aria-hidden="true" />
-          {t('Видео', 'Video')}
-        </>
-      ),
-      overlay: <Play size={18} />,
-      onClick: () => toast.info(t('Видео откроется в плеере', 'The video opens in a player')),
+      kind: 'video',
+      src: videoSrc,
+      alt: t('Видео медосмотра', 'Medical check video'),
+      caption: t('Видео медосмотра, 0:04', 'Medical check video, 0:04'),
+      name: 'medical-check.webm',
+      loading: video.status === 'recording',
     },
     { key: 'broken', src: BROKEN_IMAGE, alt: t('Свидетельство о регистрации', 'Registration certificate'), caption: t('СТС', 'Registration') },
     { key: 'upload', src: SHOTS[0]!, alt: t('Полис ОСАГО', 'Insurance policy'), caption: t('Полис, загружается', 'Policy, uploading'), loading: uploading },
@@ -774,14 +865,24 @@ function ThumbnailCard() {
     <Card
       title="Thumbnail, ThumbnailGrid"
       description={t(
-        'Миниатюра: кадр с пропорциями (aspect) и обрезкой cover или вписыванием contain, подпись, значок поверх и знак по центру, скелетон до загрузки и заглушка при ошибке. Сетка подбирает число колонок по ширине (minWidth) и открывает снимок в Lightbox; у видео - своё действие (onClick), в Lightbox оно не попадает.',
-        'A thumbnail: a frame with a set aspect ratio, cropped (cover) or fitted (contain), a caption, a corner badge and a centered mark, a skeleton until it loads and a placeholder on error. The grid fits as many columns as the width allows (minWidth) and opens the image in Lightbox; the video has its own action (onClick) and stays out of Lightbox.',
+        'Миниатюра: кадр с пропорциями (aspect) и обрезкой cover или вписыванием contain, подпись, значок поверх и знак по центру, скелетон до загрузки и заглушка при ошибке. kind="video" - немой первый кадр, значок «Видео» и знак воспроизведения. Сетка подбирает число колонок по ширине (minWidth) и открывает снимок в Lightbox, видео - в плеере. Ролик здесь записывается в браузере и подключается blob URL - пока он пишется, у превью скелетон. Ниже - тот же ролик в VideoPlayer.',
+        'A thumbnail: a frame with a set aspect ratio, cropped (cover) or fitted (contain), a caption, a corner badge and a centered mark, a skeleton until it loads and a placeholder on error. kind="video" shows a muted first frame, a Video badge and a play mark. The grid fits as many columns as the width allows (minWidth) and opens images in Lightbox and videos in a player. The clip here is recorded in the browser and attached as a blob URL; while it records, the preview shows a skeleton. Below is the same clip in VideoPlayer.',
       )}
       actions={
         <Switch size="sm" checked={uploading} onChange={setUploading} label={t('Загрузка полиса', 'Policy uploading')} />
       }
     >
-      <ThumbnailGrid aria-label={t('Фото техосмотра', 'Inspection photos')} items={items} minWidth={150} loop />
+      <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+        <ThumbnailGrid aria-label={t('Фото и видео осмотра', 'Inspection photos and video')} items={items} minWidth={150} loop />
+        <div className="ev-stack">
+          <Subhead>VideoPlayer</Subhead>
+          {video.status === 'recording' ? (
+            <LoadingBlock label={t('Записываем демо-ролик', 'Recording a demo clip')} minHeight={200} />
+          ) : (
+            <VideoPlayer src={videoSrc} aria-label={t('Видео медосмотра', 'Medical check video')} maxHeight={320} />
+          )}
+        </div>
+      </div>
     </Card>
   )
 }

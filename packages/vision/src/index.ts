@@ -83,7 +83,9 @@ export {
   PasswordInput,
   SearchInput,
   Textarea,
+  controlWidthStyle,
   type ControlSize,
+  type ControlWidth,
   type InputProps,
   type MoneyInputProps,
   type NumberInputProps,
@@ -401,4 +403,5 @@ export {
   type ThumbnailGridProps,
   type ThumbnailProps,
 } from './components/Thumbnail'
+export { VideoPlayer, type VideoPlayerProps } from './components/VideoPlayer'
 export { ConnectionStatus, type ConnectionState, type ConnectionStatusProps } from './components/ConnectionStatus'

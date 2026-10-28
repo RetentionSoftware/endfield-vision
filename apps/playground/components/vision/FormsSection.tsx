@@ -21,6 +21,7 @@ import {
   PlateInput,
   PLATE_RE,
   SearchInput,
+  Select,
   SnilsInput,
   Textarea,
   TimeInput,
@@ -280,7 +281,55 @@ function NumberFields() {
           <TimeInput size="sm" value="12:30" onChange={() => undefined} />
         </Field>
       </FormSection>
+      <Divider />
+      <ControlWidths />
     </Card>
+  )
+}
+
+/** Ширина контролов: проп width - токен, px или CSS-длина; без него поле на всю ширину. */
+function ControlWidths() {
+  const { t } = useT()
+  const [trips, setTrips] = useState<number | null>(12)
+  const [from, setFrom] = useState<number | null>(null)
+  const [to, setTo] = useState<number | null>(25_000_000)
+  const [period, setPeriod] = useState<string | null>('week')
+  const [query, setQuery] = useState('')
+  return (
+    <FormSection
+      title={t('Ширина', 'Width')}
+      description={t(
+        'width у Input, NumberInput, MoneyInput и Select: xs - короткое число, sm - сумма, md - дата или короткий список, lg - текст (токены --ev-control-w-*), число в px или CSS-длина. Поле не шире контейнера; без width - на всю ширину. Нужно в строке настроек и в панели фильтров, где обёртки нет.',
+        'width on Input, NumberInput, MoneyInput and Select: xs for a short number, sm for an amount, md for a date or a short list, lg for text (the --ev-control-w-* tokens), a number in px or a CSS length. The field never gets wider than its container; without width it spans the full width. Useful in a settings row and in a filter bar, where there is no wrapper.',
+      )}
+    >
+      <div className={s.row} style={{ alignItems: 'flex-end' }}>
+        <Field label={t('Рейсов в день', 'Trips per day')} labelAside='width="xs"'>
+          <NumberInput value={trips} onChange={setTrips} min={0} max={99} width="xs" />
+        </Field>
+        <Field label={t('Сумма от', 'Amount from')} labelAside='width="sm"'>
+          <MoneyInput value={from} onChange={setFrom} width="sm" />
+        </Field>
+        <Field label={t('Сумма до', 'Amount to')} labelAside='width="sm"'>
+          <MoneyInput value={to} onChange={setTo} width="sm" />
+        </Field>
+        <Field label={t('Период', 'Period')} labelAside='width="md"'>
+          <Select
+            value={period}
+            onChange={setPeriod}
+            width="md"
+            options={[
+              { value: 'day', label: t('День', 'Day') },
+              { value: 'week', label: t('Неделя', 'Week') },
+              { value: 'month', label: t('Месяц', 'Month') },
+            ]}
+          />
+        </Field>
+        <Field label={t('Поиск по истории', 'Search history')} labelAside='width="lg"'>
+          <SearchInput value={query} onChange={setQuery} width="lg" />
+        </Field>
+      </div>
+    </FormSection>
   )
 }
 

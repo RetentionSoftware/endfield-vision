@@ -246,6 +246,10 @@ export interface Messages {
   }
   thumbnail: {
     error: string
+    video: string
+  }
+  video: {
+    error: string
   }
   badgeStack: {
     more: (n: number) => string
@@ -620,6 +624,10 @@ export const ru: Messages = {
   },
   thumbnail: {
     error: 'Не удалось загрузить',
+    video: 'Видео',
+  },
+  video: {
+    error: 'Не удалось воспроизвести видео',
   },
   badgeStack: {
     more: (n) => `Ещё ${n}`,
@@ -980,6 +988,10 @@ export const en: Messages = {
   },
   thumbnail: {
     error: 'Couldn’t load',
+    video: 'Video',
+  },
+  video: {
+    error: 'Couldn’t play the video',
   },
   badgeStack: {
     more: (n) => `${n} more`,

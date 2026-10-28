@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
   type InputHTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
@@ -19,7 +20,23 @@ import { useFieldProps } from './Field'
 
 export type ControlSize = 'sm' | 'md' | 'lg'
 
-type NativeInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'>
+/**
+ * Ширина контрола: размер из токенов --ev-control-w-* (xs - короткое число,
+ * sm - сумма, md - дата, lg - текст), число в px или CSS-длина. Без неё
+ * контрол занимает всю ширину контейнера.
+ */
+export type ControlWidth = 'xs' | 'sm' | 'md' | 'lg' | number | string
+
+const WIDTH_TOKENS = new Set(['xs', 'sm', 'md', 'lg'])
+
+/** Стиль ширины обёртки контрола; на узком экране не шире контейнера. */
+export function controlWidthStyle(width: ControlWidth | undefined): CSSProperties | undefined {
+  if (width === undefined) return undefined
+  const value = typeof width === 'number' ? `${width}px` : WIDTH_TOKENS.has(width) ? `var(--ev-control-w-${width})` : width
+  return { width: value, maxWidth: '100%' }
+}
+
+type NativeInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'width'>
 
 export interface InputProps extends NativeInputProps {
   size?: ControlSize
@@ -32,6 +49,8 @@ export interface InputProps extends NativeInputProps {
   onClear?: () => void
   /** Класс обёртки (рамка поля), а не самого input. */
   wrapperClassName?: string
+  /** Ширина поля: 'xs' | 'sm' | 'md' | 'lg' (токены), px или CSS-длина. По умолчанию - на всю ширину. */
+  width?: ControlWidth
   ref?: Ref<HTMLInputElement>
 }
 
@@ -42,6 +61,7 @@ export function Input({
   suffix,
   onClear,
   wrapperClassName,
+  width,
   className,
   id,
   disabled,
@@ -58,6 +78,7 @@ export function Input({
       data-size={size}
       data-invalid={f.invalid || undefined}
       data-disabled={f.disabled || undefined}
+      style={controlWidthStyle(width)}
     >
       {prefix ? <span className="ev-input-affix ev-input-prefix">{prefix}</span> : null}
       <input

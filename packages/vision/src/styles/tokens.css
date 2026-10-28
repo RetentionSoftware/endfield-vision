@@ -137,6 +137,12 @@
     --ev-control-h: 34px;
     --ev-control-h-lg: 40px;
 
+    /* Ширина контролов (проп width): короткое число, сумма, дата, текст. */
+    --ev-control-w-xs: 96px;
+    --ev-control-w-sm: 144px;
+    --ev-control-w-md: 200px;
+    --ev-control-w-lg: 320px;
+
     /* --- Типографика --- */
     --ev-font-sans: var(--font-inter, 'Inter'), system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
       sans-serif;

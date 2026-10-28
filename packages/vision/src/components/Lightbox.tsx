@@ -7,6 +7,7 @@ import { useMessages } from '../lib/i18n'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
 import { IconButton } from './Button'
 import { Tooltip } from './Tooltip'
+import { VideoPlayer } from './VideoPlayer'
 
 /*
  * Полноэкранный просмотр изображений: вложения сообщений, фото в карточках.
@@ -16,6 +17,10 @@ import { Tooltip } from './Tooltip'
 
 export interface LightboxImage {
   src: string
+  /** image (по умолчанию) или video: видео открывается в плеере с элементами управления. */
+  kind?: 'image' | 'video'
+  /** Кадр видео до запуска. */
+  poster?: string
   /** Описание для скринридера; без него - name. */
   alt?: string
   /** Имя файла: подпись в шапке и имя при скачивании. */
@@ -41,6 +46,11 @@ export interface LightboxProps {
 
 /** Порог свайпа, px: короче - это касание, а не листание. */
 const SWIPE = 48
+
+/** Событие из плеера: перемотка и громкость - его дело, не листание. */
+function isVideoTarget(target: EventTarget): boolean {
+  return target instanceof Element && target.closest('video, .ev-video') !== null
+}
 
 export function Lightbox({ open, ...rest }: LightboxProps) {
   if (!open || rest.images.length === 0) return null
@@ -81,6 +91,8 @@ export function LightboxFrame({
   }
 
   const onKeyDown = (e: KeyboardEvent) => {
+    // Стрелки в плеере перематывают видео, а не листают.
+    if (isVideoTarget(e.target)) return
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
       go(-1)
@@ -91,7 +103,7 @@ export function LightboxFrame({
   }
 
   const onPointerDown = (e: PointerEvent) => {
-    if (e.pointerType === 'mouse') return
+    if (e.pointerType === 'mouse' || isVideoTarget(e.target)) return
     swipe.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
   }
   const onPointerUp = (e: PointerEvent) => {
@@ -151,15 +163,25 @@ export function LightboxFrame({
           if (e.target === e.currentTarget) onClose()
         }}
       >
-        {/* Библиотека не завязана на next/image: обычный img. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={image.src}
-          className="ev-lightbox-img"
-          src={image.src}
-          alt={image.alt ?? image.name ?? ''}
-          draggable={false}
-        />
+        {image.kind === 'video' ? (
+          <VideoPlayer
+            key={image.src}
+            className="ev-lightbox-video"
+            src={image.src}
+            poster={image.poster}
+            aria-label={image.alt ?? image.name}
+          />
+        ) : (
+          // Библиотека не завязана на next/image: обычный img.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={image.src}
+            className="ev-lightbox-img"
+            src={image.src}
+            alt={image.alt ?? image.name ?? ''}
+            draggable={false}
+          />
+        )}
         {count > 1 ? (
           <>
             <IconButton
