@@ -18,7 +18,7 @@
 [![Components](https://img.shields.io/badge/components-137-7b93ff)](#что-внутри)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#что-внутри)
 [![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.ru.md#токены-главное)
-[![Tests](https://img.shields.io/badge/tests-520-2f9e44)](packages/vision/src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-521-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.ru.md#язык)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
@@ -86,7 +86,7 @@ bun add endfield-vision
 К каждому [релизу на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases) приложена та же сборка - архив `endfield-vision-<версия>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.0/endfield-vision-2.2.0.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.1/endfield-vision-2.2.1.tgz
 ```
 
 </details>

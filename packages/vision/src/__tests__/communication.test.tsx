@@ -164,6 +164,15 @@ describe('NotificationCenter', () => {
     expect(out).toContain('aria-expanded="true"')
     expect(out).not.toContain('ev-drawer')
   })
+
+  it('className дополняет классы колокольчика, а не заменяет их', () => {
+    const bell = 'class="ev-btn ev-btn-iconic ev-notify-bell"'
+    expect(renderRu(<NotificationCenter items={NOTICES} />)).toContain(bell)
+    expect(renderRu(<NotificationCenter variant="drawer" items={NOTICES} />)).toContain(bell)
+    expect(renderRu(<NotificationCenter items={NOTICES} className="app-bell" />)).toContain(
+      'class="ev-btn ev-btn-iconic ev-notify-bell app-bell"',
+    )
+  })
 })
 
 /* ------------------------------------------------------------------ */

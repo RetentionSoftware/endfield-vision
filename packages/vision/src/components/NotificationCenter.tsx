@@ -283,6 +283,7 @@ function BellButton({
   count,
   icon,
   ref,
+  className,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   label: string
@@ -297,11 +298,11 @@ function BellButton({
       <button
         ref={ref}
         type="button"
-        className="ev-btn ev-btn-iconic ev-notify-bell"
         data-variant="ghost"
         data-size="md"
         aria-label={aria}
         {...rest}
+        className={cx('ev-btn ev-btn-iconic ev-notify-bell', className)}
       >
         <span className="ev-btn-icon">{icon ?? <Bell size={18} />}</span>
         {count > 0 ? (
