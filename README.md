@@ -189,6 +189,12 @@ npm run dev
 
 The playground runs at http://localhost:3200 and uses the library straight from source, so edits in `packages/vision/src` show up immediately.
 
+To open it from a phone or another computer on your network (`http://<your-ip>:3200`), allow those addresses in `apps/playground/.env.local`, which stays out of git:
+
+```bash
+EV_DEV_ORIGINS=192.168.*.*
+```
+
 | Command | What it does |
 |---|---|
 | `npm run typecheck` | TypeScript across all workspaces |
