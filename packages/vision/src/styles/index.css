@@ -2,7 +2,7 @@
  * Точка входа стилей Endfield Vision. Порядок слоёв задаёт приоритет: стили
  * страниц (вне слоёв, например CSS Modules) всегда сильнее стилей кита.
  */
-@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities;
+@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities;
 
 @import './tokens.css';
 @import './accents.css';
@@ -23,3 +23,5 @@
 @import './components/communication.css';
 @import './components/shell-extras.css';
 @import './shell.css';
+/* Стили оформления (data-style): правила компонентов поверх базовых. */
+@import './slim.css';

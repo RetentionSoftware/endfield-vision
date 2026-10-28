@@ -132,7 +132,7 @@
     color: var(--ev-text-muted);
     font-family: var(--ev-font-mono);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
   }
 
   .ev-codeblock-actions {

@@ -46,7 +46,7 @@
   font-size: var(--ev-fs-2xs);
   font-weight: var(--ev-fw-semibold);
   letter-spacing: var(--ev-tracking-caps);
-  text-transform: uppercase;
+  text-transform: var(--ev-caps-transform);
   color: var(--ev-text-muted);
 }
 
@@ -120,11 +120,16 @@
   overflow: hidden;
 }
 
+/* Стиль Slim - плоская плашка без свечения. */
+:global(:root[data-style='slim']) .hero {
+  background: var(--ev-surface-1);
+}
+
 .heroKicker {
   font-family: var(--ev-font-mono);
   font-size: var(--ev-fs-xs);
   letter-spacing: var(--ev-tracking-caps);
-  text-transform: uppercase;
+  text-transform: var(--ev-caps-transform);
   color: var(--ev-accent-text);
 }
 

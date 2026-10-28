@@ -661,7 +661,7 @@
 
   .ev-page-title {
     font-size: var(--ev-fs-2xl);
-    font-weight: var(--ev-fw-semibold);
+    font-weight: var(--ev-fw-title);
     letter-spacing: -0.015em;
     overflow-wrap: anywhere;
   }
@@ -807,7 +807,7 @@
     bottom: -1px;
     height: 2px;
     border-radius: 2px 2px 0 0;
-    background: var(--ev-accent);
+    background: var(--ev-selected-indicator);
   }
 
   .ev-tab:focus-visible {
@@ -831,8 +831,8 @@
   }
 
   .ev-tabs[data-variant='pill'] .ev-tab[data-active] {
-    background: var(--ev-accent-soft);
-    color: var(--ev-accent-text);
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
   }
 
   .ev-tab-icon {

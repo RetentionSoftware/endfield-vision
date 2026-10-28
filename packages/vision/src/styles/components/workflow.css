@@ -227,7 +227,7 @@
 
   .ev-kanban-card[data-selected] {
     --ev-corner-color: var(--ev-accent);
-    background: var(--ev-accent-softer);
+    background: var(--ev-selected-bg-subtle);
   }
 
   .ev-kanban-card:has(.ev-kanban-card-link:focus-visible) {
@@ -425,10 +425,10 @@
     padding-top: var(--ev-space-4);
     padding-left: var(--ev-space-5);
     color: var(--ev-text-muted);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
   }
 
   .ev-perm-colhead {

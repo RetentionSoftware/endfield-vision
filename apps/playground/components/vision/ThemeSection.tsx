@@ -12,19 +12,23 @@ import {
   RadioGroup,
   SegmentedControl,
   setAccent,
+  setStyle,
   setTheme,
   StatusPill,
+  STYLE_STORAGE_KEY,
+  STYLES,
   Switch,
   Tabs,
   THEME_STORAGE_KEY,
   themeBootstrap,
   useTheme,
   type Accent,
+  type Style,
   type ThemePreference,
 } from 'endfield-vision'
 import { Plus, RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
-import { ACCENT_LABELS, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
+import { ACCENT_LABELS, STYLE_HINTS, STYLE_ICONS, STYLE_LABELS, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { CodeBlock } from './parts'
 import s from './vision.module.css'
@@ -39,14 +43,17 @@ const THEME_LABEL: Record<ThemePreference, Bi> = {
 const L = (en: boolean, ru: string, eng: string) => (en ? eng : ru)
 
 const runtime = (en: boolean) => `'use client'
-import { ACCENTS, useTheme } from 'endfield-vision'
+import { ACCENTS, STYLES, useTheme } from 'endfield-vision'
 
 export function AppearancePicker() {
   // ${L(en, "theme - действующая тема, preference - выбор пользователя (может быть 'system')", "theme is the active theme, preference is the user's choice (can be 'system')")}
-  const { theme, preference, accent, setTheme, setAccent } = useTheme()
+  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme()
   return (
     <>
       <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>${L(en, 'Сменить тему', 'Toggle theme')}</button>
+      {STYLES.map((v) => (
+        <button key={v} aria-pressed={v === style} onClick={() => setStyle(v)}>{v}</button>
+      ))}
       {ACCENTS.map((a) => (
         <button key={a} aria-pressed={a === accent} onClick={() => setAccent(a)}>{a}</button>
       ))}
@@ -54,10 +61,10 @@ export function AppearancePicker() {
   )
 }
 
-// ${L(en, 'Вне React', 'Outside React')}: setTheme('system'), setAccent('emerald', { persist: false })`
+// ${L(en, 'Вне React', 'Outside React')}: setTheme('system'), setStyle('slim'), setAccent('emerald', { persist: false })`
 
-const script = (en: boolean) => `// ${L(en, 'Скрипт для <head>: тема по умолчанию - по ОС, акцент - изумруд', 'Script for <head>: theme follows the OS by default, accent is emerald')}
-<ThemeScript defaultTheme="system" defaultAccent="emerald" />`
+const script = (en: boolean) => `// ${L(en, 'Скрипт для <head>: тема по умолчанию - по ОС, стиль - Slim, акцент - чернила', 'Script for <head>: theme follows the OS by default, style is Slim, accent is ink')}
+<ThemeScript defaultTheme="system" defaultStyle="slim" defaultAccent="ink" />`
 
 const nonceCode = (en: boolean) => `// app/layout.tsx - ${L(en, 'строгая CSP', 'strict CSP')} (script-src 'nonce-...')
 import { headers } from 'next/headers'
@@ -93,7 +100,7 @@ const customAccent = (en: boolean) => `/* app/globals.css - ${L(en, 'стили 
 }`
 
 const layersCode = (en: boolean) => `/* app/globals.css: ${L(en, 'порядок слоёв объявляется до любых импортов', 'declare the layer order before any imports')} */
-@layer theme, base, ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities, components, utilities;
+@layer theme, base, ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities, components, utilities;
 
 @import 'tailwindcss';
 @import 'endfield-vision/styles.css';
@@ -116,6 +123,10 @@ const LAYER_ROWS: Array<{ name: Bi; text: Bi }> = [
     text: bi('Все компоненты: кнопки, поля, таблицы, окна, графики.', 'All components: buttons, inputs, tables, dialogs, charts.'),
   },
   { name: bi('ev.shell', 'ev.shell'), text: bi('Каркас: AppShell, Sidebar, Topbar.', 'App shell: AppShell, Sidebar, Topbar.') },
+  {
+    name: bi('ev.styles', 'ev.styles'),
+    text: bi('Стили оформления (data-style): форма компонентов поверх базовой.', 'Styles (data-style): component treatment on top of the base one.'),
+  },
   {
     name: bi('ev.utilities', 'ev.utilities'),
     text: bi('Утилиты ev-stack, ev-row, ev-grid, ev-mono, ev-truncate...', 'Utilities: ev-stack, ev-row, ev-grid, ev-mono, ev-truncate...'),
@@ -171,7 +182,7 @@ function AccentPreview() {
 }
 
 export function ThemeSection() {
-  const { theme, preference, accent, setTheme: setThemePref, setAccent: setAccentPreset } = useTheme()
+  const { theme, preference, accent, style, setTheme: setThemePref, setAccent: setAccentPreset, setStyle: setStylePref } = useTheme()
   const { t, tx, lang } = useT()
   const en = lang === 'en'
   return (
@@ -185,6 +196,14 @@ export function ThemeSection() {
           )}
         >
           <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-7)' } as CSSProperties}>
+            <RadioGroup<Style>
+              aria-label={t('Стиль', 'Style')}
+              variant="card"
+              direction="horizontal"
+              value={style}
+              onChange={(v) => setStylePref(v)}
+              options={STYLES.map((v) => ({ value: v, label: tx(STYLE_LABELS[v]), icon: STYLE_ICONS[v], description: tx(STYLE_HINTS[v]) }))}
+            />
             <div className="ev-stack">
               <span className="ev-secondary">{t('Тема', 'Theme')}</span>
               <SegmentedControl<ThemePreference>
@@ -223,12 +242,18 @@ export function ThemeSection() {
                   hint: t('data-theme-pref на <html>', 'data-theme-pref on <html>'),
                 },
                 {
+                  key: 'style',
+                  label: t('Стиль', 'Style'),
+                  value: `${tx(STYLE_LABELS[style])} (${style})`,
+                  hint: t('data-style на <html>; default - без атрибута', 'data-style on <html>; default has no attribute'),
+                },
+                {
                   key: 'accent',
                   label: t('Акцент', 'Accent'),
                   value: `${tx(ACCENT_LABELS[accent])} (${accent})`,
                   hint: t('data-accent на <html>; indigo - без атрибута', 'data-accent on <html>; indigo has no attribute'),
                 },
-                { key: 'keys', label: t('Ключи localStorage', 'localStorage keys'), value: `${THEME_STORAGE_KEY}, ${ACCENT_STORAGE_KEY}`, mono: true },
+                { key: 'keys', label: t('Ключи localStorage', 'localStorage keys'), value: `${THEME_STORAGE_KEY}, ${STYLE_STORAGE_KEY}, ${ACCENT_STORAGE_KEY}`, mono: true },
               ]}
             />
             <div>
@@ -239,6 +264,7 @@ export function ThemeSection() {
                 onClick={() => {
                   // Функции без хука: работают и вне React-компонентов.
                   setTheme('dark')
+                  setStyle('default')
                   setAccent('indigo')
                 }}
               >
@@ -251,8 +277,8 @@ export function ThemeSection() {
         <Card
           title={t('Предпросмотр', 'Preview')}
           description={t(
-            'Акцент меняет только акцентные токены: заливку primary, активные вкладки, ссылки, фокус и прогресс.',
-            'The accent changes accent tokens only: the primary fill, active tabs, links, focus and progress.',
+            'Акцент меняет заливку primary, ссылки, фокус и прогресс. Стиль меняет подачу: в Slim выбранное - нейтральным тоном, без свечения и уголков.',
+            'The accent changes the primary fill, links, focus and progress. The style changes the treatment: in Slim the selection is neutral, with no glow or corners.',
           )}
           id="theme-preview"
         >
@@ -264,8 +290,8 @@ export function ThemeSection() {
         <Card
           title={t('Тема во время работы', 'Theme at runtime')}
           description={t(
-            'useTheme() - состояние и сеттеры; setTheme / setAccent доступны и как функции модуля.',
-            'useTheme() returns state and setters; setTheme / setAccent are also available as module functions.',
+            'useTheme() - состояние и сеттеры; setTheme / setStyle / setAccent доступны и как функции модуля.',
+            'useTheme() returns state and setters; setTheme / setStyle / setAccent are also available as module functions.',
           )}
         >
           <div className="ev-stack">
@@ -312,8 +338,8 @@ export function ThemeSection() {
       <Card
         title={t('Каскадные слои', 'Cascade layers')}
         description={t(
-          'Стили библиотеки лежат в шести слоях. Порядок задаёт приоритет, а не специфичность селекторов.',
-          'Library styles live in six layers. Their order sets priority, not selector specificity.',
+          'Стили библиотеки лежат в семи слоях. Порядок задаёт приоритет, а не специфичность селекторов.',
+          'Library styles live in seven layers. Their order sets priority, not selector specificity.',
         )}
       >
         <div className={`${s.grid} ${s.gridWide}`}>

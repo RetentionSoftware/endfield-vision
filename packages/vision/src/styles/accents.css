@@ -16,6 +16,8 @@
     --ev-accent-swatch-cyan: #38bdf8;
     --ev-accent-swatch-rose: #fb7185;
     --ev-accent-swatch-violet: #a78bfa;
+    /* Нейтральный акцент: образец - светлая и тёмная половины. */
+    --ev-accent-swatch-ink: linear-gradient(135deg, #e7eaf0 0 50%, #2a2f3a 50% 100%);
   }
 
   :root[data-accent='amber'] {
@@ -58,6 +60,15 @@
     --ev-text-on-accent: #ffffff;
   }
 
+  /* Ink - нейтральный акцент: основная кнопка чернильная, цвет остаётся в статусах. */
+  :root[data-accent='ink'] {
+    --ev-accent-rgb: 200, 206, 218;
+    --ev-accent-text: #d5dae3;
+    --ev-accent-strong: #e7eaf0;
+    --ev-accent-strong-hover: #f3f5f8;
+    --ev-text-on-accent: #0b0e14;
+  }
+
   /* --- Светлая тема --- */
   :root[data-theme='light'][data-accent='amber'] {
     --ev-accent-rgb: 196, 130, 0;
@@ -93,5 +104,129 @@
     --ev-accent-text: #6d28d9;
     --ev-accent-strong: #7c3aed;
     --ev-accent-strong-hover: #6d28d9;
+  }
+
+  :root[data-theme='light'][data-accent='ink'] {
+    --ev-accent-rgb: 40, 48, 64;
+    --ev-accent-text: #2b3242;
+    --ev-accent-strong: #161b26;
+    --ev-accent-strong-hover: #262d3b;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  /*
+   * Стиль Slim: те же пресеты, приглушённые под тёплые нейтрали.
+   * indigo - без атрибута data-accent.
+   */
+  :root[data-style='slim']:not([data-accent]) {
+    --ev-accent-rgb: 143, 160, 230;
+    --ev-accent-text: #aab8ee;
+    --ev-accent-strong: #4f5fb3;
+    --ev-accent-strong-hover: #5a6abd;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-accent='amber'] {
+    --ev-accent-rgb: 217, 168, 91;
+    --ev-accent-text: #e2b978;
+    --ev-accent-strong: #d9a85b;
+    --ev-accent-strong-hover: #e3b46a;
+    --ev-text-on-accent: #1c1407;
+  }
+
+  :root[data-style='slim'][data-accent='emerald'] {
+    --ev-accent-rgb: 127, 191, 149;
+    --ev-accent-text: #98ccaa;
+    --ev-accent-strong: #3f7d57;
+    --ev-accent-strong-hover: #478a61;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-accent='cyan'] {
+    --ev-accent-rgb: 120, 178, 204;
+    --ev-accent-text: #93c3d8;
+    --ev-accent-strong: #2f6f8c;
+    --ev-accent-strong-hover: #367b9a;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-accent='rose'] {
+    --ev-accent-rgb: 222, 140, 155;
+    --ev-accent-text: #e6a3b0;
+    --ev-accent-strong: #a8455a;
+    --ev-accent-strong-hover: #b44f64;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-accent='violet'] {
+    --ev-accent-rgb: 172, 155, 224;
+    --ev-accent-text: #bcaee8;
+    --ev-accent-strong: #6a55b0;
+    --ev-accent-strong-hover: #7561bb;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-accent='ink'] {
+    --ev-accent-rgb: 200, 196, 186;
+    --ev-accent-text: #e2dfd8;
+    --ev-accent-strong: #e8e6df;
+    --ev-accent-strong-hover: #f4f2ec;
+    --ev-text-on-accent: #1c1b18;
+  }
+
+  :root[data-style='slim'][data-theme='light']:not([data-accent]) {
+    --ev-accent-rgb: 70, 88, 170;
+    --ev-accent-text: #3f4f9c;
+    --ev-accent-strong: #4a5aa8;
+    --ev-accent-strong-hover: #414f96;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='amber'] {
+    --ev-accent-rgb: 143, 95, 20;
+    --ev-accent-text: #7d5212;
+    --ev-accent-strong: #d9a85b;
+    --ev-accent-strong-hover: #cf9c4c;
+    --ev-text-on-accent: #1c1407;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='emerald'] {
+    --ev-accent-rgb: 47, 122, 79;
+    --ev-accent-text: #2a6c46;
+    --ev-accent-strong: #2f7a4f;
+    --ev-accent-strong-hover: #296c46;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='cyan'] {
+    --ev-accent-rgb: 38, 100, 130;
+    --ev-accent-text: #24607d;
+    --ev-accent-strong: #2f6f8c;
+    --ev-accent-strong-hover: #285f78;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='rose'] {
+    --ev-accent-rgb: 160, 60, 80;
+    --ev-accent-text: #973a4c;
+    --ev-accent-strong: #a8455a;
+    --ev-accent-strong-hover: #943d50;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='violet'] {
+    --ev-accent-rgb: 100, 80, 170;
+    --ev-accent-text: #5a4699;
+    --ev-accent-strong: #6a55b0;
+    --ev-accent-strong-hover: #5d4a9c;
+    --ev-text-on-accent: #ffffff;
+  }
+
+  :root[data-style='slim'][data-theme='light'][data-accent='ink'] {
+    --ev-accent-rgb: 60, 56, 48;
+    --ev-accent-text: #2e2b25;
+    --ev-accent-strong: #2a2824;
+    --ev-accent-strong-hover: #3a3731;
+    --ev-text-on-accent: #fcfbf8;
   }
 }

@@ -85,10 +85,10 @@
   .ev-notices-day {
     margin: 0;
     padding: var(--ev-space-3) var(--ev-space-3) var(--ev-space-2);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
     color: var(--ev-text-muted);
   }
 
@@ -280,10 +280,10 @@
     align-items: center;
     gap: var(--ev-space-4);
     margin: var(--ev-space-5) 0 var(--ev-space-3);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
     color: var(--ev-text-muted);
   }
 

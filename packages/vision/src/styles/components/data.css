@@ -92,7 +92,7 @@
   }
 
   .ev-th-sort[data-sorted] {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
   }
 
   .ev-th-sort-idle {
@@ -127,12 +127,12 @@
   }
 
   .ev-table tbody tr[data-clickable]:focus-visible td {
-    background: var(--ev-accent-softer);
-    box-shadow: inset 0 1px 0 var(--ev-accent-edge), inset 0 -1px 0 var(--ev-accent-edge);
+    background: var(--ev-selected-bg-subtle);
+    box-shadow: inset 0 1px 0 var(--ev-selected-edge), inset 0 -1px 0 var(--ev-selected-edge);
   }
 
   .ev-table tbody tr[data-selected] td {
-    background: var(--ev-accent-softer);
+    background: var(--ev-selected-bg-subtle);
   }
 
   .ev-table tbody tr[data-muted] td {
@@ -250,8 +250,8 @@
   }
 
   .ev-table-card[data-selected] {
-    background: var(--ev-accent-softer);
-    box-shadow: inset 0 0 0 1px var(--ev-accent-edge);
+    background: var(--ev-selected-bg-subtle);
+    box-shadow: inset 0 0 0 1px var(--ev-selected-edge);
   }
 
   .ev-table-card[data-muted] {
@@ -354,8 +354,8 @@
   }
 
   .ev-pagination-num[data-active] {
-    background: var(--ev-accent-soft);
-    color: var(--ev-accent-text);
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
     font-weight: var(--ev-fw-semibold);
   }
 

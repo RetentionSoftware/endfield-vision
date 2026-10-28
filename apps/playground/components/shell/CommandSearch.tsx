@@ -1,11 +1,12 @@
 'use client'
 
-import { CommandPalette, Kbd, setAccent, setTheme, useAppShell, type CommandItem } from 'endfield-vision'
+import { CommandPalette, Kbd, setAccent, setStyle, setTheme, STYLES, useAppShell, type CommandItem } from 'endfield-vision'
 import { Languages, Moon, Palette, Plus, Search, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useLang, useT } from '@/lib/i18n'
 import { NAV } from '@/lib/nav'
+import { STYLE_ICONS, STYLE_LABELS } from './ThemeMenu'
 
 /** Поиск по разделам и быстрые команды: кнопка в шапке и Ctrl+K (палитра команд библиотеки). */
 export function CommandSearch() {
@@ -62,6 +63,14 @@ export function CommandSearch() {
         disabled: lang === 'en',
         onSelect: () => setLang('en'),
       },
+      ...STYLES.map((v) => ({
+        id: `style-${v}`,
+        label: `${t('Стиль', 'Style')}: ${tx(STYLE_LABELS[v]).toLowerCase()}`,
+        group: appearance,
+        icon: STYLE_ICONS[v],
+        keywords: ['стиль', 'оформление', 'style', STYLE_LABELS[v].ru, STYLE_LABELS[v].en],
+        onSelect: () => setStyle(v),
+      })),
       { id: 'theme-dark', label: t('Тёмная тема', 'Dark theme'), group: appearance, icon: <Moon size={16} />, onSelect: () => setTheme('dark') },
       { id: 'theme-light', label: t('Светлая тема', 'Light theme'), group: appearance, icon: <Sun size={16} />, onSelect: () => setTheme('light') },
       {

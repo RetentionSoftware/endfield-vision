@@ -62,7 +62,7 @@
 }
 
 .item[data-active] {
-  background: var(--ev-accent-softer);
+  background: var(--ev-selected-bg-subtle);
 }
 
 .item:focus-visible {
@@ -230,7 +230,7 @@
 }
 
 .entry[data-own] {
-  background: var(--ev-accent-softer);
+  background: var(--ev-selected-bg-subtle);
 }
 
 .entryHead {

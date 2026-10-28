@@ -27,6 +27,11 @@
   pointer-events: none;
 }
 
+/* Стиль Slim - без свечения. */
+:global(:root[data-style='slim']) .auth::before {
+  display: none;
+}
+
 .card {
   width: min(420px, 100%);
   padding: var(--ev-space-9) var(--ev-space-8) var(--ev-space-8);

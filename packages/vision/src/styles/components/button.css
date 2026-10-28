@@ -35,7 +35,7 @@
   }
 
   .ev-btn:active:not(:disabled) {
-    transform: translateY(1px);
+    transform: translateY(var(--ev-press-shift));
   }
 
   .ev-btn:focus-visible {
@@ -114,8 +114,8 @@
   }
 
   .ev-btn[data-variant='ghost'][aria-pressed='true'] {
-    background: var(--ev-accent-soft);
-    color: var(--ev-accent-text);
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
   }
 
   .ev-btn[data-variant='danger'] {

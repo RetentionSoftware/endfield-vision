@@ -342,7 +342,7 @@
 
   .ev-record-title {
     font-size: var(--ev-fs-2xl);
-    font-weight: var(--ev-fw-semibold);
+    font-weight: var(--ev-fw-title);
     line-height: 1.25;
     letter-spacing: -0.015em;
     overflow-wrap: anywhere;

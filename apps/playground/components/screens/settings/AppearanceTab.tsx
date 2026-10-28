@@ -9,6 +9,7 @@ import {
   Progress,
   RadioGroup,
   SegmentedControl,
+  STYLES,
   StatusPill,
   Switch,
   toast,
@@ -18,7 +19,7 @@ import {
 } from 'endfield-vision'
 import { Check, Download, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { ACCENT_LABELS, AccentDot, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
+import { ACCENT_LABELS, AccentDot, STYLE_HINTS, STYLE_ICONS, STYLE_LABELS, THEME_OPTIONS } from '@/components/shell/ThemeMenu'
 import { bi, useT, type Bi, type Translator } from '@/lib/i18n'
 import s from './settings.module.css'
 
@@ -63,7 +64,7 @@ function previewColumns({ t, tx }: Translator): Column<PreviewRow>[] {
 }
 
 export function AppearanceTab() {
-  const { theme, preference, accent, setTheme, setAccent } = useTheme()
+  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme()
   const tr = useT()
   const { t, tx } = tr
   const [density, setDensity] = useState<Density>('comfortable')
@@ -90,6 +91,20 @@ export function AppearanceTab() {
                 : t('Сейчас действует светлая тема.', 'The light theme is active now.')}
             </p>
           ) : null}
+        </Card>
+
+        <Card
+          title={t('Стиль', 'Style')}
+          description={t('Подача элементов: формы, выделение, тени. Размеры и раскладка не меняются.', 'How elements look: shapes, selection, shadows. Sizes and layout stay the same.')}
+        >
+          <RadioGroup
+            aria-label={t('Стиль', 'Style')}
+            variant="card"
+            direction="horizontal"
+            value={style}
+            onChange={(v) => setStyle(v)}
+            options={STYLES.map((v) => ({ value: v, label: tx(STYLE_LABELS[v]), icon: STYLE_ICONS[v], description: tx(STYLE_HINTS[v]) }))}
+          />
         </Card>
 
         <Card
@@ -137,7 +152,7 @@ export function AppearanceTab() {
         description={
           <span className={s.previewDesc}>
             <AccentDot accent={accent} />
-            {tx(ACCENT_LABELS[accent])}, {theme === 'dark' ? t('тёмная тема', 'dark theme') : t('светлая тема', 'light theme')}
+            {tx(STYLE_LABELS[style])}, {tx(ACCENT_LABELS[accent]).toLowerCase()}, {theme === 'dark' ? t('тёмная тема', 'dark theme') : t('светлая тема', 'light theme')}
           </span>
         }
       >

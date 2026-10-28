@@ -169,6 +169,25 @@
     --ev-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 6px 16px -6px rgba(var(--ev-accent-rgb), 0.55);
     --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 4px rgba(var(--ev-accent-rgb), 0.7);
     --ev-focus-ring-inset: 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
+    /* Сдвиг кнопки при нажатии. */
+    --ev-press-shift: 1px;
+
+    /*
+     * Выбранное и текущее (пункт меню, вкладка, страница, строка, опция) - не смысловой тон.
+     * В стиле Default - акцент, в других стилях может быть нейтральным.
+     */
+    --ev-selected-bg: var(--ev-accent-soft);
+    --ev-selected-bg-subtle: var(--ev-accent-softer);
+    --ev-selected-edge: var(--ev-accent-edge);
+    --ev-selected-text: var(--ev-accent-text);
+    --ev-selected-indicator: var(--ev-accent);
+
+    /* Служебные подписи (группы меню, разделы, дни в ленте). */
+    --ev-caps-transform: uppercase;
+    --ev-caps-size: var(--ev-fs-2xs);
+    --ev-caps-weight: var(--ev-fw-semibold);
+    /* Заголовок страницы. */
+    --ev-fw-title: var(--ev-fw-semibold);
 
     /* --- Уголки видоискателя (ev-corners): фирменный акцент вместо полосы по краю --- */
     --ev-corner-size: 10px;
@@ -269,5 +288,137 @@
     --ev-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
     --ev-shadow-pop: 0 14px 36px rgba(16, 24, 40, 0.14), 0 0 0 1px var(--ev-border);
     --ev-shadow-modal: 0 24px 64px rgba(16, 24, 40, 0.2), 0 0 0 1px var(--ev-border);
+  }
+
+  /*
+   * Стиль Slim («Утончённый»): <html data-style="slim">. Плоский и спокойный:
+   * тёплые нейтрали, без свечения, выбранное - нейтральным тоном, подписи без капса.
+   * Размеры (высоты контролов, отступы, кегль) те же, что в Default.
+   * Правила компонентов - в slim.css (слой ev.styles).
+   *
+   * Контраст (тёмная): --ev-text-muted 5.6 к --ev-surface-1, 4.6 к --ev-surface-3;
+   * --ev-border-control 3.5 к фону поля. Светлая: --ev-text-muted 5.8 / 4.7, рамка поля 3.4.
+   */
+  :root[data-style='slim'] {
+    --ev-bg: #1c1b19;
+    --ev-surface-1: #242320;
+    --ev-surface-2: #2b2a27;
+    --ev-surface-3: #33312e;
+    --ev-surface-input: #1f1e1c;
+    --ev-surface-overlay: rgba(10, 9, 8, 0.6);
+    --ev-surface-tooltip: #3a3834;
+    --ev-surface-nested: var(--ev-surface-2);
+
+    --ev-tint-1: rgba(255, 250, 240, 0.025);
+    --ev-tint-2: rgba(255, 250, 240, 0.045);
+    --ev-tint-3: rgba(255, 250, 240, 0.07);
+    --ev-tint-4: rgba(255, 250, 240, 0.1);
+
+    --ev-border-soft: rgba(255, 250, 240, 0.05);
+    --ev-border: #33312d;
+    --ev-border-strong: #403e39;
+    --ev-border-control: #77736b;
+    --ev-border-hover: #8d897f;
+
+    --ev-text: #ecebe6;
+    --ev-text-secondary: #c2bfb7;
+    --ev-text-muted: #9e9a91;
+    --ev-text-disabled: #6a675f;
+    --ev-text-on-solid: #1c1b19;
+
+    --ev-success-rgb: 127, 191, 149;
+    --ev-success-strong: #3f7d57;
+    --ev-warning-rgb: 217, 168, 91;
+    --ev-warning-strong: #b8873a;
+    --ev-danger-rgb: 224, 138, 126;
+    --ev-danger-strong: #b5483b; /* белый текст 5.3:1 */
+    --ev-danger-strong-hover: #c0503f;
+    --ev-info-rgb: 134, 174, 214;
+    --ev-violet-rgb: 182, 166, 224;
+
+    --ev-chart-grid: #33312d;
+    --ev-chart-axis: #403e39;
+    --ev-chart-crosshair: #77736b;
+
+    --ev-radius-xs: 4px;
+    --ev-radius-sm: 6px;
+    --ev-radius: 8px;
+    --ev-radius-md: 8px;
+    --ev-radius-lg: 10px;
+    --ev-radius-xl: 14px;
+
+    --ev-fw-semibold: 500;
+    --ev-fw-bold: 600;
+    --ev-fw-title: 600;
+    --ev-tracking-caps: 0;
+    --ev-caps-transform: none;
+    --ev-caps-size: var(--ev-fs-xs);
+    --ev-caps-weight: var(--ev-fw-medium);
+
+    --ev-shadow-card: none;
+    --ev-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --ev-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    --ev-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--ev-border-strong);
+    --ev-shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--ev-border-strong);
+    --ev-shadow-primary: none;
+    /* Фокус без полупрозрачного ореола: тонкая чёткая линия; у полей - плотнее рамка. */
+    --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 3.5px var(--ev-accent);
+    --ev-focus-ring-inset: 0 0 0 1px var(--ev-accent);
+    --ev-press-shift: 0;
+
+    --ev-selected-bg: var(--ev-tint-3);
+    --ev-selected-bg-subtle: var(--ev-tint-2);
+    --ev-selected-edge: var(--ev-border-strong);
+    --ev-selected-text: var(--ev-text);
+    --ev-selected-indicator: var(--ev-text);
+  }
+
+  :root[data-style='slim'][data-theme='light'] {
+    --ev-bg: #f5f4ef;
+    --ev-surface-1: #fcfbf8;
+    --ev-surface-2: #f0eee8;
+    --ev-surface-3: #e8e5dd;
+    --ev-surface-input: #fcfbf8;
+    --ev-surface-overlay: rgba(28, 27, 24, 0.35);
+    --ev-surface-tooltip: #2b2a27;
+    --ev-surface-nested: var(--ev-surface-2);
+
+    --ev-tint-1: rgba(40, 30, 10, 0.025);
+    --ev-tint-2: rgba(40, 30, 10, 0.045);
+    --ev-tint-3: rgba(40, 30, 10, 0.07);
+    --ev-tint-4: rgba(40, 30, 10, 0.1);
+
+    --ev-border-soft: rgba(40, 30, 10, 0.06);
+    --ev-border: #e4e1d8;
+    --ev-border-strong: #d4d0c5;
+    --ev-border-control: #8c877c;
+    --ev-border-hover: #6f6b62;
+
+    --ev-text: #1c1b18;
+    --ev-text-secondary: #4b4841;
+    --ev-text-muted: #66625a;
+    --ev-text-disabled: #a6a297;
+    --ev-text-on-solid: #fcfbf8;
+
+    --ev-success-rgb: 47, 122, 79;
+    --ev-success-strong: #2f7a4f;
+    --ev-warning-rgb: 143, 95, 20;
+    --ev-warning-strong: #c9963f;
+    --ev-danger-rgb: 168, 64, 47;
+    --ev-danger-strong: #a8402f; /* белый текст 5.9:1 */
+    --ev-danger-strong-hover: #943726;
+    --ev-info-rgb: 47, 95, 143;
+    --ev-violet-rgb: 106, 85, 176;
+
+    --ev-chart-grid: #e9e6de;
+    --ev-chart-axis: #d4d0c5;
+    --ev-chart-crosshair: #8c877c;
+
+    /* Карточку на светлом фоне отделяет волосяная линия, не тень; размер элемента не меняется. */
+    --ev-shadow-card: 0 0 0 1px rgba(40, 30, 10, 0.07);
+    --ev-shadow-sm: 0 1px 2px rgba(40, 30, 10, 0.06);
+    --ev-shadow: 0 4px 12px rgba(40, 30, 10, 0.07);
+    --ev-shadow-pop: 0 8px 24px rgba(40, 30, 10, 0.1), 0 0 0 1px var(--ev-border);
+    --ev-shadow-modal: 0 16px 48px rgba(40, 30, 10, 0.14), 0 0 0 1px var(--ev-border);
   }
 }

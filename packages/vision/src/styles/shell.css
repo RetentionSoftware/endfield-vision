@@ -160,10 +160,10 @@
 
   .ev-sidebar-section-title {
     padding: 0 var(--ev-space-3) var(--ev-space-2);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
     color: var(--ev-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -208,7 +208,7 @@
   }
 
   .ev-sidebar-item[data-active] {
-    background: var(--ev-accent-soft);
+    background: var(--ev-selected-bg);
     color: var(--ev-text);
   }
 
@@ -231,7 +231,7 @@
 
   .ev-sidebar-item:hover .ev-sidebar-item-icon,
   .ev-sidebar-item[data-active] .ev-sidebar-item-icon {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
   }
 
   .ev-sidebar-item-label {

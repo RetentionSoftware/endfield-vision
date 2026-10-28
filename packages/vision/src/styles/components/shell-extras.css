@@ -122,15 +122,15 @@
 
   /* Текущее пространство - тонированный фон и отметка. */
   .ev-workspace-option[data-current] {
-    background: var(--ev-accent-softer);
+    background: var(--ev-selected-bg-subtle);
   }
 
   .ev-workspace-option[data-current][data-active] {
-    background: var(--ev-accent-soft);
+    background: var(--ev-selected-bg);
   }
 
   .ev-workspace-option[data-current] .ev-select-option-label {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
     font-weight: var(--ev-fw-medium);
   }
 
@@ -153,10 +153,10 @@
     gap: var(--ev-space-1);
     flex: 0 0 auto;
     color: var(--ev-accent-text);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
   }
 
   .ev-workspace-footer {

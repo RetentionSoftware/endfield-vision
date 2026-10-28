@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { runInNewContext } from 'node:vm'
 import { describe, expect, it } from 'vitest'
-import { ACCENTS, Progress, themeBootstrap, ThemeScript } from '../index'
+import { ACCENTS, Progress, STYLES, themeBootstrap, ThemeScript } from '../index'
 
 /*
  * Скрипт темы выполняется в песочнице с поддельными document, localStorage
@@ -46,6 +46,16 @@ describe('тема', () => {
     expect(renderToString(<ThemeScript />)).toContain('<script>')
     expect(ACCENTS).toContain('indigo')
     expect(ACCENTS).toContain('amber')
+  })
+
+  it('стиль: по умолчанию атрибута нет, сохранённый slim ставится', () => {
+    expect(runBootstrap(themeBootstrap(), {}).style).toBeUndefined()
+    expect(runBootstrap(themeBootstrap(), { 'ev-style': 'slim' }).style).toBe('slim')
+    expect(runBootstrap(themeBootstrap({ defaultStyle: 'slim' }), {}).style).toBe('slim')
+    expect(runBootstrap(themeBootstrap({ defaultStyle: 'slim' }), { 'ev-style': 'default' }).style).toBeUndefined()
+    expect(runBootstrap(themeBootstrap({ styleKey: 'my-style' }), { 'my-style': 'slim' }).style).toBe('slim')
+    expect(STYLES).toEqual(['default', 'slim'])
+    expect(ACCENTS).toContain('ink')
   })
 
   it('ThemeScript передаёт nonce для строгой CSP', () => {

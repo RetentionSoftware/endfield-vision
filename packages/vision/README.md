@@ -2,7 +2,7 @@
 
 **English** | [Русский](https://github.com/RetentionSoftware/endfield-vision/blob/main/packages/vision/README.ru.md)
 
-A design system for React 19 and Next.js (App Router). Tokens on CSS variables, a dark theme by default plus light and "follow the system", accent presets, and accessible components with no third-party UI kit underneath (the only dependency is `lucide-react` for icons).
+A design system for React 19 and Next.js (App Router). Tokens on CSS variables, a dark theme by default plus light and "follow the system", two styles, accent presets, and accessible components with no third-party UI kit underneath (the only dependency is `lucide-react` for icons).
 
 The live catalog is the **ENDFIELD Vision** section of the playground in the [repository](https://github.com/RetentionSoftware/endfield-vision) (`npm run dev`, then open `/vision`).
 
@@ -87,11 +87,26 @@ import { LocaleProvider } from 'endfield-vision'
 
 Fonts come from the app (`--font-inter`, `--font-jetbrains-mono`); without them the system fonts are used.
 
-## Theme and accent
+## Theme, style and accent
 
-- `<html data-theme="dark|light">` sets the theme, `<html data-accent="amber|emerald|cyan|rose|violet">` sets the accent preset (no attribute means indigo).
-- `ThemeScript` sets both attributes from `localStorage` before rendering. Options: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultAccent`, `themeKey`, `accentKey`, `nonce` (for CSP).
-- In client code: `const { theme, preference, accent, setTheme, setAccent } = useTheme()`.
+Three independent settings on `<html>`:
+
+- **Theme** - `data-theme="dark|light"`.
+- **Style** - `data-style="slim"` (no attribute means `default`). A style changes how elements look, not their size: control heights, spacing and type scale stay the same, so switching never breaks a layout.
+  - `default` - contrasting, accent-colored selection, viewfinder corners, uppercase section labels.
+  - `slim` - flat and calm: warm neutrals, nothing glows, selection is a neutral tone, outlined secondary and danger buttons, sentence-case labels, a crisp focus line instead of a soft halo.
+- **Accent** - `data-accent="amber|emerald|cyan|rose|violet|ink"` (no attribute means indigo). `ink` is a neutral accent: the primary button is ink-colored and color stays in statuses only. Each preset has its own values for each style and theme; contrast is checked by tests.
+
+`ThemeScript` sets all three before rendering. Options: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `themeKey`, `styleKey`, `accentKey`, `nonce` (for CSP).
+
+```tsx
+<ThemeScript defaultTheme="system" defaultStyle="slim" defaultAccent="ink" />
+
+// client code
+const { theme, preference, style, accent, setTheme, setStyle, setAccent } = useTheme()
+```
+
+`STYLES` and `ACCENTS` list the available values; `setTheme`, `setStyle` and `setAccent` also work outside React.
 
 Your own accent: override the tokens in your app styles (unlayered styles always win):
 
@@ -124,7 +139,7 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 
 ## Layers and prefixes
 
-- All library styles live in cascade layers `@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities`. Your unlayered styles always win, no specificity battles needed.
+- All library styles live in cascade layers `@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities`. `ev.styles` holds the component rules of styles such as `slim`. Your unlayered styles always win, no specificity battles needed.
 - Classes use `ev-*` and variables use `--ev-*`, so they never collide with Tailwind or your app styles. With Tailwind v4, set the order with one line before the imports: `@layer theme, base, ev, components, utilities;`.
 - Tokens only: `endfield-vision/tokens.css` (+ `accents.css`) brings the variables without components or the reset.
 
@@ -134,7 +149,8 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 - Colors, spacing, radii, shadows and layers come only from `var(--ev-...)`.
 - An empty value in tables and cards is `EMPTY_VALUE` (a hyphen); `DataTable` and `KeyValueList` insert it themselves.
 - Cards, panels, tiles and tables have no border: the surface separates them, plus `--ev-shadow-card` in the light theme. A block inside a card, dialog or drawer sits on `--ev-surface-nested`. Borders belong to inputs and controls.
-- To mark a panel's tone, use **viewfinder corners** instead of a colored edge stripe: `<div className="ev-corners" data-corners="diagonal" data-tone="warning">`. `data-corners` variants: no value (top-left corner), `diagonal`, `frame` (all four corners), `off`. Size, width and inset are the `--ev-corner-size`, `--ev-corner-width` and `--ev-corner-inset` tokens; the color is the element tone or `--ev-corner-color`.
+- To mark a panel's tone, use **viewfinder corners** instead of a colored edge stripe: `<div className="ev-corners" data-corners="diagonal" data-tone="warning">`. `data-corners` variants: no value (top-left corner), `diagonal`, `frame` (all four corners), `off`. Size, width and inset are the `--ev-corner-size`, `--ev-corner-width` and `--ev-corner-inset` tokens; the color is the element tone or `--ev-corner-color`. The `slim` style hides the corners, so also give the element a toned or selected background.
+- Selected or current items (a menu item, tab, page, row, option) use the `--ev-selected-*` tokens, not the accent directly: in `default` they are accent-colored, in `slim` they are neutral.
 - `Card flush` renders a table edge to edge; other direct children of the body (filters, notices, pagination) get the card padding on their own.
 
 ## Tokens
@@ -146,10 +162,12 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 | Borders | `--ev-border-soft`, `--ev-border`, `--ev-border-strong`, `--ev-border-control` (inputs, 3:1), `--ev-border-hover` |
 | Text | `--ev-text`, `--ev-text-secondary`, `--ev-text-muted` (>= 4.5:1), `--ev-text-disabled`, `--ev-text-on-accent` |
 | Accent | `--ev-accent`, `--ev-accent-text`, `--ev-accent-strong`, `--ev-accent-soft`, `--ev-accent-edge`, `--ev-accent-rgb`, `--ev-accent-swatch-<preset>` |
+| Selection | `--ev-selected-bg`, `--ev-selected-bg-subtle`, `--ev-selected-edge`, `--ev-selected-text`, `--ev-selected-indicator` |
+| Focus | `--ev-focus-ring` (buttons and other controls), `--ev-focus-ring-inset` (fields, next to the border) |
 | Semantic | `--ev-success`, `--ev-warning`, `--ev-danger`, `--ev-info`, `--ev-violet` (+ `-soft`, `-edge`, `-strong`), independent of the accent |
 | Charts | `--ev-chart-1..8`, `--ev-chart-grid`, `--ev-chart-axis` |
 | Geometry | `--ev-radius-xs..xl`, `--ev-space-0..11` (2..56px), `--ev-control-h-sm/-h/-h-lg` (28/34/40) |
-| Typography | `--ev-fs-2xs..3xl` (11..30px, 14px base), `--ev-fw-*`, `--ev-lh` |
+| Typography | `--ev-fs-2xs..3xl` (11..30px, 14px base), `--ev-fw-*`, `--ev-fw-title`, `--ev-lh`; section labels: `--ev-caps-transform`, `--ev-caps-size`, `--ev-caps-weight`, `--ev-tracking-caps` |
 | Layers | `--ev-z-sticky` < `--ev-z-topbar` < `--ev-z-drawer` < `--ev-z-modal` < `--ev-z-dropdown` < `--ev-z-toast` < `--ev-z-tooltip` |
 | Motion | `--ev-dur-fast/-dur/-dur-slow`, `--ev-ease`, `--ev-ease-out`; `prefers-reduced-motion` is handled globally |
 

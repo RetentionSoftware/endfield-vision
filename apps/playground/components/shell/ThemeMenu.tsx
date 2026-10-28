@@ -1,7 +1,7 @@
 'use client'
 
-import { ACCENTS, IconButton, Menu, useTheme, type Accent, type ThemePreference } from 'endfield-vision'
-import { Monitor, Moon, Palette, Sparkles, Sun } from 'lucide-react'
+import { ACCENTS, IconButton, Menu, STYLES, useTheme, type Accent, type Style, type ThemePreference } from 'endfield-vision'
+import { Feather, LayoutDashboard, Monitor, Moon, Palette, Sparkles, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { setMotionPref, useMotionPref } from '@/lib/motion-pref'
@@ -14,6 +14,23 @@ export const ACCENT_LABELS: Record<Accent, Bi> = {
   cyan: bi('Циан', 'Cyan'),
   rose: bi('Роза', 'Rose'),
   violet: bi('Фиалка', 'Violet'),
+  ink: bi('Чернила', 'Ink'),
+}
+
+/** Стили оформления. В компоненте - tx(STYLE_LABELS[s]). */
+export const STYLE_LABELS: Record<Style, Bi> = {
+  default: bi('Стандартный', 'Default'),
+  slim: bi('Утончённый', 'Slim'),
+}
+
+export const STYLE_HINTS: Record<Style, Bi> = {
+  default: bi('Контрастный, с акцентом в выделении и уголками видоискателя.', 'Contrasting, with accent selection and viewfinder corners.'),
+  slim: bi('Плоский и спокойный: тёплые нейтрали, без свечения.', 'Flat and calm: warm neutrals, nothing glows.'),
+}
+
+export const STYLE_ICONS: Record<Style, ReactNode> = {
+  default: <LayoutDashboard size={15} />,
+  slim: <Feather size={15} />,
 }
 
 /** Варианты темы. В компоненте - tx(option.label). */
@@ -28,9 +45,9 @@ export function AccentDot({ accent }: { accent: Accent }) {
   return <span className="pg-accent-dot" style={{ background: `var(--ev-accent-swatch-${accent})` }} aria-hidden="true" />
 }
 
-/** Тема и акцент в шапке. */
+/** Стиль, тема и акцент в шапке. */
 export function ThemeMenu() {
-  const { theme, preference, accent, setTheme, setAccent } = useTheme()
+  const { theme, preference, accent, style, setTheme, setAccent, setStyle } = useTheme()
   const { t, tx } = useT()
   const motion = useMotionPref()
   return (
@@ -40,7 +57,16 @@ export function ThemeMenu() {
       minWidth={220}
       trigger={<IconButton label={t('Оформление', 'Appearance')} icon={theme === 'dark' ? <Moon size={17} /> : <Sun size={17} />} />}
       items={[
-        { type: 'label', id: 'theme', label: t('Тема', 'Theme') },
+        { type: 'label', id: 'style', label: t('Стиль', 'Style') },
+        ...STYLES.map((v) => ({
+          id: `st-${v}`,
+          label: tx(STYLE_LABELS[v]),
+          icon: STYLE_ICONS[v],
+          checked: style === v,
+          onSelect: () => setStyle(v),
+        })),
+        { type: 'separator' as const, id: 's0' },
+        { type: 'label' as const, id: 'theme', label: t('Тема', 'Theme') },
         ...THEME_OPTIONS.map((o) => ({
           id: `t-${o.value}`,
           label: tx(o.label),

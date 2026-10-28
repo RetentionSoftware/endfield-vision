@@ -46,10 +46,10 @@ export const VISION_TAB_META: Record<VisionTab, { label: Bi; description: Bi; ic
     icon: SwatchBook,
   },
   theme: {
-    label: bi('Тема и акценты', 'Theme and accents'),
+    label: bi('Тема и стиль', 'Theme and style'),
     description: bi(
-      'Тёмная и светлая тема, пресеты акцента, свой акцент и каскадные слои.',
-      'Dark and light themes, accent presets, custom accents and cascade layers.',
+      'Тёмная и светлая тема, стили оформления, пресеты акцента, свой акцент и каскадные слои.',
+      'Dark and light themes, styles, accent presets, custom accents and cascade layers.',
     ),
     icon: Palette,
   },

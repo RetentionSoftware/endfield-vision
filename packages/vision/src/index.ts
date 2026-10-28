@@ -19,16 +19,19 @@ export { Portal, useEscapeLayer, useFloating, useFocusTrap, useScrollLock, type 
 export {
   ACCENTS,
   ACCENT_STORAGE_KEY,
+  STYLES,
+  STYLE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   themeBootstrap,
   ThemeScript,
   type Accent,
+  type Style,
   type Theme,
   type ThemePreference,
   type ThemeScriptOptions,
   type ThemeScriptProps,
 } from './lib/theme-script'
-export { setAccent, setTheme, useTheme, type ThemeState } from './lib/theme'
+export { setAccent, setStyle, setTheme, useTheme, type ThemeState } from './lib/theme'
 export { LocaleProvider, useLocale, useMessages, useNumberFormat, type LocaleProviderProps } from './lib/i18n'
 export { en, MESSAGES, resolveMessages, ru, type Locale, type Messages, type MessagesOverride } from './lib/i18n-messages'
 export { LinkProvider, UiLink, useLinkComponent, type LinkComponent } from './lib/link'

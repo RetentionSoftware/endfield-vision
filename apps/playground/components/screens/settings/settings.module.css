@@ -77,8 +77,8 @@
 }
 
 .swatch[data-active] {
-  border-color: var(--ev-accent-edge);
-  background: var(--ev-accent-softer);
+  border-color: var(--ev-selected-edge);
+  background: var(--ev-selected-bg-subtle);
 }
 
 .swatchColor {

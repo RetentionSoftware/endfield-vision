@@ -89,10 +89,10 @@
 
   .ev-cmdk-group-label {
     padding: var(--ev-space-2) var(--ev-space-3) var(--ev-space-1);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
     color: var(--ev-text-muted);
   }
 
@@ -124,7 +124,7 @@
   }
 
   .ev-cmdk-item[data-active] .ev-cmdk-item-icon {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
   }
 
   .ev-cmdk-item-icon > svg {
@@ -710,8 +710,8 @@
   }
 
   .ev-tree[data-selectable='single'] .ev-tree-row[data-selected] {
-    background: var(--ev-accent-soft);
-    color: var(--ev-accent-text);
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
   }
 
   .ev-tree-row[data-disabled] {

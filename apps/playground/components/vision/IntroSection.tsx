@@ -19,7 +19,7 @@ const isComponent = ([name, v]: [string, unknown]) =>
 const COMPONENTS_COUNT = EXPORTS.filter(isComponent).length
 const HOOKS_COUNT = EXPORTS.filter(([name, v]) => /^use[A-Z]/.test(name) && typeof v === 'function').length
 // Уникальные переменные --ev-* в tokens.css и accents.css (CSS не импортируется в JS - число задано вручную).
-const TOKENS_COUNT = 150
+const TOKENS_COUNT = 161
 
 const INSTALL = `npm i endfield-vision`
 
@@ -102,13 +102,13 @@ const PRINCIPLES: Array<{ icon: ReactNode; title: Bi; text: Record<Lang, ReactNo
     text: {
       ru: (
         <>
-          Стили кита лежат в <code>@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities</code>. Стили
+          Стили кита лежат в <code>@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities</code>. Стили
           приложения вне слоёв всегда сильнее - без <code>!important</code> и гонки специфичности.
         </>
       ),
       en: (
         <>
-          Kit styles live in <code>@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities</code>. Unlayered
+          Kit styles live in <code>@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities</code>. Unlayered
           app styles always win - no <code>!important</code> and no specificity wars.
         </>
       ),
@@ -222,8 +222,8 @@ export function IntroSection() {
         </h2>
         <p className={s.heroText}>
           {t(
-            'Токены на CSS-переменных, тёмная тема по умолчанию и светлая, шесть пресетов акцента, доступные компоненты и каркас приложения. Плотный деловой интерфейс для операционных систем: таблицы, формы, отчёты и мониторинг.',
-            'CSS variable tokens, a dark theme by default plus a light one, six accent presets, accessible components and an app shell. A dense, businesslike interface for operational systems: tables, forms, reports and monitoring.',
+            'Токены на CSS-переменных, тёмная тема по умолчанию и светлая, два стиля оформления, семь пресетов акцента, доступные компоненты и каркас приложения. Плотный деловой интерфейс для операционных систем: таблицы, формы, отчёты и мониторинг.',
+            'CSS variable tokens, a dark theme by default plus a light one, two styles, seven accent presets, accessible components and an app shell. A dense, businesslike interface for operational systems: tables, forms, reports and monitoring.',
           )}
         </p>
         <div className={s.row}>

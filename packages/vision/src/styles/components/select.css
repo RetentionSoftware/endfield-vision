@@ -103,8 +103,8 @@
     min-width: 20px;
     padding: 0 6px;
     border-radius: var(--ev-radius-pill);
-    background: var(--ev-accent-soft);
-    color: var(--ev-accent-text);
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
     font-size: var(--ev-fs-2xs);
     font-weight: var(--ev-fw-semibold);
     line-height: 18px;
@@ -183,10 +183,10 @@
 
   .ev-select-group {
     padding: var(--ev-space-3) var(--ev-space-3) var(--ev-space-1);
-    font-size: var(--ev-fs-2xs);
-    font-weight: var(--ev-fw-semibold);
+    font-size: var(--ev-caps-size);
+    font-weight: var(--ev-caps-weight);
     letter-spacing: var(--ev-tracking-caps);
-    text-transform: uppercase;
+    text-transform: var(--ev-caps-transform);
     color: var(--ev-text-muted);
   }
 
@@ -206,7 +206,7 @@
   }
 
   .ev-select-option[data-selected] {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
   }
 
   .ev-select-option[aria-disabled='true'] {
@@ -240,7 +240,7 @@
 
   .ev-select-option-check {
     flex: 0 0 auto;
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
   }
 
   .ev-select-empty {
@@ -508,7 +508,7 @@
   }
 
   .ev-range-preset[data-active] {
-    color: var(--ev-accent-text);
+    color: var(--ev-selected-text);
     font-weight: var(--ev-fw-semibold);
   }
 

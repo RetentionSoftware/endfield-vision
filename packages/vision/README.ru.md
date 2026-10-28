@@ -2,7 +2,7 @@
 
 [English](https://github.com/RetentionSoftware/endfield-vision/blob/main/packages/vision/README.md) | **Русский**
 
-Дизайн-система для React 19 и Next.js (App Router). Токены на CSS-переменных, тёмная тема по умолчанию, светлая и «как в системе», пресеты акцента, доступные компоненты без сторонних UI-библиотек (зависимость одна - `lucide-react` для иконок).
+Дизайн-система для React 19 и Next.js (App Router). Токены на CSS-переменных, тёмная тема по умолчанию, светлая и «как в системе», два стиля оформления, пресеты акцента, доступные компоненты без сторонних UI-библиотек (зависимость одна - `lucide-react` для иконок).
 
 Живой каталог - раздел **ENDFIELD Vision** в плейграунде [репозитория](https://github.com/RetentionSoftware/endfield-vision) (`npm run dev`, затем `/vision`).
 
@@ -87,11 +87,26 @@ import { LocaleProvider } from 'endfield-vision'
 
 Шрифты задаёт приложение (`--font-inter`, `--font-jetbrains-mono`); без них - системные.
 
-## Тема и акцент
+## Тема, стиль и акцент
 
-- `<html data-theme="dark|light">` - тема, `<html data-accent="amber|emerald|cyan|rose|violet">` - пресет акцента (без атрибута - indigo).
-- `ThemeScript` ставит оба атрибута из `localStorage` до отрисовки. Опции: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultAccent`, `themeKey`, `accentKey`.
-- В клиентском коде: `const { theme, preference, accent, setTheme, setAccent } = useTheme()`.
+Три независимые настройки на `<html>`:
+
+- **Тема** - `data-theme="dark|light"`.
+- **Стиль** - `data-style="slim"` (без атрибута - `default`). Стиль меняет подачу элементов, а не размеры: высоты контролов, отступы и кегль те же, поэтому переключение не ломает раскладку.
+  - `default` («Стандартный») - контрастный, выделение акцентом, уголки видоискателя, подписи разделов капсом.
+  - `slim` («Утончённый») - плоский и спокойный: тёплые нейтрали, ничего не светится, выбранное - нейтральным тоном, вторичная и опасная кнопки контуром, подписи без капса, фокус - чёткая линия вместо мягкого ореола.
+- **Акцент** - `data-accent="amber|emerald|cyan|rose|violet|ink"` (без атрибута - indigo). `ink` («Чернила») - нейтральный акцент: основная кнопка чернильная, цвет остаётся только в статусах. У каждого пресета свои значения для каждого стиля и темы; контраст проверяют тесты.
+
+`ThemeScript` ставит все три до отрисовки. Опции: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `themeKey`, `styleKey`, `accentKey`, `nonce` (для CSP).
+
+```tsx
+<ThemeScript defaultTheme="system" defaultStyle="slim" defaultAccent="ink" />
+
+// в клиентском коде
+const { theme, preference, style, accent, setTheme, setStyle, setAccent } = useTheme()
+```
+
+`STYLES` и `ACCENTS` - списки доступных значений; `setTheme`, `setStyle` и `setAccent` работают и вне React.
 
 Свой акцент - переопределите токены в стилях приложения (вне слоёв они сильнее):
 
@@ -124,7 +139,7 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 
 ## Слои и префиксы
 
-- Все стили библиотеки - в каскадных слоях `@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.utilities`. Стили приложения вне слоёв всегда сильнее, специфичность бороться не нужно.
+- Все стили библиотеки - в каскадных слоях `@layer ev.reset, ev.tokens, ev.base, ev.components, ev.shell, ev.styles, ev.utilities`. В `ev.styles` - правила компонентов для стилей вроде `slim`. Стили приложения вне слоёв всегда сильнее, специфичность бороться не нужно.
 - Классы - `ev-*`, переменные - `--ev-*`: не пересекаются с Tailwind и стилями приложения. С Tailwind v4 порядок задаётся одной строкой до импортов: `@layer theme, base, ev, components, utilities;`.
 - Только токены: `endfield-vision/tokens.css` (+ `accents.css`) подключает переменные без компонентов и сброса.
 
@@ -134,7 +149,8 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 - Цвета, отступы, радиусы, тени, слои - только `var(--ev-...)`.
 - Пустое значение в таблицах и карточках - `EMPTY_VALUE` (дефис), `DataTable` и `KeyValueList` подставляют его сами.
 - Карточки, панели, плитки, таблицы - без рамки: их отделяет поверхность, в светлой теме ещё `--ev-shadow-card`. Блок внутри карточки, окна или шторки - на `--ev-surface-nested`. Рамка - у полей ввода и контролов.
-- Акцент тона на панели - **уголки видоискателя**, а не цветная полоса по краю: `<div className="ev-corners" data-corners="diagonal" data-tone="warning">`. Варианты `data-corners`: без значения (уголок сверху слева), `diagonal`, `frame` (четыре уголка), `off`. Размер, толщина и отступ - токены `--ev-corner-size`, `--ev-corner-width`, `--ev-corner-inset`, цвет - тон элемента или `--ev-corner-color`.
+- Акцент тона на панели - **уголки видоискателя**, а не цветная полоса по краю: `<div className="ev-corners" data-corners="diagonal" data-tone="warning">`. Варианты `data-corners`: без значения (уголок сверху слева), `diagonal`, `frame` (четыре уголка), `off`. Размер, толщина и отступ - токены `--ev-corner-size`, `--ev-corner-width`, `--ev-corner-inset`, цвет - тон элемента или `--ev-corner-color`. Стиль `slim` уголки скрывает, поэтому выделяйте элемент ещё и тоном фона.
+- Выбранное и текущее (пункт меню, вкладка, страница, строка, опция) - через токены `--ev-selected-*`, а не напрямую акцентом: в `default` они акцентные, в `slim` - нейтральные.
 - `Card flush` - таблица от края до края; остальные прямые дети тела (фильтры, плашки, пагинация) получают отступ карточки сами.
 
 ## Токены (главное)
@@ -146,10 +162,12 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 | Рамки | `--ev-border-soft`, `--ev-border`, `--ev-border-strong`, `--ev-border-control` (поля, 3:1), `--ev-border-hover` |
 | Текст | `--ev-text`, `--ev-text-secondary`, `--ev-text-muted` (>= 4.5:1), `--ev-text-disabled`, `--ev-text-on-accent` |
 | Акцент | `--ev-accent`, `--ev-accent-text`, `--ev-accent-strong`, `--ev-accent-soft`, `--ev-accent-edge`, `--ev-accent-rgb`, `--ev-accent-swatch-<пресет>` |
+| Выделение | `--ev-selected-bg`, `--ev-selected-bg-subtle`, `--ev-selected-edge`, `--ev-selected-text`, `--ev-selected-indicator` |
+| Фокус | `--ev-focus-ring` (кнопки и другие контролы), `--ev-focus-ring-inset` (поля, вплотную к рамке) |
 | Семантика | `--ev-success`, `--ev-warning`, `--ev-danger`, `--ev-info`, `--ev-violet` (+ `-soft`, `-edge`, `-strong`) - не зависят от акцента |
 | Графики | `--ev-chart-1..8`, `--ev-chart-grid`, `--ev-chart-axis` |
 | Геометрия | `--ev-radius-xs..xl`, `--ev-space-0..11` (2..56px), `--ev-control-h-sm/-h/-h-lg` (28/34/40) |
-| Типографика | `--ev-fs-2xs..3xl` (11..30px, база 14px), `--ev-fw-*`, `--ev-lh` |
+| Типографика | `--ev-fs-2xs..3xl` (11..30px, база 14px), `--ev-fw-*`, `--ev-fw-title`, `--ev-lh`; подписи разделов: `--ev-caps-transform`, `--ev-caps-size`, `--ev-caps-weight`, `--ev-tracking-caps` |
 | Слои | `--ev-z-sticky` < `--ev-z-topbar` < `--ev-z-drawer` < `--ev-z-modal` < `--ev-z-dropdown` < `--ev-z-toast` < `--ev-z-tooltip` |
 | Движение | `--ev-dur-fast/-dur/-dur-slow`, `--ev-ease`, `--ev-ease-out`; `prefers-reduced-motion` учтён глобально |
 
