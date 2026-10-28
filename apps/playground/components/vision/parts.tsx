@@ -135,7 +135,7 @@ export const VISION_TAB_META: Record<VisionTab, { label: Bi; description: Bi; ic
   },
 }
 
-export const LIBRARY_VERSION = '2.2.3'
+export const LIBRARY_VERSION = '2.2.4'
 
 /* ------------------------------------------------------------------ */
 /* Блок кода                                                           */
