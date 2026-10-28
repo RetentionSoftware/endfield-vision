@@ -15,7 +15,7 @@ npm i endfield-vision
 Пока пакет готовится к публикации в npm, ставьте его из релиза на GitHub (та же сборка, те же импорты):
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 Нужны `react` и `react-dom` 19.
@@ -163,7 +163,7 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 | Текст | `--ev-text`, `--ev-text-secondary`, `--ev-text-muted` (>= 4.5:1), `--ev-text-disabled`, `--ev-text-on-accent` |
 | Акцент | `--ev-accent`, `--ev-accent-text`, `--ev-accent-strong`, `--ev-accent-soft`, `--ev-accent-edge`, `--ev-accent-rgb`, `--ev-accent-swatch-<пресет>` |
 | Выделение | `--ev-selected-bg`, `--ev-selected-bg-subtle`, `--ev-selected-edge`, `--ev-selected-text`, `--ev-selected-indicator` |
-| Фокус | `--ev-focus-ring` (кнопки и другие контролы), `--ev-focus-ring-inset` (поля, вплотную к рамке) |
+| Фокус | `--ev-focus-ring` (кнопки и другие контролы), `--ev-focus-ring-inset` (элементы без рамки: пункты меню, вкладки), `--ev-focus-field` и `--ev-focus-field-invalid` (поля с рамкой; в `slim` рамка только меняет цвет) |
 | Семантика | `--ev-success`, `--ev-warning`, `--ev-danger`, `--ev-info`, `--ev-violet` (+ `-soft`, `-edge`, `-strong`) - не зависят от акцента |
 | Графики | `--ev-chart-1..8`, `--ev-chart-grid`, `--ev-chart-axis` |
 | Геометрия | `--ev-radius-xs..xl`, `--ev-space-0..11` (2..56px), `--ev-control-h-sm/-h/-h-lg` (28/34/40) |

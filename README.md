@@ -9,7 +9,7 @@
 Tokens, dark and light themes, accent presets and accessible components with no third-party UI kit underneath.
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.0.0-4263eb)](packages/vision/package.json)
+[![Version](https://img.shields.io/badge/version-2.1.0-4263eb)](packages/vision/package.json)
 [![npm](https://img.shields.io/badge/npm-coming%20soon-lightgrey)](#installation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
@@ -17,7 +17,7 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 
 [![Components](https://img.shields.io/badge/components-136-7b93ff)](#whats-inside)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#whats-inside)
-[![Tokens](https://img.shields.io/badge/tokens-161-7b93ff)](packages/vision/README.md#tokens)
+[![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.md#tokens)
 [![Tests](https://img.shields.io/badge/tests-497-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.md#language)
 
@@ -69,16 +69,16 @@ Endfield Vision is built for the screens people stare at all day: admin panels, 
 > The package is on its way to the npm registry. Until it lands, install it from the [GitHub release](https://github.com/RetentionSoftware/endfield-vision/releases/latest): it is the same build that will be published to npm, and the imports are the same (`from 'endfield-vision'`).
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 <details>
 <summary>pnpm, yarn, bun</summary>
 
 ```bash
-pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
-yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
-bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 </details>

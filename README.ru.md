@@ -9,7 +9,7 @@
 Токены, тёмная и светлая темы, пресеты акцента и доступные компоненты без сторонних UI-библиотек.
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.0.0-4263eb)](packages/vision/package.json)
+[![Version](https://img.shields.io/badge/version-2.1.0-4263eb)](packages/vision/package.json)
 [![npm](https://img.shields.io/badge/npm-coming%20soon-lightgrey)](#установка)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
@@ -17,7 +17,7 @@
 
 [![Components](https://img.shields.io/badge/components-136-7b93ff)](#что-внутри)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#что-внутри)
-[![Tokens](https://img.shields.io/badge/tokens-161-7b93ff)](packages/vision/README.ru.md#токены-главное)
+[![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.ru.md#токены-главное)
 [![Tests](https://img.shields.io/badge/tests-497-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.ru.md#язык)
 
@@ -69,16 +69,16 @@ Endfield Vision - для экранов, за которыми работают 
 > Пакет готовится к публикации в npm. Пока его там нет, ставьте из [релиза на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases/latest): это та же сборка, что уйдёт в npm, и импорты те же (`from 'endfield-vision'`).
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 <details>
 <summary>pnpm, yarn, bun</summary>
 
 ```bash
-pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
-yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
-bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 </details>

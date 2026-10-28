@@ -57,7 +57,7 @@
   .ev-select[data-open] .ev-select-trigger,
   .ev-select-trigger[data-open] {
     border-color: var(--ev-accent);
-    box-shadow: var(--ev-focus-ring-inset);
+    box-shadow: var(--ev-focus-field);
   }
 
   .ev-select[data-invalid] .ev-select-trigger {
@@ -169,8 +169,11 @@
     font-size: var(--ev-fs-sm);
   }
 
-  .ev-select-search input:focus {
+  /* Как у остальных полей: рамка меняет цвет, без общего кольца фокуса с отступом. */
+  .ev-select-search input:focus,
+  .ev-select-search input:focus-visible {
     border-color: var(--ev-accent);
+    box-shadow: var(--ev-focus-field);
   }
 
   .ev-select-listbox {

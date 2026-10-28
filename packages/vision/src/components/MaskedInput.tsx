@@ -254,6 +254,8 @@ export function PhoneInput({
           placement="bottom-start"
           minWidth={240}
           maxHeight={320}
+          // Кнопка ниже поля на 4px сверху и снизу (+1px рамки): список встаёт в 6px от рамки, как у Select.
+          offset={11}
           trigger={
             <button type="button" className="ev-phone-country" disabled={f.disabled} aria-label={t.phone.countryCodeValue(info.dial)}>
               +{info.dial}

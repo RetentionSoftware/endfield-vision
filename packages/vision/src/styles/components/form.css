@@ -92,7 +92,7 @@
 
   .ev-input:focus-within {
     border-color: var(--ev-accent);
-    box-shadow: var(--ev-focus-ring-inset);
+    box-shadow: var(--ev-focus-field);
   }
 
   .ev-input[data-size='sm'] {
@@ -111,7 +111,7 @@
   }
 
   .ev-input[data-invalid]:focus-within {
-    box-shadow: 0 0 0 2px var(--ev-danger-soft);
+    box-shadow: var(--ev-focus-field-invalid);
   }
 
   .ev-input[data-disabled] {
@@ -295,7 +295,7 @@
   .ev-textarea:focus {
     outline: none;
     border-color: var(--ev-accent);
-    box-shadow: var(--ev-focus-ring-inset);
+    box-shadow: var(--ev-focus-field);
   }
 
   .ev-textarea::placeholder {

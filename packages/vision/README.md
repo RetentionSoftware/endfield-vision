@@ -15,7 +15,7 @@ npm i endfield-vision
 While the package is on its way to npm, install it from the GitHub release (same build, same imports):
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.0.0/endfield-vision-2.0.0.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
 ```
 
 Requires `react` and `react-dom` 19.
@@ -163,7 +163,7 @@ import { MotionProvider, StatTile, BarChart } from 'endfield-vision'
 | Text | `--ev-text`, `--ev-text-secondary`, `--ev-text-muted` (>= 4.5:1), `--ev-text-disabled`, `--ev-text-on-accent` |
 | Accent | `--ev-accent`, `--ev-accent-text`, `--ev-accent-strong`, `--ev-accent-soft`, `--ev-accent-edge`, `--ev-accent-rgb`, `--ev-accent-swatch-<preset>` |
 | Selection | `--ev-selected-bg`, `--ev-selected-bg-subtle`, `--ev-selected-edge`, `--ev-selected-text`, `--ev-selected-indicator` |
-| Focus | `--ev-focus-ring` (buttons and other controls), `--ev-focus-ring-inset` (fields, next to the border) |
+| Focus | `--ev-focus-ring` (buttons and other controls), `--ev-focus-ring-inset` (borderless items: menu rows, tabs), `--ev-focus-field` and `--ev-focus-field-invalid` (bordered fields; in `slim` the border only changes color) |
 | Semantic | `--ev-success`, `--ev-warning`, `--ev-danger`, `--ev-info`, `--ev-violet` (+ `-soft`, `-edge`, `-strong`), independent of the accent |
 | Charts | `--ev-chart-1..8`, `--ev-chart-grid`, `--ev-chart-axis` |
 | Geometry | `--ev-radius-xs..xl`, `--ev-space-0..11` (2..56px), `--ev-control-h-sm/-h/-h-lg` (28/34/40) |

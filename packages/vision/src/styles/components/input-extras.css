@@ -409,7 +409,7 @@
   .ev-otp-box:focus-visible {
     outline: none;
     border-color: var(--ev-accent);
-    box-shadow: var(--ev-focus-ring-inset);
+    box-shadow: var(--ev-focus-field);
   }
 
   .ev-otp[data-invalid] .ev-otp-box {
@@ -417,7 +417,7 @@
   }
 
   .ev-otp[data-invalid] .ev-otp-box:focus {
-    box-shadow: 0 0 0 2px var(--ev-danger-soft);
+    box-shadow: var(--ev-focus-field-invalid);
   }
 
   .ev-otp-box:disabled {

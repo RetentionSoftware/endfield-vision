@@ -17,6 +17,8 @@ export interface MenuProps {
   minWidth?: number
   /** Предел высоты списка (длинные меню прокручиваются). По умолчанию - высота экрана. */
   maxHeight?: number
+  /** Зазор между якорем и меню, px. По умолчанию 6. Якорь внутри поля - плюс отступ до его рамки. */
+  offset?: number
 }
 
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
@@ -26,12 +28,12 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
 }
 
 /** Меню действий (role="menu"): стрелки, Home/End, поиск по первым буквам, Enter, Escape и Tab с возвратом фокуса. */
-export function Menu({ trigger, items, placement = 'bottom-end', label, className, minWidth = 200, maxHeight }: MenuProps) {
+export function Menu({ trigger, items, placement = 'bottom-end', label, className, minWidth = 200, maxHeight, offset }: MenuProps) {
   const id = useId()
   const [open, setOpen] = useState(false)
   const anchorRef = useRef<HTMLElement | null>(null)
   const kb = useMenuKeyboard({ items, open, onClose: (refocus) => close(refocus) })
-  const { style, side } = useFloating(anchorRef, kb.menuRef, { open, placement })
+  const { style, side } = useFloating(anchorRef, kb.menuRef, { open, placement, offset })
 
   const close = useEventCallback((refocus: boolean) => {
     setOpen(false)
