@@ -323,12 +323,13 @@ function SegmentedCard() {
   const { t } = useT()
   const [view, setView] = useState<'list' | 'grid' | 'board' | 'calendar'>('list')
   const [period, setPeriod] = useState('w2')
+  const [tacho, setTacho] = useState<'yes' | 'no' | null>(null)
   return (
     <Card
-      title={t('SegmentedControl: иконки и прокрутка', 'SegmentedControl: icons and scrolling')}
+      title={t('SegmentedControl: иконки, прокрутка, без выбора', 'SegmentedControl: icons, scrolling, no selection')}
       description={t(
-        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области.',
-        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the control scrolls internally and keeps the selected segment in view.',
+        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области. value={null} - значение ещё не выбрано: по Tab попадаешь на первый сегмент, стрелки выбирают.',
+        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the control scrolls internally and keeps the selected segment in view. value={null} means nothing is chosen yet: Tab lands on the first segment and the arrows choose.',
       )}
     >
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
@@ -372,6 +373,23 @@ function SegmentedCard() {
                 { value: 'q1', label: t('Квартал', 'Quarter') },
               ]}
             />
+          </div>
+        </div>
+        <div className="ev-stack">
+          <Subhead>{t('Без выбора: тахограф', 'No selection: tachograph')}</Subhead>
+          <div className={s.row}>
+            <SegmentedControl
+              aria-label={t('Тахограф', 'Tachograph')}
+              value={tacho}
+              onChange={setTacho}
+              options={[
+                { value: 'yes', label: t('Есть', 'Fitted') },
+                { value: 'no', label: t('Нет', 'None') },
+              ]}
+            />
+            <Button size="sm" variant="ghost" disabled={tacho === null} onClick={() => setTacho(null)}>
+              {t('Сбросить', 'Reset')}
+            </Button>
           </div>
         </div>
       </div>

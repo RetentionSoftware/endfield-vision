@@ -15,10 +15,10 @@
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
 
-[![Components](https://img.shields.io/badge/components-137-7b93ff)](#что-внутри)
+[![Components](https://img.shields.io/badge/components-140-7b93ff)](#что-внутри)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#что-внутри)
-[![Tokens](https://img.shields.io/badge/tokens-163-7b93ff)](packages/vision/README.ru.md#токены-главное)
-[![Tests](https://img.shields.io/badge/tests-521-2f9e44)](packages/vision/src/__tests__)
+[![Tokens](https://img.shields.io/badge/tokens-165-7b93ff)](packages/vision/README.ru.md#токены-главное)
+[![Tests](https://img.shields.io/badge/tests-536-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.ru.md#язык)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
@@ -86,7 +86,7 @@ bun add endfield-vision
 К каждому [релизу на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases) приложена та же сборка - архив `endfield-vision-<версия>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.1/endfield-vision-2.2.1.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.3/endfield-vision-2.2.3.tgz
 ```
 
 </details>
@@ -170,11 +170,11 @@ export function Tasks({ tasks }: { tasks: Task[] }) {
 | Группа | Компоненты |
 |---|---|
 | Действия | `Button`, `LinkButton`, `IconButton`, `Menu`, `ContextMenu`, `Popover`, `CopyButton` |
-| Формы | `Field`, `Input`, `Textarea`, `NumberInput`, `MoneyInput`, `PhoneInput` (22 страны), `TimeInput`, `DateField`, `DateRangePicker`, `Calendar`, `ColorField`, `Slider`, `TagInput`, `OtpInput`, `InlineEdit` |
+| Формы | `Field`, `Input`, `Textarea`, `NumberInput`, `MoneyInput`, `PhoneInput` (22 страны), `TimeInput`, `DateField`, `DateRangePicker`, `Calendar`, `ColorField`, `Slider`, `TagInput`, `Autocomplete`, `OtpInput`, `InlineEdit` |
 | Выбор | `Select`, `MultiSelect`, `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `Chip`, `ChipGroup` |
 | Данные | `DataTable`, `Pagination`, `FilterBar`, `KeyValueList`, `StatTile`, `Badge`, `StatusPill`, `Avatar`, `Progress`, `Timeline`, `UptimeBar`, `TreeView` |
 | Графики | `BarChart`, `LineChart`, `AreaChart`, `Sparkline`, `DonutChart`, `Heatmap`, `HeatmapMatrix`, `RingProgress`, `Gauge` |
-| Состояния и окна | `Modal`, `useModals`, `Drawer`, `toast`, `Callout`, `Banner`, `EmptyState`, `ErrorState`, `Skeleton`, `Spinner`, `Tooltip`, `Lightbox`, `ScreenOverlay` |
+| Состояния и окна | `Modal`, `useModals`, `Drawer`, `toast`, `Callout`, `Banner`, `EmptyState`, `ErrorState`, `Skeleton`, `Spinner`, `Tooltip`, `Lightbox`, `Thumbnail`, `ScreenOverlay` |
 | Навигация и каркас | `AppShell`, `Sidebar`, `Topbar`, `PageHeader`, `Breadcrumbs`, `Tabs`, `Steps`, `Accordion`, `CommandPalette`, `StatusBar`, `WorkspaceSwitcher` |
 | Контент | `CodeBlock`, `InlineCode`, `Highlight`, `RelativeTime`, `ExpandableText`, `AnimatedNumber` |
 | CRM | `RecordHeader`, `RecordLayout`, `EditablePanel`, `CompletenessBadge`, `KanbanBoard`, `SlaTimer`, `PermissionMatrix`, `SettingsList`, `SaveBar`, `NotificationCenter`, `ChatThread`, `Composer` |

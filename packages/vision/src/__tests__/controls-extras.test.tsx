@@ -116,6 +116,30 @@ describe('SegmentedControl', () => {
     expect(out).toContain('<span class="ev-segmented-icon" aria-hidden="true">')
     expect(out).toContain('<span>Список</span>')
   })
+
+  it('без выбора по Tab попадает первый доступный сегмент', () => {
+    const tabStops = (value: string | null) =>
+      renderToString(
+        <SegmentedControl
+          value={value}
+          onChange={noop}
+          options={[
+            { value: 'a', label: 'A' },
+            { value: 'b', label: 'B' },
+            { value: 'c', label: 'C' },
+          ]}
+        />,
+      ).match(/tabindex="0"/g)?.length ?? 0
+    expect(tabStops(null)).toBe(1)
+    expect(tabStops('')).toBe(1)
+    expect(tabStops('c')).toBe(1)
+    const out = renderToString(
+      <SegmentedControl value={null} onChange={noop} options={[{ value: 'a', label: 'A', disabled: true }, { value: 'b', label: 'B' }]} />,
+    )
+    expect(out).toMatch(/tabindex="-1" disabled=""[^>]*><span>A</)
+    expect(out).toMatch(/tabindex="0"[^>]*><span>B</)
+    expect(out).not.toContain('aria-checked="true"')
+  })
 })
 
 describe('ThemeScript', () => {

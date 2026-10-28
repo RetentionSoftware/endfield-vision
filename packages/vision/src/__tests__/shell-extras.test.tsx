@@ -64,6 +64,15 @@ describe('ContextMenu: чистые функции', () => {
     expect(joinMenuSections([null, undefined])).toEqual([])
   })
 
+  it('id разделителей уникальны и при повторной склейке склеенных групп', () => {
+    const inner = joinMenuSections([[{ id: 'copy', label: 'C' }], [{ id: 'open', label: 'O' }]])
+    const out = joinMenuSections([inner, [{ id: 'driver', label: 'D' }], [{ id: 'block', label: 'B' }]])
+    const seps = out.filter((e) => e.type === 'separator').map((e) => e.id)
+    expect(seps).toHaveLength(3)
+    expect(new Set(seps).size).toBe(3)
+    expect(new Set(out.map((e) => e.id)).size).toBe(out.length)
+  })
+
   it('ставит меню у курсора и переворачивает у края окна', () => {
     const vp = { width: 1000, height: 800 }
     const size = { width: 200, height: 300 }

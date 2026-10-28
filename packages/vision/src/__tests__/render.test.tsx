@@ -66,7 +66,8 @@ describe('экспорт кита', () => {
       'Modal', 'ModalsProvider', 'useModals', 'Drawer', 'Toaster', 'ToastProvider', 'useToast', 'toast', 'Tooltip',
       'Menu', 'Popover', 'Skeleton', 'Spinner', 'EmptyState', 'ErrorState', 'Callout', 'KeyValueList', 'StatTile',
       'BarChart', 'LineChart', 'AreaChart', 'Sparkline', 'CopyButton', 'FileDrop', 'Avatar', 'Divider', 'Kbd',
-      'AppShell', 'Sidebar', 'SidebarSection', 'SidebarItem', 'Topbar', 'LinkProvider',
+      'AppShell', 'Sidebar', 'SidebarSection', 'SidebarItem', 'Topbar', 'LinkProvider', 'Thumbnail', 'ThumbnailGrid',
+      'Autocomplete',
     ]
     for (const name of expected) expect(ui, name).toHaveProperty(name)
   })

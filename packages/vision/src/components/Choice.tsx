@@ -197,7 +197,8 @@ export interface SegmentedOption<V extends string = string> {
 }
 
 export interface SegmentedControlProps<V extends string = string> {
-  value: V
+  /** Выбранное значение; `null` - ещё не выбрано (в группу всё равно можно попасть по Tab). */
+  value: V | null
   onChange: (value: V) => void
   options: SegmentedOption<V>[]
   size?: 'sm' | 'md'
@@ -228,6 +229,8 @@ export function SegmentedControl<V extends string = string>({
   const rootRef = useRef<HTMLDivElement | null>(null)
   const refs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = options.findIndex((o) => o.value === value)
+  // Точка входа по Tab: выбранный сегмент, а без выбора (или если он отключён) - первый доступный.
+  const tabStop = activeIndex >= 0 && !options[activeIndex]?.disabled ? activeIndex : options.findIndex((o) => !o.disabled)
 
   // Прокрутка только самого переключателя (не страницы, как у scrollIntoView).
   useIsoLayoutEffect(() => {
@@ -269,7 +272,7 @@ export function SegmentedControl<V extends string = string>({
             role="radio"
             aria-checked={on}
             aria-label={o['aria-label']}
-            tabIndex={on ? 0 : -1}
+            tabIndex={i === tabStop ? 0 : -1}
             disabled={o.disabled}
             className="ev-segmented-item"
             data-active={on || undefined}

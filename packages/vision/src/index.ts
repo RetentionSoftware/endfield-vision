@@ -250,6 +250,12 @@ export { checkedIds, checkedLeafSet, flattenVisibleTree, indexTree, toggleTreeCh
 export { Slider, type SliderProps, type SliderMark, type SliderRange } from './components/Slider'
 export { Chip, ChipGroup, type ChipProps, type ChipGroupProps } from './components/Chip'
 export { TagInput, type TagInputProps } from './components/TagInput'
+export {
+  Autocomplete,
+  filterAutocomplete,
+  type AutocompleteProps,
+  type AutocompleteSuggestion,
+} from './components/Autocomplete'
 export { OtpInput, type OtpInputProps, type OtpMode } from './components/OtpInput'
 export { InlineEdit, type InlineEditProps } from './components/InlineEdit'
 
@@ -281,6 +287,7 @@ export {
   type CompletenessBadgeProps,
   type CompletenessField,
   type CompletenessExpiringItem,
+  type CompletenessItem,
   type CompletenessSeverity,
   type CompletenessTone,
 } from './components/CompletenessBadge'
@@ -386,4 +393,12 @@ export {
   type NotificationListProps,
 } from './components/NotificationCenter'
 export { Lightbox, type LightboxImage, type LightboxProps } from './components/Lightbox'
+export {
+  Thumbnail,
+  ThumbnailGrid,
+  type ThumbnailAspect,
+  type ThumbnailGridItem,
+  type ThumbnailGridProps,
+  type ThumbnailProps,
+} from './components/Thumbnail'
 export { ConnectionStatus, type ConnectionState, type ConnectionStatusProps } from './components/ConnectionStatus'

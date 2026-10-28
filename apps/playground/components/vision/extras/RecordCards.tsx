@@ -345,8 +345,8 @@ function VariantsCard() {
     <Card
       title={t('Состояния', 'States')}
       description={t(
-        'Присутствие у Avatar (status, lastSeen), тона CompletenessBadge (severity), BadgeStack с max 1 и 2.',
-        'Avatar presence (status, lastSeen), CompletenessBadge tones (severity), BadgeStack with max 1 and 2.',
+        'Присутствие у Avatar (status, lastSeen); CompletenessBadge: тона (severity), группы «блокирует» и «просрочено» (danger, в подсказке первыми), свои tone и label поверх вычисленных и бейдж-ссылка href; BadgeStack с max 1 и 2.',
+        'Avatar presence (status, lastSeen); CompletenessBadge: tones (severity), the blocking and expired groups (danger, listed first in the tooltip), custom tone and label over the computed ones and a link badge with href; BadgeStack with max 1 and 2.',
       )}
     >
       <div className="ev-stack">
@@ -360,6 +360,17 @@ function VariantsCard() {
           <CompletenessBadge missing={[t('Телефон', 'Phone'), t('Адрес', 'Address')]} />
           <CompletenessBadge missing={[t('ИНН', 'Tax ID')]} severity="danger" />
           <CompletenessBadge expiring={[{ label: t('Медосмотр', 'Medical check'), date: t('до 20.10.2026', 'until 20.10.2026') }]} size="sm" />
+        </div>
+        <div className="ev-row">
+          <CompletenessBadge
+            blocking={[t('Нет действующего медосмотра', 'No valid medical check')]}
+            expired={[{ label: t('Водительское удостоверение', 'Driving licence'), date: t('до 01.10.2026', 'until 01.10.2026') }]}
+            expiring={[{ label: t('Карта тахографа', 'Tachograph card'), date: t('до 14.11.2026', 'until 14.11.2026') }]}
+            missing={[t('СНИЛС', 'Insurance number')]}
+          />
+          <CompletenessBadge expired={[{ label: t('Полис ОСАГО', 'Insurance policy'), date: t('до 25.10.2026', 'until 25.10.2026') }]} />
+          <CompletenessBadge tone="danger" label={t('Заблокирован', 'Blocked')} />
+          <CompletenessBadge href="/team" missing={[t('Телефон', 'Phone')]} />
         </div>
         <div className="ev-row">
           <BadgeStack items={tags(t)} />

@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  Button,
   Calendar,
   Card,
   Checkbox,
@@ -57,12 +58,15 @@ function SelectsCard() {
   const [facilities, setFacilities] = useState<string[]>(['val-01', 'rdg-01'])
   const [role, setRole] = useState<string | null>(null)
   const [roles, setRoles] = useState<string[]>([])
+  const [owner, setOwner] = useState<string | null>('val-02')
+  const [editingOwner, setEditingOwner] = useState(false)
+  const ownerLabel = facilityOpts.find((o) => o.value === owner)?.label
   return (
     <Card
       title={t('Select и MultiSelect', 'Select and MultiSelect')}
       description={t(
-        'Выбор из списка: поиск, группы, подсказки, недоступные пункты, очистка. Нативный <select> в консоли не используется.',
-        'Picking from a list: search, groups, hints, disabled options, clearing. The console never uses a native <select>.',
+        'Выбор из списка: поиск, группы, подсказки, недоступные пункты, очистка. defaultOpen - список раскрыт сразу при появлении (правка поля по кнопке «Изменить»). Нативный <select> в консоли не используется.',
+        'Picking from a list: search, groups, hints, disabled options, clearing. defaultOpen opens the list as soon as it appears (editing a field with an Edit button). The console never uses a native <select>.',
       )}
     >
       <FormSection>
@@ -90,6 +94,35 @@ function SelectsCard() {
           error={roles.length === 0 ? t('Выберите хотя бы одну роль', 'Select at least one role') : undefined}
         >
           <MultiSelect value={roles} onChange={setRoles} options={roleOpts} placeholder={t('Роли сотрудника', 'Employee roles')} />
+        </Field>
+        <Field
+          label={t('Площадка отгрузки', 'Shipping site')}
+          hint={t('«Изменить» показывает список уже раскрытым, фокус в поиске.', 'Edit shows the list already open, with focus in the search.')}
+        >
+          {editingOwner ? (
+            <div className="ev-row" data-nowrap="">
+              <Select
+                defaultOpen
+                searchable
+                value={owner}
+                onChange={(v) => {
+                  setOwner(v)
+                  setEditingOwner(false)
+                }}
+                options={facilityOpts}
+              />
+              <Button size="sm" variant="ghost" onClick={() => setEditingOwner(false)}>
+                {t('Отмена', 'Cancel')}
+              </Button>
+            </div>
+          ) : (
+            <div className="ev-row">
+              <span>{ownerLabel}</span>
+              <Button size="sm" variant="ghost" onClick={() => setEditingOwner(true)}>
+                {t('Изменить', 'Edit')}
+              </Button>
+            </div>
+          )}
         </Field>
         <Field label={t('Компактный список', 'Compact select')}>
           <Select size="sm" value={role} onChange={setRole} options={roleOpts} placeholder="size=sm" />

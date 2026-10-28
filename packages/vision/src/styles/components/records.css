@@ -180,8 +180,15 @@
     transition: background var(--ev-dur-fast) var(--ev-ease);
   }
 
-  .ev-completeness-btn:hover {
+  .ev-completeness-btn:hover,
+  .ev-completeness-link:hover {
     background: var(--ev-tone-edge);
+  }
+
+  .ev-completeness-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: background var(--ev-dur-fast) var(--ev-ease);
   }
 
   .ev-completeness-btn[aria-expanded='true'] .ev-completeness-chevron {

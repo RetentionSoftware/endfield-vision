@@ -759,6 +759,167 @@
   }
 
   /* ================================================================ */
+  /* Миниатюры и сетка превью                                          */
+  /* ================================================================ */
+
+  .ev-thumb {
+    min-width: 0;
+    margin: 0;
+  }
+
+  /* Кадр без рамки: его отделяет подложка, как плитку внутри карточки. */
+  .ev-thumb-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--ev-thumb-aspect, 4 / 3);
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-surface-nested);
+    color: inherit;
+    font: inherit;
+  }
+
+  button.ev-thumb-frame {
+    cursor: zoom-in;
+  }
+
+  button.ev-thumb-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ev-hover);
+    opacity: 0;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+    pointer-events: none;
+  }
+
+  button.ev-thumb-frame:hover::after {
+    opacity: 1;
+  }
+
+  button.ev-thumb-frame:focus-visible {
+    outline: none;
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-thumb-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-thumb[data-fit='contain'] .ev-thumb-img {
+    object-fit: contain;
+  }
+
+  .ev-thumb[data-state='loading'] .ev-thumb-img {
+    opacity: 0;
+  }
+
+  .ev-thumb[data-state='error'] .ev-thumb-img {
+    display: none;
+  }
+
+  .ev-thumb-skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--ev-tint-2) 0%, var(--ev-tint-4) 40%, var(--ev-tint-2) 80%);
+    background-size: 200% 100%;
+    animation: ev-shimmer 1.4s ease-in-out infinite;
+  }
+
+  .ev-thumb-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ev-space-2);
+    padding: var(--ev-space-3);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+    text-align: center;
+  }
+
+  .ev-thumb-badge {
+    position: absolute;
+    top: var(--ev-space-2);
+    left: var(--ev-space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-1);
+    max-width: calc(100% - var(--ev-space-4));
+    padding: 2px var(--ev-space-2);
+    overflow: hidden;
+    border-radius: var(--ev-radius-sm);
+    background: var(--ev-media-scrim);
+    color: var(--ev-on-media);
+    font-size: var(--ev-fs-xs);
+    font-weight: var(--ev-fw-medium);
+    line-height: var(--ev-lh-tight);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ev-thumb-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--ev-radius-pill);
+    background: var(--ev-media-scrim);
+    color: var(--ev-on-media);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .ev-thumb-caption {
+    display: -webkit-box;
+    margin-top: var(--ev-space-2);
+    overflow: hidden;
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-sm);
+    line-height: var(--ev-lh-tight);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .ev-thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--ev-thumb-min, 140px), 100%), 1fr));
+    gap: var(--ev-space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ev-thumb-grid > li {
+    min-width: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ev-thumb-skeleton {
+      animation: none;
+    }
+
+    .ev-thumb-img,
+    button.ev-thumb-frame::after {
+      transition: none;
+    }
+  }
+
+  /* ================================================================ */
   /* Состояние связи                                                   */
   /* ================================================================ */
 

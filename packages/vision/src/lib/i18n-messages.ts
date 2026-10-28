@@ -241,6 +241,11 @@ export interface Messages {
     missing: (n: number) => string
     missingTitle: string
     expiring: string
+    expired: string
+    blockingTitle: string
+  }
+  thumbnail: {
+    error: string
   }
   badgeStack: {
     more: (n: number) => string
@@ -607,6 +612,11 @@ export const ru: Messages = {
     missing: (n) => `Не заполнено: ${n}`,
     missingTitle: 'Не заполнено',
     expiring: 'Истекает срок',
+    expired: 'Просрочено',
+    blockingTitle: 'Блокирует выпуск',
+  },
+  thumbnail: {
+    error: 'Не удалось загрузить',
   },
   badgeStack: {
     more: (n) => `Ещё ${n}`,
@@ -959,6 +969,11 @@ export const en: Messages = {
     missing: (n) => `${n} missing`,
     missingTitle: 'Missing',
     expiring: 'Expiring soon',
+    expired: 'Expired',
+    blockingTitle: 'Blocking',
+  },
+  thumbnail: {
+    error: 'Couldn’t load',
   },
   badgeStack: {
     more: (n) => `${n} more`,

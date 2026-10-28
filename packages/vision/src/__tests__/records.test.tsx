@@ -228,6 +228,45 @@ describe('CompletenessBadge', () => {
   it('английский словарь', () => {
     expect(en(<CompletenessBadge missing={['Phone', 'Email', 'Tax ID']} />)).toContain('>3 missing<')
     expect(en(<CompletenessBadge />)).toContain('>Complete<')
+    expect(en(<CompletenessBadge blocking={['No medical check']} />)).toContain('>Blocking<')
+    expect(en(<CompletenessBadge expired={['License']} />)).toContain('>Expired<')
+  })
+
+  it('completenessTone: блокирующие и просроченные - danger поверх всего', () => {
+    expect(completenessTone(0, 0, 'warning', 1)).toBe('danger')
+    expect(completenessTone(3, 2, 'warning', 1)).toBe('danger')
+    expect(completenessTone(0, 0, 'warning', 0)).toBe('success')
+  })
+
+  it('блокирует и просрочено: danger, подпись по самой важной группе', () => {
+    const blocked = ru(<CompletenessBadge blocking={['Нет медосмотра']} expired={[{ label: 'ВУ', date: '01.10.2026' }]} missing={['ИНН']} />)
+    expect(blocked).toContain('data-tone="danger"')
+    expect(blocked).toContain('>Блокирует выпуск<')
+    const expired = ru(<CompletenessBadge expired={[{ label: 'ВУ', date: '01.10.2026' }]} expiring={[{ label: 'Полис' }]} />)
+    expect(expired).toContain('data-tone="danger"')
+    expect(expired).toContain('>Просрочено<')
+    expect(expired).toContain('tabindex="0"')
+  })
+
+  it('явные tone и label действуют и при пустых группах', () => {
+    const out = ru(<CompletenessBadge tone="danger" label="Заблокирован" completeLabel="Активен" />)
+    expect(out).toContain('data-tone="danger"')
+    expect(out).toContain('>Заблокирован<')
+    expect(out).not.toContain('Активен')
+    const withGroups = ru(<CompletenessBadge missing={['ИНН']} tone="info" label="Черновик" />)
+    expect(withGroups).toContain('data-tone="info"')
+    expect(withGroups).toContain('>Черновик<')
+  })
+
+  it('href: бейдж - ссылка, с группами и без', () => {
+    const plain = ru(<CompletenessBadge href="/drivers/7" />)
+    expect(plain).toContain('<a href="/drivers/7" class="ev-badge ev-completeness ev-completeness-link"')
+    expect(plain).toContain('data-tone="success"')
+    const withGroups = ru(<CompletenessBadge href="/drivers/7" expired={['ВУ']} />)
+    expect(withGroups).toContain('<a href="/drivers/7"')
+    expect(withGroups).not.toContain('tabindex')
+    // С onItemClick и группами бейдж остаётся кнопкой списка.
+    expect(ru(<CompletenessBadge href="/drivers/7" missing={['ИНН']} onItemClick={() => {}} />)).not.toContain('<a ')
   })
 })
 

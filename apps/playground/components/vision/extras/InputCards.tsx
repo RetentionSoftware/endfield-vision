@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  Autocomplete,
   Button,
   Card,
   Chip,
@@ -301,6 +302,74 @@ function TagInputCard() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Autocomplete                                                        */
+/* ------------------------------------------------------------------ */
+
+const VEHICLE_CLASSES: Bi[] = [
+  bi('Седельный тягач', 'Tractor unit'),
+  bi('Бортовой грузовик', 'Flatbed truck'),
+  bi('Фургон', 'Box van'),
+  bi('Рефрижератор', 'Refrigerated truck'),
+  bi('Самосвал', 'Dump truck'),
+  bi('Цистерна', 'Tanker'),
+  bi('Автовоз', 'Car carrier'),
+  bi('Контейнеровоз', 'Container carrier'),
+  bi('Эвакуатор', 'Tow truck'),
+]
+
+const UNITS = [
+  { value: 'NV-114', hint: bi('Тягач, Долина-1', 'Tractor, Valley-1') },
+  { value: 'NV-117', hint: bi('Фургон, Долина-2', 'Van, Valley-2') },
+  { value: 'NV-121', hint: bi('Рефрижератор, Склад', 'Reefer, Warehouse') },
+  { value: 'NV-140', hint: bi('Самосвал, Карьер', 'Dump truck, Quarry') },
+  { value: 'NV-152', hint: bi('Цистерна, Долина-1', 'Tanker, Valley-1') },
+]
+
+function AutocompleteCard() {
+  const { t, tx } = useT()
+  const [vehicleClass, setVehicleClass] = useState('')
+  const [unit, setUnit] = useState('')
+  return (
+    <Card
+      title="Autocomplete"
+      description={t(
+        'Поле со свободным вводом и подсказками: значение - любая строка, подсказка только подставляет текст. Стрелки выбирают, Enter подставляет, Escape закрывает список. Для выбора строго из списка - Select.',
+        'A free-text field with suggestions: the value can be any string, and a suggestion only fills in the text. The arrows pick one, Enter fills it in, Escape closes the list. To pick strictly from a list, use Select.',
+      )}
+    >
+      <FormSection>
+        <Field
+          label={t('Класс транспорта', 'Vehicle class')}
+          hint={t('Подсказки из справочника, можно вписать свой класс.', 'Suggestions come from a reference list; you can type your own class.')}
+        >
+          <Autocomplete
+            value={vehicleClass}
+            onChange={setVehicleClass}
+            suggestions={VEHICLE_CLASSES.map(tx)}
+            placeholder={t('Например, тягач', 'For example, tractor')}
+          />
+        </Field>
+        <Field
+          label={t('Бортовой номер', 'Fleet number')}
+          hint={t('Пояснение справа, не больше 3 подсказок; выбор подсказки - onSelect.', 'A hint on the right, at most 3 suggestions; picking one calls onSelect.')}
+        >
+          <Autocomplete
+            value={unit}
+            onChange={setUnit}
+            suggestions={UNITS.map((u) => ({ value: u.value, hint: tx(u.hint) }))}
+            maxSuggestions={3}
+            openOnFocus={false}
+            onSelect={(v) => toast.info(t('Выбран борт', 'Unit selected'), { description: v })}
+            onClear={() => setUnit('')}
+            placeholder="NV-000"
+          />
+        </Field>
+      </FormSection>
+    </Card>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* OtpInput                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -435,6 +504,7 @@ export function InputCards() {
       <SliderCard />
       <ChipCard />
       <TagInputCard />
+      <AutocompleteCard />
       <OtpCard />
       <InlineEditCard />
     </div>

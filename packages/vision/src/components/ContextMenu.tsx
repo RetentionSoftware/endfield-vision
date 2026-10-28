@@ -112,15 +112,21 @@ export function compactMenuEntries(entries: MenuEntry[]): MenuEntry[] {
   return out
 }
 
-/** Склейка групп пунктов через разделитель; пустые группы пропускаются. */
+/**
+ * Склейка групп пунктов через разделитель; пустые группы пропускаются.
+ * id разделителя - из id соседних пунктов: уникален и при повторной склейке
+ * уже склеенных групп.
+ */
 export function joinMenuSections(sections: Array<MenuEntry[] | null | undefined>): MenuEntry[] {
   const out: MenuEntry[] = []
-  sections.forEach((section, i) => {
+  for (const section of sections) {
     const items = section ? compactMenuEntries(section) : []
-    if (items.length === 0) return
-    if (out.length > 0) out.push({ type: 'separator', id: `ev-ctx-sep-${i}` })
+    const prev = out[out.length - 1]
+    const next = items[0]
+    if (!next) continue
+    if (prev) out.push({ type: 'separator', id: `ev-ctx-sep:${prev.id}:${next.id}` })
     out.push(...items)
-  })
+  }
   return out
 }
 

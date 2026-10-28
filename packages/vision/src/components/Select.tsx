@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { useMessages } from '../lib/i18n'
 import { cx, normalizeSearch } from '../lib/cx'
-import { useEventCallback, useIsoLayoutEffect, useOutsideClick } from '../lib/hooks'
+import { useEventCallback, useIsoLayoutEffect, useMounted, useOutsideClick } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFloating } from '../lib/overlay'
 import { useFieldProps } from './Field'
 import type { ControlSize } from './Input'
@@ -163,6 +163,11 @@ interface CommonSelectProps<V extends string> {
   dropdownMinWidth?: number
   /** Серверный поиск: опции приходят снаружи, локальной фильтрации нет. */
   onSearch?: (query: string) => void
+  /**
+   * Список раскрыт сразу после монтирования, фокус в поиске (или в списке).
+   * Серверная разметка - закрытый список, раскрытие - после гидратации.
+   */
+  defaultOpen?: boolean
   loading?: boolean
   icon?: ReactNode
   'aria-label'?: string
@@ -183,9 +188,13 @@ export interface SelectProps<V extends string = string> extends CommonSelectProp
 function useSelectCore<V extends string>(props: CommonSelectProps<V>, initialActive: () => number) {
   const { options, searchable: searchableProp, onSearch } = props
   const listId = useId()
-  const [open, setOpen] = useState(false)
+  // Раскрытие при монтировании: состояние сразу открытое, но список показывается
+  // только на клиенте - серверная разметка и гидратация не меняются.
+  const mounted = useMounted()
+  const [openState, setOpen] = useState(() => Boolean(props.defaultOpen && !props.disabled))
+  const open = openState && mounted
   const [query, setQuery] = useState('')
-  const [activeIndex, setActiveIndex] = useState(-1)
+  const [activeIndex, setActiveIndex] = useState(() => (openState ? initialActive() : -1))
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)

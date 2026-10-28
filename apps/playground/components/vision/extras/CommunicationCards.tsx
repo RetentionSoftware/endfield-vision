@@ -10,6 +10,8 @@ import {
   NotificationCenter,
   NotificationList,
   Switch,
+  Thumbnail,
+  ThumbnailGrid,
   toast,
   type ChatAttachment,
   type ChatAuthor,
@@ -19,7 +21,9 @@ import {
   type ConnectionState,
   type LightboxImage,
   type NotificationItem,
+  type ThumbnailGridItem,
 } from 'endfield-vision'
+import { Play, Video } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { Subhead } from '../parts'
@@ -627,27 +631,15 @@ function LightboxCard() {
     >
       <div className="ev-row" style={{ flexWrap: 'wrap' }}>
         {images.map((img, i) => (
-          <button
+          <Thumbnail
             key={img.src}
-            type="button"
-            onClick={() => setIndex(i)}
+            src={img.src}
+            alt={img.alt ?? ''}
             aria-label={`${t('Открыть', 'Open')} ${img.name}`}
-            style={{
-              width: 132,
-              aspectRatio: '10 / 7',
-              padding: 0,
-              borderRadius: 'var(--ev-radius)',
-              overflow: 'hidden',
-              cursor: 'zoom-in',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={img.src}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          </button>
+            aspect="10/7"
+            width={132}
+            onClick={() => setIndex(i)}
+          />
         ))}
       </div>
       <Lightbox
@@ -658,6 +650,53 @@ function LightboxCard() {
         onClose={() => setIndex(null)}
         loop
       />
+    </Card>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Миниатюры и сетка превью                                            */
+/* ------------------------------------------------------------------ */
+
+/** Битый адрес без сетевого запроса: показывает состояние ошибки. */
+const BROKEN_IMAGE = 'data:image/png;base64,AAAA'
+
+function ThumbnailCard() {
+  const { t } = useT()
+  const [uploading, setUploading] = useState(true)
+  const items: ThumbnailGridItem[] = [
+    { src: SHOTS[0]!, alt: t('Приборная панель, пробег', 'Dashboard, mileage'), caption: t('Одометр', 'Odometer'), name: 'odometer.svg' },
+    { src: SHOTS[1]!, alt: t('Вид спереди', 'Front view'), caption: t('Спереди', 'Front'), name: 'front.svg' },
+    { src: SHOTS[2]!, alt: t('Вид сзади', 'Rear view'), caption: t('Сзади', 'Rear'), name: 'rear.svg' },
+    {
+      key: 'video',
+      src: SHOTS[3]!,
+      alt: t('Видео осмотра', 'Inspection video'),
+      caption: t('Видео осмотра, 0:42', 'Inspection video, 0:42'),
+      badge: (
+        <>
+          <Video size={12} aria-hidden="true" />
+          {t('Видео', 'Video')}
+        </>
+      ),
+      overlay: <Play size={18} />,
+      onClick: () => toast.info(t('Видео откроется в плеере', 'The video opens in a player')),
+    },
+    { key: 'broken', src: BROKEN_IMAGE, alt: t('Свидетельство о регистрации', 'Registration certificate'), caption: t('СТС', 'Registration') },
+    { key: 'upload', src: SHOTS[0]!, alt: t('Полис ОСАГО', 'Insurance policy'), caption: t('Полис, загружается', 'Policy, uploading'), loading: uploading },
+  ]
+  return (
+    <Card
+      title="Thumbnail, ThumbnailGrid"
+      description={t(
+        'Миниатюра: кадр с пропорциями (aspect) и обрезкой cover или вписыванием contain, подпись, значок поверх и знак по центру, скелетон до загрузки и заглушка при ошибке. Сетка подбирает число колонок по ширине (minWidth) и открывает снимок в Lightbox; у видео - своё действие (onClick), в Lightbox оно не попадает.',
+        'A thumbnail: a frame with a set aspect ratio, cropped (cover) or fitted (contain), a caption, a corner badge and a centered mark, a skeleton until it loads and a placeholder on error. The grid fits as many columns as the width allows (minWidth) and opens the image in Lightbox; the video has its own action (onClick) and stays out of Lightbox.',
+      )}
+      actions={
+        <Switch size="sm" checked={uploading} onChange={setUploading} label={t('Загрузка полиса', 'Policy uploading')} />
+      }
+    >
+      <ThumbnailGrid aria-label={t('Фото техосмотра', 'Inspection photos')} items={items} minWidth={150} loop />
     </Card>
   )
 }
@@ -732,6 +771,7 @@ export function CommunicationCards() {
       <ToastActionsCard />
       <SupportChatCard />
       <LightboxCard />
+      <ThumbnailCard />
       <ConnectionCard />
     </div>
   )
