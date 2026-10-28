@@ -115,7 +115,7 @@
   }
 
   /*
-   * Стиль Slim: те же пресеты, приглушённые под тёплые нейтрали.
+   * Стиль Slim: те же пресеты, приглушённые под нейтрали стиля.
    * indigo - без атрибута data-accent.
    */
   :root[data-style='slim']:not([data-accent]) {
@@ -167,11 +167,11 @@
   }
 
   :root[data-style='slim'][data-accent='ink'] {
-    --ev-accent-rgb: 200, 196, 186;
-    --ev-accent-text: #e2dfd8;
-    --ev-accent-strong: #e8e6df;
-    --ev-accent-strong-hover: #f4f2ec;
-    --ev-text-on-accent: #1c1b18;
+    --ev-accent-rgb: 200, 198, 192;
+    --ev-accent-text: #e2e0db;
+    --ev-accent-strong: #e9e8e3;
+    --ev-accent-strong-hover: #f5f4f0;
+    --ev-text-on-accent: #181817;
   }
 
   :root[data-style='slim'][data-theme='light']:not([data-accent]) {

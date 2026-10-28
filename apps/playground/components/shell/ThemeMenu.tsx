@@ -25,7 +25,7 @@ export const STYLE_LABELS: Record<Style, Bi> = {
 
 export const STYLE_HINTS: Record<Style, Bi> = {
   default: bi('Контрастный, с акцентом в выделении и уголками видоискателя.', 'Contrasting, with accent selection and viewfinder corners.'),
-  slim: bi('Плоский и спокойный: тёплые нейтрали, без свечения.', 'Flat and calm: warm neutrals, nothing glows.'),
+  slim: bi('Плоский и спокойный: мягкие нейтрали, без свечения.', 'Flat and calm: soft neutrals, nothing glows.'),
 }
 
 export const STYLE_ICONS: Record<Style, ReactNode> = {

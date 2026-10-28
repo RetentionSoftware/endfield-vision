@@ -94,7 +94,7 @@ Three independent settings on `<html>`:
 - **Theme** - `data-theme="dark|light"`.
 - **Style** - `data-style="slim"` (no attribute means `default`). A style changes how elements look, not their size: control heights, spacing and type scale stay the same, so switching never breaks a layout.
   - `default` - contrasting, accent-colored selection, viewfinder corners, uppercase section labels.
-  - `slim` - flat and calm: warm neutrals, nothing glows, selection is a neutral tone, outlined secondary and danger buttons, sentence-case labels, a crisp focus line instead of a soft halo.
+  - `slim` - flat and calm: soft neutrals, nothing glows, selection is a neutral tone, outlined secondary and danger buttons, sentence-case labels, a crisp focus line instead of a soft halo.
 - **Accent** - `data-accent="amber|emerald|cyan|rose|violet|ink"` (no attribute means indigo). `ink` is a neutral accent: the primary button is ink-colored and color stays in statuses only. Each preset has its own values for each style and theme; contrast is checked by tests.
 
 `ThemeScript` sets all three before rendering. Options: `defaultTheme` (`'dark' | 'light' | 'system'`), `defaultStyle`, `defaultAccent`, `themeKey`, `styleKey`, `accentKey`, `nonce` (for CSP).

@@ -295,39 +295,39 @@
 
   /*
    * Стиль Slim («Утончённый»): <html data-style="slim">. Плоский и спокойный:
-   * тёплые нейтрали, без свечения, выбранное - нейтральным тоном, подписи без капса.
+   * нейтрали с лёгким тёплым оттенком, без свечения, выбранное - нейтральным тоном, подписи без капса.
    * Размеры (высоты контролов, отступы, кегль) те же, что в Default.
    * Правила компонентов - в slim.css (слой ev.styles).
    *
-   * Контраст (тёмная): --ev-text-muted 5.6 к --ev-surface-1, 4.6 к --ev-surface-3;
-   * --ev-border-control 3.5 к фону поля. Светлая: --ev-text-muted 5.8 / 4.7, рамка поля 3.4.
+   * Контраст (тёмная): --ev-text-muted 5.8 к --ev-surface-1, 4.8 к --ev-surface-3;
+   * --ev-border-control 3.6 к фону поля. Светлая: --ev-text-muted 5.8 / 4.7, рамка поля 3.4.
    */
   :root[data-style='slim'] {
-    --ev-bg: #1c1b19;
-    --ev-surface-1: #242320;
-    --ev-surface-2: #2b2a27;
-    --ev-surface-3: #33312e;
-    --ev-surface-input: #1f1e1c;
-    --ev-surface-overlay: rgba(10, 9, 8, 0.6);
-    --ev-surface-tooltip: #3a3834;
+    --ev-bg: #181817;
+    --ev-surface-1: #20201e;
+    --ev-surface-2: #272725;
+    --ev-surface-3: #2f2e2c;
+    --ev-surface-input: #1b1b1a;
+    --ev-surface-overlay: rgba(8, 8, 7, 0.62);
+    --ev-surface-tooltip: #363533;
     --ev-surface-nested: var(--ev-surface-2);
 
-    --ev-tint-1: rgba(255, 250, 240, 0.025);
-    --ev-tint-2: rgba(255, 250, 240, 0.045);
-    --ev-tint-3: rgba(255, 250, 240, 0.07);
-    --ev-tint-4: rgba(255, 250, 240, 0.1);
+    --ev-tint-1: rgba(255, 253, 248, 0.025);
+    --ev-tint-2: rgba(255, 253, 248, 0.045);
+    --ev-tint-3: rgba(255, 253, 248, 0.07);
+    --ev-tint-4: rgba(255, 253, 248, 0.1);
 
-    --ev-border-soft: rgba(255, 250, 240, 0.05);
-    --ev-border: #33312d;
-    --ev-border-strong: #403e39;
-    --ev-border-control: #77736b;
-    --ev-border-hover: #8d897f;
+    --ev-border-soft: rgba(255, 253, 248, 0.05);
+    --ev-border: #2f2f2c;
+    --ev-border-strong: #3c3b38;
+    --ev-border-control: #74726c;
+    --ev-border-hover: #8a8881;
 
-    --ev-text: #ecebe6;
-    --ev-text-secondary: #c2bfb7;
-    --ev-text-muted: #9e9a91;
-    --ev-text-disabled: #6a675f;
-    --ev-text-on-solid: #1c1b19;
+    --ev-text: #ecebe8;
+    --ev-text-secondary: #c0beb8;
+    --ev-text-muted: #9c9a93;
+    --ev-text-disabled: #686660;
+    --ev-text-on-solid: #181817;
 
     --ev-success-rgb: 127, 191, 149;
     --ev-success-strong: #3f7d57;
@@ -339,9 +339,9 @@
     --ev-info-rgb: 134, 174, 214;
     --ev-violet-rgb: 182, 166, 224;
 
-    --ev-chart-grid: #33312d;
-    --ev-chart-axis: #403e39;
-    --ev-chart-crosshair: #77736b;
+    --ev-chart-grid: #2f2f2c;
+    --ev-chart-axis: #3c3b38;
+    --ev-chart-crosshair: #74726c;
 
     --ev-radius-xs: 4px;
     --ev-radius-sm: 6px;

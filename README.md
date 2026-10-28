@@ -38,7 +38,7 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 Endfield Vision is built for the screens people stare at all day: admin panels, CRMs, dispatch and monitoring consoles. Compact controls, tables that hold up with real data, charts that read at a glance, and a dark theme that is the default rather than an afterthought.
 
 - **Tokens all the way down.** Colors, spacing, radii, shadows and z-layers are CSS variables (`--ev-*`). Swap the theme, style or accent without touching a single component.
-- **Two themes, two styles, seven accents.** Dark (default), light and "follow the system". Styles change how elements look while sizes and layout stay put: `default` is contrasting with accent-colored selection, `slim` is flat and calm with warm neutrals and nothing that glows. Accent presets `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` and the neutral `ink`, or your own in five lines of CSS. `ThemeScript` applies all of it before the first paint, so there is no flash.
+- **Two themes, two styles, seven accents.** Dark (default), light and "follow the system". Styles change how elements look while sizes and layout stay put: `default` is contrasting with accent-colored selection, `slim` is flat and calm with soft neutrals and nothing that glows. Accent presets `indigo`, `amber`, `emerald`, `cyan`, `rose`, `violet` and the neutral `ink`, or your own in five lines of CSS. `ThemeScript` applies all of it before the first paint, so there is no flash.
 - **Accessible by default.** WAI-ARIA keyboard patterns for menus, lists, trees, tabs and grids; focus management in overlays; layered Escape handling; contrast-checked text tokens; hidden data tables for chart readers; `prefers-reduced-motion` respected everywhere.
 - **English and Russian built in.** Every label, aria-label, placeholder and empty state comes from a typed dictionary. Override any string, or use a dictionary as the base for a third language.
 - **Plays well with others.** Styles live in cascade layers (`@layer ev.*`) and use the `ev-` prefix, so your own CSS and Tailwind always win without specificity fights.
@@ -58,7 +58,7 @@ Endfield Vision is built for the screens people stare at all day: admin panels, 
     <td width="50%"><img src=".github/assets/charts-en.png" alt="Bar, stacked and line charts in the dark theme"><br><sub><b>Charts.</b> No chart library, tooltips and keyboard included.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src=".github/assets/slim-dark-en.png" alt="Demo console in the Slim style, dark theme"><br><sub><b>Slim style, dark.</b> Flat, warm neutrals, ink accent.</sub></td>
+    <td width="50%"><img src=".github/assets/slim-dark-en.png" alt="Demo console in the Slim style, dark theme"><br><sub><b>Slim style, dark.</b> Flat, soft neutrals, ink accent.</sub></td>
     <td width="50%"><img src=".github/assets/slim-light-en.png" alt="Task table in the Slim style, light theme"><br><sub><b>Slim style, light.</b> Same sizes and layout as Default.</sub></td>
   </tr>
 </table>
