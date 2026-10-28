@@ -86,7 +86,7 @@ bun add endfield-vision
 К каждому [релизу на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases) приложена та же сборка - архив `endfield-vision-<версия>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
 ```
 
 </details>

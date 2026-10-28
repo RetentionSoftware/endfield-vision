@@ -86,7 +86,7 @@ bun add endfield-vision
 Every [GitHub release](https://github.com/RetentionSoftware/endfield-vision/releases) has the same build attached as `endfield-vision-<version>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.1/endfield-vision-2.1.1.tgz
 ```
 
 </details>
