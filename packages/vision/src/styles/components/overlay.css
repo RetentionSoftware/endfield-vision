@@ -361,6 +361,21 @@
     animation-name: ev-drawer-in-left;
   }
 
+  /* Немодальная панель: без подложки, у края окна поверх страницы; страница под ней работает. */
+  .ev-drawer[data-modal='false'] {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--ev-z-drawer);
+    height: auto;
+  }
+
+  .ev-drawer[data-modal='false'][data-side='left'] {
+    right: auto;
+    left: 0;
+  }
+
   .ev-drawer-body {
     flex: 1 1 auto;
     min-height: 0;

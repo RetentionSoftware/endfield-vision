@@ -110,9 +110,11 @@ export function getFocusable(root: HTMLElement): HTMLElement[] {
 /**
  * Ловушка фокуса для окон: Tab не уходит под подложку, при открытии фокус
  * переходит внутрь (элемент с data-autofocus или первый фокусируемый),
- * при закрытии возвращается на элемент-инициатор.
+ * при закрытии возвращается на элемент-инициатор. trap: false - немодальная
+ * панель: Tab свободно уходит на страницу, а фокус при закрытии возвращается,
+ * только если он был внутри панели.
  */
-export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean): void {
+export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean, { trap = true }: { trap?: boolean } = {}): void {
   useEffect(() => {
     if (!active) return
     const root = ref.current
@@ -127,7 +129,7 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     const raf = requestAnimationFrame(() => initial.focus({ preventScroll: true }))
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
+      if (!trap || e.key !== 'Tab') return
       // Вложенное окно ловит Tab само.
       if (!root.contains(document.activeElement) && document.activeElement !== document.body) return
       const items = getFocusable(root)
@@ -150,9 +152,11 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     return () => {
       cancelAnimationFrame(raf)
       root.removeEventListener('keydown', onKey)
-      if (previous && document.contains(previous)) previous.focus({ preventScroll: true })
+      // Немодальная панель: пользователь ушёл работать на страницу - фокус не отнимаем.
+      const focusInside = root.contains(document.activeElement) || document.activeElement === document.body
+      if (previous && document.contains(previous) && (trap || focusInside)) previous.focus({ preventScroll: true })
     }
-  }, [ref, active])
+  }, [ref, active, trap])
 }
 
 let scrollLocks = 0

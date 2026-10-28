@@ -14,7 +14,7 @@ import {
 } from 'react'
 import { useMessages } from '../lib/i18n'
 import { cx } from '../lib/cx'
-import { useIsoLayoutEffect } from '../lib/hooks'
+import { useIsoLayoutEffect, useOutsideClick } from '../lib/hooks'
 import { Portal, useEscapeLayer, useFocusTrap, useScrollLock } from '../lib/overlay'
 import { Button, type ButtonVariant } from './Button'
 import { Field } from './Field'
@@ -153,10 +153,18 @@ export interface DrawerProps {
   className?: string
   /** Без шапки (мобильное меню рисует свою). */
   bare?: boolean
+  /**
+   * Модальная панель (по умолчанию): подложка, ловушка фокуса, прокрутка
+   * страницы заблокирована. false - без подложки, страница под панелью
+   * остаётся рабочей; Escape и крестик закрывают как обычно.
+   */
+  modal?: boolean
+  /** Немодальная панель: нажатие вне её (приложение решает, закрывать ли). */
+  onInteractOutside?: (event: PointerEvent) => void
   'aria-label'?: string
 }
 
-/** Выезжающая панель: детали записи, фильтры, мобильное меню. */
+/** Выезжающая панель: детали записи, фильтры, мобильное меню, чат рядом со страницей (modal={false}). */
 export function Drawer({
   open,
   onClose,
@@ -170,18 +178,58 @@ export function Drawer({
   children,
   className,
   bare = false,
+  modal = true,
+  onInteractOutside,
   ...aria
 }: DrawerProps) {
   const t = useMessages()
   const titleId = useId()
   const ref = useRef<HTMLDivElement | null>(null)
   const canClose = closable && !busy
-  useFocusTrap(ref, open)
-  useScrollLock(open)
+  useFocusTrap(ref, open, { trap: modal })
+  useScrollLock(open && modal)
   useEscapeLayer(open, () => {
     if (canClose) onClose()
   })
+  useOutsideClick([ref], (e) => onInteractOutside?.(e), open && !modal && onInteractOutside !== undefined)
   if (!open) return null
+  const panel = (
+    <div
+      ref={ref}
+      role="dialog"
+      aria-modal={modal ? 'true' : undefined}
+      aria-labelledby={title && !bare ? titleId : undefined}
+      aria-label={aria['aria-label']}
+      tabIndex={-1}
+      className={cx('ev-drawer', className)}
+      data-side={side}
+      data-modal={modal ? undefined : 'false'}
+      data-ev-layer={modal ? undefined : ''}
+      style={{ '--ev-drawer-w': typeof width === 'number' ? `${width}px` : width } as CSSProperties}
+    >
+      {!bare ? (
+        <header className="ev-modal-head">
+          <div className="ev-modal-titles">
+            {title ? (
+              <h2 className="ev-modal-title" id={titleId}>
+                {title}
+              </h2>
+            ) : null}
+            {subtitle ? <p className="ev-modal-subtitle">{subtitle}</p> : null}
+          </div>
+          {closable ? (
+            <button type="button" className="ev-modal-close" aria-label={t.common.close} data-dialog-close="" disabled={busy} onClick={onClose}>
+              <X size={17} />
+            </button>
+          ) : null}
+        </header>
+      ) : null}
+      <div className={cx('ev-drawer-body', bare && 'ev-drawer-body-bare')}>{children}</div>
+      {footer ? <footer className="ev-modal-foot ev-drawer-foot">{footer}</footer> : null}
+    </div>
+  )
+  // Немодальная панель - без подложки: страница под ней доступна мышью и с клавиатуры.
+  if (!modal) return <Portal>{panel}</Portal>
   return (
     <Portal>
       <div
@@ -191,37 +239,7 @@ export function Drawer({
           if (e.target === e.currentTarget && canClose) onClose()
         }}
       >
-        <div
-          ref={ref}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={title && !bare ? titleId : undefined}
-          aria-label={aria['aria-label']}
-          tabIndex={-1}
-          className={cx('ev-drawer', className)}
-          data-side={side}
-          style={{ '--ev-drawer-w': typeof width === 'number' ? `${width}px` : width } as CSSProperties}
-        >
-          {!bare ? (
-            <header className="ev-modal-head">
-              <div className="ev-modal-titles">
-                {title ? (
-                  <h2 className="ev-modal-title" id={titleId}>
-                    {title}
-                  </h2>
-                ) : null}
-                {subtitle ? <p className="ev-modal-subtitle">{subtitle}</p> : null}
-              </div>
-              {closable ? (
-                <button type="button" className="ev-modal-close" aria-label={t.common.close} data-dialog-close="" disabled={busy} onClick={onClose}>
-                  <X size={17} />
-                </button>
-              ) : null}
-            </header>
-          ) : null}
-          <div className={cx('ev-drawer-body', bare && 'ev-drawer-body-bare')}>{children}</div>
-          {footer ? <footer className="ev-modal-foot ev-drawer-foot">{footer}</footer> : null}
-        </div>
+        {panel}
       </div>
     </Portal>
   )

@@ -13,6 +13,7 @@ import {
   Input,
   KeyValueList,
   Progress,
+  RadioGroup,
   RecordHeader,
   RecordLayout,
   StatusPill,
@@ -382,12 +383,58 @@ function VariantsCard() {
 }
 
 /** Витрина группы «Карточка сущности». */
+/** Рабочее место поддержки: список обращений слева, обращение справа. */
+function SideStartCard() {
+  const { t } = useT()
+  const [active, setActive] = useState('1042')
+  const requests = [
+    { value: '1042', label: t('1042 - Синхронизация остатков', '1042 - Stock sync'), description: t('Глеб Сорокин, Долина-1', 'Gleb Sorokin, Valley-1'), state: t('В работе', 'In progress') },
+    { value: '1043', label: t('1043 - Доступ к журналу', '1043 - Log access'), description: t('Мария Котова, Склад', 'Maria Kotova, Warehouse'), state: t('Новое', 'New') },
+    { value: '1044', label: t('1044 - Печать накладных', '1044 - Waybill printing'), description: t('Тимур Рахимов, Застава', 'Timur Rakhimov, Outpost'), state: t('Ждёт ответа', 'Awaiting reply') },
+  ]
+  const current = requests.find((r) => r.value === active) ?? requests[0]!
+  return (
+    <Card
+      title={t('RecordLayout: колонка слева', 'RecordLayout: side column on the left')}
+      description={t(
+        'sidePosition="start" - боковая колонка слева: список слева, содержимое справа. Ширина, sticky и поведение на узком экране - как у правой колонки; колонка слева первая и в порядке Tab.',
+        'sidePosition="start" puts the side column on the left: a list on the left, content on the right. Width, sticky and the narrow-screen behavior match the right column; the left column also comes first in Tab order.',
+      )}
+    >
+      <RecordLayout
+        sidePosition="start"
+        sideWidth={280}
+        sideLabel={t('Обращения', 'Requests')}
+        side={
+          <RadioGroup
+            aria-label={t('Обращения', 'Requests')}
+            variant="card"
+            value={active}
+            onChange={setActive}
+            options={requests.map(({ value, label, description }) => ({ value, label, description }))}
+          />
+        }
+        main={
+          <KeyValueList
+            items={[
+              { key: 'n', label: t('Обращение', 'Request'), value: current.label },
+              { key: 'a', label: t('Автор', 'Author'), value: current.description },
+              { key: 's', label: t('Статус', 'Status'), value: current.state },
+            ]}
+          />
+        }
+      />
+    </Card>
+  )
+}
+
 export function RecordCards() {
   const { lang } = useT()
   return (
     <div className="ev-stack">
       {/* Данные карточки хранятся в состоянии: при смене языка - новый экземпляр. */}
       <CounterpartyCard key={lang} />
+      <SideStartCard />
       <VariantsCard />
     </div>
   )

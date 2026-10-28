@@ -18,13 +18,14 @@ import {
   SkeletonText,
   Spinner,
   StatusPill,
+  Switch,
   Textarea,
   toast,
   useModals,
   useToast,
   type ModalSize,
 } from 'endfield-vision'
-import { ClipboardList, Download, PackageSearch, Plus, Trash2 } from 'lucide-react'
+import { ClipboardList, Download, NotebookPen, PackageSearch, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useT } from '@/lib/i18n'
 import { Subhead } from './parts'
@@ -277,13 +278,16 @@ function WindowsCard() {
   const [assignee, setAssignee] = useState<string | null>('sorokin')
   const [due, setDue] = useState('2026-10-12')
   const [drawer, setDrawer] = useState<'right' | 'left' | null>(null)
+  const [notesOpen, setNotesOpen] = useState(false)
+  const [notes, setNotes] = useState('')
+  const [closeOutside, setCloseOutside] = useState(false)
   const close = () => setSize(null)
   return (
     <Card
       title={t('Modal и Drawer', 'Modal and Drawer')}
       description={t(
-        'Modal - короткая форма или решение поверх страницы, на узком экране - на весь экран. Drawer - детали записи или фильтры сбоку, страница остаётся в контексте.',
-        'Modal holds a short form or decision on top of the page and goes full screen on narrow viewports. Drawer shows record details or filters from the side while the page stays in context.',
+        'Modal - короткая форма или решение поверх страницы, на узком экране - на весь экран. Drawer - детали записи или фильтры сбоку, страница остаётся в контексте. modal={false} - панель без подложки: страница под ней работает (копировать данные в заметку, листать), onInteractOutside решает, закрывать ли по клику вне.',
+        'Modal holds a short form or decision on top of the page and goes full screen on narrow viewports. Drawer shows record details or filters from the side while the page stays in context. modal={false} drops the backdrop so the page underneath keeps working (copy data into a note, scroll), and onInteractOutside decides whether a click outside closes it.',
       )}
     >
       <div className="ev-stack">
@@ -302,6 +306,9 @@ function WindowsCard() {
           </Button>
           <Button variant="ghost" onClick={() => setDrawer('left')}>
             {t('Слева', 'From the left')}
+          </Button>
+          <Button variant="ghost" icon={<NotebookPen size={15} />} onClick={() => setNotesOpen(true)}>
+            {t('Заметки без подложки', 'Notes without a backdrop')}
           </Button>
         </div>
       </div>
@@ -391,6 +398,22 @@ function WindowsCard() {
             { key: 'c', label: t('Комментарий', 'Comment'), value: null },
           ]}
         />
+      </Drawer>
+      <Drawer
+        modal={false}
+        open={notesOpen}
+        onClose={() => setNotesOpen(false)}
+        onInteractOutside={closeOutside ? () => setNotesOpen(false) : undefined}
+        width={380}
+        title={t('Заметки по смене', 'Shift notes')}
+        subtitle={t('Страница под панелью остаётся рабочей', 'The page underneath keeps working')}
+      >
+        <div className="ev-stack">
+          <Field label={t('Заметка', 'Note')} hint={t('Выделите текст на странице и вставьте сюда.', 'Select text on the page and paste it here.')}>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={6} />
+          </Field>
+          <Switch checked={closeOutside} onChange={setCloseOutside} label={t('Закрывать кликом вне панели', 'Close on a click outside the panel')} />
+        </div>
       </Drawer>
     </Card>
   )

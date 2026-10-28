@@ -318,6 +318,45 @@ describe('ChatThread и ChatMessage', () => {
       'Сообщений пока нет',
     )
   })
+
+  it('статус «прочитано»: двойная галочка и подпись из словаря', () => {
+    const message: ChatMessageData = { id: 'r', author: { id: 'me', name: 'Я' }, text: 'Ок', time: NOW, status: 'read' }
+    const out = renderRu(<ChatMessage message={message} own timeZone={TZ} />)
+    expect(out).toContain('data-status="read"')
+    expect(out).toContain('lucide-check-check')
+    expect(out).toContain('<span class="ev-visually-hidden">Прочитано</span>')
+    expect(renderToString(<ChatMessage message={message} own timeZone={TZ} />)).toContain('>Read<')
+  })
+
+  it('messageAttributes: свои data-* и aria-* на корне строки сообщения и события', () => {
+    const out = renderRu(
+      <ChatThread
+        messages={MESSAGES}
+        currentUserId="me"
+        now={NOW}
+        timeZone={TZ}
+        messageAttributes={(m) => ({ 'data-ctx-kind': 'gw-message', 'data-ctx-id': m.id, onclick: 'x' }) as never}
+      />,
+    )
+    for (const m of MESSAGES) expect(out).toContain(`data-ctx-kind="gw-message" data-ctx-id="${m.id}"`)
+    expect(out).not.toContain('onclick')
+    expect(out).toMatch(/<div data-ctx-kind="gw-message" data-ctx-id="[^"]+" class="ev-chat-msg"/)
+    expect(out).toMatch(/<div data-ctx-kind="gw-message" data-ctx-id="[^"]+" class="ev-chat-system"/)
+  })
+
+  it('догрузка ранних: кнопка сверху, во время загрузки - не disabled, лента aria-busy', () => {
+    const idle = renderRu(<ChatThread messages={MESSAGES} now={NOW} timeZone={TZ} hasMore onLoadMore={() => undefined} header={<p>Начало переписки</p>} />)
+    expect(idle).toContain('class="ev-chat-more"')
+    expect(idle).toContain('>Показать более ранние<')
+    expect(idle.indexOf('Начало переписки')).toBeLessThan(idle.indexOf('ev-chat-more'))
+    expect(idle).not.toContain('aria-busy')
+    const busy = renderRu(<ChatThread messages={MESSAGES} now={NOW} timeZone={TZ} hasMore loadingMore onLoadMore={() => undefined} />)
+    expect(busy).toContain('aria-busy="true"')
+    expect(busy).toContain('aria-disabled="true"')
+    expect(busy).toContain('>Загрузка...<')
+    expect(busy).not.toMatch(/class="ev-chat-more"><button[^>]*disabled=""/)
+    expect(renderRu(<ChatThread messages={MESSAGES} now={NOW} timeZone={TZ} />)).not.toContain('ev-chat-more')
+  })
 })
 
 describe('Composer', () => {

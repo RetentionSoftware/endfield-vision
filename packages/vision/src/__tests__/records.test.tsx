@@ -169,6 +169,17 @@ describe('RecordLayout', () => {
     expect(out).toContain('--ev-record-side-w:300px')
     expect(out).toContain('<aside class="ev-record-side" aria-label="Сводка"><p>S</p></aside>')
     expect(out.indexOf('class="ev-record-main"')).toBeLessThan(out.indexOf('class="ev-record-side"'))
+    expect(out).not.toContain('data-side-position')
+  })
+
+  it('sidePosition="start": колонка слева и первая в разметке, остальное - как у правой', () => {
+    const out = ru(<RecordLayout sidePosition="start" main={<p>M</p>} side={<p>S</p>} sideWidth={320} sticky />)
+    expect(out).toContain('data-side-position="start"')
+    expect(out).toContain('data-sticky="true"')
+    expect(out).toContain('--ev-record-side-w:320px')
+    expect(out.indexOf('class="ev-record-side"')).toBeLessThan(out.indexOf('class="ev-record-main"'))
+    // Без боковой колонки положение не важно.
+    expect(ru(<RecordLayout sidePosition="start" main={<p>M</p>} />)).not.toContain('data-side-position')
   })
 
   it('без боковой колонки - одна колонка, без aside и признаков', () => {

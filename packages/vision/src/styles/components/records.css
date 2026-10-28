@@ -481,6 +481,10 @@
     grid-template-columns: minmax(0, 1fr) var(--ev-record-side-w);
   }
 
+  .ev-record-layout[data-side-position='start'] {
+    grid-template-columns: var(--ev-record-side-w) minmax(0, 1fr);
+  }
+
   .ev-record-main,
   .ev-record-side {
     display: flex;
@@ -495,8 +499,14 @@
   }
 
   @media (max-width: 1100px) {
-    .ev-record-layout[data-side] {
+    .ev-record-layout[data-side],
+    .ev-record-layout[data-side-position='start'] {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Колонка слева первая в разметке; на узком экране, как и правая, - под основной. */
+    .ev-record-layout[data-side-position='start']:not([data-side-first]) > .ev-record-side {
+      order: 1;
     }
 
     .ev-record-layout[data-sticky] > .ev-record-side {

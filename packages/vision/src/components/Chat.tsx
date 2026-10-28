@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowDown, Check, CircleAlert, Clock3, FileText, Paperclip, SendHorizontal, X } from 'lucide-react'
+import { ArrowDown, Check, CheckCheck, CircleAlert, Clock3, FileText, Paperclip, SendHorizontal, X } from 'lucide-react'
 import {
   useEffect,
   useMemo,
@@ -15,12 +15,14 @@ import { cx } from '../lib/cx'
 import { dayKey, formatDayLabel } from '../lib/dates'
 import { acceptMatches, formatSize } from '../lib/files'
 import { useIsoLayoutEffect, useReferenceNow } from '../lib/hooks'
+import { pickRowAttributes, type RowAttributes } from '../lib/row-attributes'
 import { useMessages } from '../lib/i18n'
 import { toDate, type DateInput } from '../lib/relative-time'
 import { Button, IconButton } from './Button'
 import { Avatar, type Tone } from './Display'
 import { Textarea } from './Input'
 import { Lightbox } from './Lightbox'
+import { Spinner } from './Spinner'
 
 /*
  * Переписка: лента сообщений (ChatThread), пузырь (ChatMessage), вложения
@@ -60,7 +62,8 @@ export interface ChatAttachment {
   alt?: string
 }
 
-export type ChatMessageStatus = 'sending' | 'sent' | 'failed'
+/** sending - отправляется, sent - отправлено, read - прочитано собеседником, failed - не отправлено. */
+export type ChatMessageStatus = 'sending' | 'sent' | 'read' | 'failed'
 
 export interface ChatMessageData {
   id: string
@@ -240,6 +243,8 @@ export interface ChatMessageProps {
   /** Своё содержимое строки ошибки вместо кнопки «Повторить». */
   retry?: ReactNode
   onImageClick?: ChatAttachmentsProps['onImageClick']
+  /** Свои data-* и aria-* на корень строки сообщения (контекстное меню по всему пузырю). */
+  attributes?: RowAttributes
   className?: string
 }
 
@@ -255,10 +260,12 @@ export function ChatMessage({
   onRetry,
   retry,
   onImageClick,
+  attributes,
   className,
 }: ChatMessageProps) {
   const t = useMessages()
   const timeFormat = useTimeFormat(t.intl, timeZone)
+  const attrs = pickRowAttributes(attributes)
   const d = toDate(message.time)
   const time = d ? (
     <time dateTime={d.toISOString()} suppressHydrationWarning={timeZone === undefined}>
@@ -268,7 +275,7 @@ export function ChatMessage({
 
   if (message.kind === 'system') {
     return (
-      <div className={cx('ev-chat-system', className)}>
+      <div {...attrs} className={cx('ev-chat-system', className)}>
         <span className="ev-chat-system-text">{message.text}</span>
         {time ? <span className="ev-chat-system-time ev-num">{time}</span> : null}
       </div>
@@ -281,6 +288,7 @@ export function ChatMessage({
   const failed = status === 'failed'
   return (
     <div
+      {...attrs}
       className={cx('ev-chat-msg', className)}
       data-own={own || undefined}
       data-group-start={groupStart || undefined}
@@ -320,6 +328,11 @@ export function ChatMessage({
               <span className="ev-chat-status" data-status="sent">
                 <Check size={12} aria-hidden="true" />
                 <span className="ev-visually-hidden">{t.chat.sent}</span>
+              </span>
+            ) : status === 'read' ? (
+              <span className="ev-chat-status" data-status="read">
+                <CheckCheck size={13} aria-hidden="true" />
+                <span className="ev-visually-hidden">{t.chat.read}</span>
               </span>
             ) : failed ? (
               <span className="ev-chat-status" data-status="failed" aria-hidden="true">
@@ -364,6 +377,18 @@ export interface ChatThreadProps {
   onImageClick?: (images: ChatAttachment[], index: number, message: ChatMessageData) => void
   /** Содержимое при пустой ленте (например, EmptyState). */
   empty?: ReactNode
+  /** Свои data-* и aria-* на строку сообщения (контекстное меню по всему пузырю). */
+  messageAttributes?: (message: ChatMessageData) => RowAttributes | undefined
+  /** Есть более ранние сообщения: сверху - кнопка «Показать более ранние». */
+  hasMore?: boolean
+  /** Ранние сообщения загружаются. */
+  loadingMore?: boolean
+  /** Догрузить ранние: по кнопке и при прокрутке к верху. Лента остаётся на месте после догрузки. */
+  onLoadMore?: () => void
+  /** Догружать при прокрутке к верху, не только по кнопке (по умолчанию да). */
+  autoLoadMore?: boolean
+  /** Содержимое над лентой внутри прокрутки: начало переписки, карточка обращения. */
+  header?: ReactNode
   /** Подпись ленты для скринридера («Переписка по обращению 1042»). */
   'aria-label'?: string
   className?: string
@@ -371,11 +396,14 @@ export interface ChatThreadProps {
 
 /** Расстояние до низа, при котором лента считается прокрученной до конца, px. */
 const BOTTOM_SLACK = 48
+/** Расстояние до верха, при котором догружаются ранние сообщения, px. */
+const TOP_SLACK = 120
 
 /**
  * Лента сообщений с прокруткой. Новое сообщение прокручивает ленту вниз,
  * если пользователь у нижнего края или сообщение своё; если он читает
- * историю выше - появляется кнопка «Новые сообщения».
+ * историю выше - появляется кнопка «Новые сообщения». Ранние сообщения
+ * догружаются сверху (hasMore, onLoadMore): видимое сообщение остаётся на месте.
  */
 export function ChatThread({
   messages,
@@ -387,6 +415,12 @@ export function ChatThread({
   onRetry,
   onImageClick,
   empty,
+  messageAttributes,
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
+  autoLoadMore = true,
+  header,
   'aria-label': ariaLabel,
   className,
 }: ChatThreadProps) {
@@ -394,8 +428,14 @@ export function ChatThread({
   const refNow = useReferenceNow(now)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const moreRef = useRef<HTMLButtonElement | null>(null)
   const atBottomRef = useRef(true)
   const initialized = useRef(false)
+  // Прошлая отрисовка: первое и последнее сообщение и высота ленты - для сохранения позиции при догрузке сверху.
+  const prevRef = useRef<{ firstId: string | undefined; lastId: string | undefined; height: number } | null>(null)
+  // Догрузка уже запрошена для этого первого сообщения: прокрутка у верха не зовёт onLoadMore повторно.
+  const requestedFor = useRef<string | undefined>(undefined)
+  const moreFocused = useRef(false)
 
   const rows = useMemo(
     () => buildChatRows(messages, { groupWindow, unreadFromId, timeZone }),
@@ -403,6 +443,7 @@ export function ChatThread({
   )
   const last = messages[messages.length - 1]
   const lastId = last?.id
+  const firstId = messages[0]?.id
   const lastOwn = Boolean(last && currentUserId !== undefined && last.author?.id === currentUserId)
 
   // Новые сообщения ниже, пока пользователь читает историю: состояние меняется при смене последнего сообщения.
@@ -433,6 +474,20 @@ export function ChatThread({
     if (atBottomRef.current || lastOwn) el.scrollTop = el.scrollHeight
   }, [lastId, lastOwn])
 
+  // Догрузка сверху: прибавка высоты уходит в scrollTop, видимое сообщение остаётся на месте.
+  useIsoLayoutEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const prev = prevRef.current
+    if (prev && prev.firstId !== firstId && prev.lastId === lastId) el.scrollTop += el.scrollHeight - prev.height
+    prevRef.current = { firstId, lastId, height: el.scrollHeight }
+    // Кнопка догрузки исчезла под фокусом (ранних больше нет) - фокус на ленту, а не в никуда.
+    if (moreFocused.current) {
+      moreFocused.current = false
+      if (!moreRef.current) el.focus({ preventScroll: true })
+    }
+  })
+
   // Картинки догружаются и меняют высоту: у нижнего края лента остаётся прижатой.
   useEffect(() => {
     const el = scrollRef.current
@@ -440,10 +495,17 @@ export function ChatThread({
     if (!el || !content || typeof ResizeObserver === 'undefined') return
     const ro = new ResizeObserver(() => {
       if (atBottomRef.current) el.scrollTop = el.scrollHeight
+      if (prevRef.current) prevRef.current.height = el.scrollHeight
     })
     ro.observe(content)
     return () => ro.disconnect()
   }, [])
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore || !onLoadMore) return
+    requestedFor.current = firstId
+    onLoadMore()
+  }
 
   const onScroll = () => {
     const el = scrollRef.current
@@ -452,6 +514,7 @@ export function ChatThread({
     atBottomRef.current = at
     if (at !== atBottom) setAtBottom(at)
     if (at && pending) setPending(false)
+    if (autoLoadMore && el.scrollTop < TOP_SLACK && requestedFor.current !== firstId) loadMore()
   }
 
   const dayOptions = { now: refNow, intl: t.intl, today: t.chat.today, yesterday: t.chat.yesterday, timeZone }
@@ -462,10 +525,34 @@ export function ChatThread({
         className="ev-chat-scroll"
         role="log"
         aria-label={ariaLabel}
+        aria-busy={loadingMore || undefined}
         tabIndex={0}
         onScroll={onScroll}
       >
         <div ref={contentRef} className="ev-chat-content">
+          {header}
+          {hasMore || loadingMore ? (
+            <div className="ev-chat-more">
+              {/* Не disabled на время загрузки: фокус остаётся на кнопке. */}
+              <Button
+                ref={(node) => {
+                  moreRef.current = node
+                  // Отсоединение идёт до удаления узла: если кнопка была в фокусе, фокус ещё на ней.
+                  return () => {
+                    if (node && document.activeElement === node) moreFocused.current = true
+                    moreRef.current = null
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                icon={loadingMore ? <span aria-hidden="true"><Spinner size={14} /></span> : undefined}
+                aria-disabled={loadingMore || undefined}
+                onClick={loadMore}
+              >
+                {loadingMore ? t.chat.loadingEarlier : t.chat.loadEarlier}
+              </Button>
+            </div>
+          ) : null}
           {rows.length === 0 && empty ? <div className="ev-chat-empty">{empty}</div> : null}
           {rows.map((row) => {
             if (row.type === 'day') {
@@ -485,7 +572,9 @@ export function ChatThread({
               )
             }
             const m = row.message
-            if (row.type === 'system') return <ChatMessage key={m.id} message={m} timeZone={timeZone} />
+            if (row.type === 'system') {
+              return <ChatMessage key={m.id} message={m} timeZone={timeZone} attributes={messageAttributes?.(m)} />
+            }
             return (
               <ChatMessage
                 key={m.id}
@@ -496,6 +585,7 @@ export function ChatThread({
                 timeZone={timeZone}
                 onRetry={onRetry ? () => onRetry(m) : undefined}
                 onImageClick={onImageClick ? (i, images) => onImageClick(images, i, m) : undefined}
+                attributes={messageAttributes?.(m)}
               />
             )
           })}

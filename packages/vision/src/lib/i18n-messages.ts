@@ -314,6 +314,9 @@ export interface Messages {
     failed: string
     newMessages: string
     sent: string
+    read: string
+    loadEarlier: string
+    loadingEarlier: string
     openImage: (name: string) => string
   }
   lightbox: {
@@ -682,6 +685,9 @@ export const ru: Messages = {
     failed: 'Не отправлено',
     newMessages: 'Новые сообщения',
     sent: 'Отправлено',
+    read: 'Прочитано',
+    loadEarlier: 'Показать более ранние',
+    loadingEarlier: 'Загрузка...',
     openImage: (name) => `Открыть изображение «${name}»`,
   },
   lightbox: {
@@ -1039,6 +1045,9 @@ export const en: Messages = {
     failed: 'Not sent',
     newMessages: 'New messages',
     sent: 'Sent',
+    read: 'Read',
+    loadEarlier: 'Show earlier messages',
+    loadingEarlier: 'Loading...',
     openImage: (name) => `Open image ${name}`,
   },
   lightbox: {

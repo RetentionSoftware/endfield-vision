@@ -6,6 +6,8 @@ import {
   ChatThread,
   Composer,
   ConnectionStatus,
+  ContextMenu,
+  copyText,
   Lightbox,
   NotificationCenter,
   NotificationList,
@@ -20,10 +22,11 @@ import {
   type ComposerPayload,
   type ConnectionState,
   type LightboxImage,
+  type MenuEntry,
   type NotificationItem,
   type ThumbnailGridItem,
 } from 'endfield-vision'
-import { Play, Video } from 'lucide-react'
+import { Copy, Play, Reply, Video } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { bi, useT, type Bi } from '@/lib/i18n'
 import { Subhead } from '../parts'
@@ -407,7 +410,7 @@ const SEED_MESSAGES: DemoMessage[] = [
       'Hello Gleb. Please send a screenshot of the error.',
     ),
     time: at(0, 9, 40),
-    status: 'sent',
+    status: 'read',
   },
   {
     id: 'm4',
@@ -455,6 +458,46 @@ const SEED_MESSAGES: DemoMessage[] = [
   },
 ]
 
+/** Ранние сообщения для догрузки: страницы от новых к старым. */
+const EARLIER: DemoMessage[][] = [
+  [
+    {
+      id: 'e1',
+      author: 'customer',
+      text: bi('Обмен с Долиной-1 снова идёт с задержкой около часа.', 'The Valley-1 exchange is running about an hour late again.'),
+      time: at(-2, 15, 2),
+    },
+    {
+      id: 'e2',
+      author: 'op-timur',
+      text: bi('Видим, это очередь на стороне учётной системы. Разберём завтра.', 'We see it, the queue is on the ERP side. We will sort it out tomorrow.'),
+      time: at(-2, 15, 30),
+      status: 'read',
+    },
+  ],
+  [
+    {
+      id: 'e3',
+      kind: 'system',
+      text: bi('Подключён склад Долина-1', 'Valley-1 warehouse connected'),
+      time: at(-3, 10, 0),
+    },
+    {
+      id: 'e4',
+      author: 'customer',
+      text: bi('Добрый день. Проверьте, пожалуйста, первую выгрузку остатков.', 'Good afternoon. Please check the first stock export.'),
+      time: at(-3, 10, 15),
+    },
+    {
+      id: 'e5',
+      author: ME,
+      text: bi('Проверила, всё сходится.', 'Checked, everything matches.'),
+      time: at(-3, 10, 40),
+      status: 'read',
+    },
+  ],
+]
+
 const INCOMING: Bi[] = [
   bi(
     'Ещё вопрос: можно ли ускорить обмен до 5 минут?',
@@ -469,6 +512,8 @@ function SupportChatCard() {
   const [messages, setMessages] = useState<DemoMessage[]>(SEED_MESSAGES)
   const [failNext, setFailNext] = useState(false)
   const [incoming, setIncoming] = useState(0)
+  const [earlier, setEarlier] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const seq = useRef(0)
   const timers = useRef<number[]>([])
   const urls = useRef<string[]>([])
@@ -528,9 +573,20 @@ function SupportChatCard() {
     setIncoming((n) => n + 1)
   }
 
+  // Догрузка ранних: страница приходит через «сеть», лента остаётся на месте.
+  const loadEarlier = () => {
+    setLoadingMore(true)
+    timers.current.push(
+      window.setTimeout(() => {
+        setEarlier((n) => n + 1)
+        setLoadingMore(false)
+      }, 800),
+    )
+  }
+
   const data = useMemo<ChatMessageData[]>(
     () =>
-      messages.map((m) => {
+      [...EARLIER.slice(0, earlier).reverse().flat(), ...messages].map((m) => {
         const a = m.author ? AUTHORS[m.author] : undefined
         return {
           id: m.id,
@@ -546,15 +602,38 @@ function SupportChatCard() {
           attachments: m.attachments?.map((x) => ({ ...x, name: tx(x.name) })),
         }
       }),
-    [messages, tx],
+    [messages, earlier, tx],
   )
+
+  // Меню по всему пузырю: строка сообщения помечена через messageAttributes.
+  const menuFor = (target: HTMLElement): MenuEntry[] | null => {
+    const id = target.closest<HTMLElement>('[data-ctx-kind="chat-message"]')?.dataset.ctxId
+    const message = data.find((m) => m.id === id)
+    if (!message || message.kind === 'system') return null
+    const text = typeof message.text === 'string' ? message.text : ''
+    return [
+      {
+        id: 'copy',
+        label: t('Скопировать текст', 'Copy text'),
+        icon: <Copy size={15} />,
+        disabled: !text,
+        onSelect: () => void copyText(text).then((ok) => (ok ? toast.success(t('Скопировано', 'Copied')) : toast.error(t('Не удалось скопировать', 'Couldn’t copy')))),
+      },
+      {
+        id: 'reply',
+        label: t('Ответить', 'Reply'),
+        icon: <Reply size={15} />,
+        onSelect: () => toast.info(t('Ответ на сообщение', 'Replying to a message'), { description: message.author?.name }),
+      },
+    ]
+  }
 
   return (
     <Card
       title="ChatThread, ChatMessage, Composer"
       description={t(
-        'Переписка по обращению: свои сообщения справа, подряд идущие сообщения автора в пределах 5 минут собираются в группу, системные события - по центру, разделители дней и «Новые сообщения». Изображения открываются в Lightbox. Поле: Enter - отправить, Shift+Enter - перенос, файлы - кнопкой, вставкой скриншота из буфера и перетаскиванием. Если прокрутить ленту вверх и получить сообщение, появится кнопка «Новые сообщения».',
-        'A request conversation: your messages are on the right, consecutive messages from one author within 5 minutes form a group, system events sit in the center, with day separators and a "New messages" divider. Images open in Lightbox. The composer: Enter sends, Shift+Enter adds a line break, files come from the button, a pasted screenshot or drag and drop. Scroll the thread up and receive a message to see the "New messages" button.',
+        'Переписка по обращению: свои сообщения справа, подряд идущие сообщения автора в пределах 5 минут собираются в группу, системные события - по центру, разделители дней и «Новые сообщения». Две галочки - прочитано. Ранние сообщения догружаются сверху (кнопкой или прокруткой к верху), лента при этом не прыгает. Правый клик по пузырю - меню (messageAttributes). Изображения открываются в Lightbox. Поле: Enter - отправить, Shift+Enter - перенос, файлы - кнопкой, вставкой скриншота из буфера и перетаскиванием. Если прокрутить ленту вверх и получить сообщение, появится кнопка «Новые сообщения».',
+        'A request conversation: your messages are on the right, consecutive messages from one author within 5 minutes form a group, system events sit in the center, with day separators and a "New messages" divider. Two checkmarks mean read. Earlier messages load at the top (with the button or by scrolling up) without the thread jumping. Right-click a bubble for a menu (messageAttributes). Images open in Lightbox. The composer: Enter sends, Shift+Enter adds a line break, files come from the button, a pasted screenshot or drag and drop. Scroll the thread up and receive a message to see the "New messages" button.',
       )}
       actions={
         <Button size="sm" variant="ghost" onClick={receive}>
@@ -573,19 +652,25 @@ function SupportChatCard() {
           <ConnectionStatus status="online" />
         </div>
         {/* Высоту ленты задаёт контейнер: лента растягивается и прокручивается внутри. */}
-        <div style={{ height: 460, display: 'flex', flexDirection: 'column' }}>
-          <ChatThread
-            messages={data}
-            currentUserId={ME}
-            unreadFromId="m7"
-            now={DEMO_NOW}
-            aria-label={t('Переписка по обращению 1042', 'Conversation for request 1042')}
-            onRetry={(m) => {
-              setStatus(m.id, 'sending')
-              deliver(m.id, false)
-            }}
-          />
-        </div>
+        <ContextMenu items={menuFor}>
+          <div style={{ height: 460, display: 'flex', flexDirection: 'column' }}>
+            <ChatThread
+              messages={data}
+              currentUserId={ME}
+              unreadFromId="m7"
+              now={DEMO_NOW}
+              aria-label={t('Переписка по обращению 1042', 'Conversation for request 1042')}
+              messageAttributes={(m) => ({ 'data-ctx-kind': 'chat-message', 'data-ctx-id': m.id })}
+              hasMore={earlier < EARLIER.length}
+              loadingMore={loadingMore}
+              onLoadMore={loadEarlier}
+              onRetry={(m) => {
+                setStatus(m.id, 'sending')
+                deliver(m.id, false)
+              }}
+            />
+          </div>
+        </ContextMenu>
         <Composer onSend={onSend} maxLength={2000} />
         <Switch
           checked={failNext}

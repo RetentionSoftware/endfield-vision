@@ -5,6 +5,7 @@ import { Fragment, useEffect, useId, useRef, useState, type CSSProperties, type 
 import { useMessages } from '../lib/i18n'
 import { cx, EMPTY_VALUE } from '../lib/cx'
 import { useControllable, useMediaQuery } from '../lib/hooks'
+import { pickRowAttributes, type RowAttributes } from '../lib/row-attributes'
 import { Button } from './Button'
 import { Checkbox } from './Choice'
 import { Skeleton, type Tone } from './Display'
@@ -55,8 +56,7 @@ export interface Column<T> {
   className?: string
 }
 
-/** Атрибуты строки от приложения: только data-* и aria-*. */
-export type RowAttributes = Partial<Record<`data-${string}` | `aria-${string}`, string | number | boolean | undefined>>
+export { pickRowAttributes, type RowAttributes } from '../lib/row-attributes'
 
 export interface DataTableProps<T> {
   columns: Column<T>[]
@@ -124,16 +124,6 @@ function isEmpty(v: ReactNode): boolean {
 
 function renderCell(v: ReactNode): ReactNode {
   return isEmpty(v) ? <span className="ev-empty-value">{EMPTY_VALUE}</span> : v
-}
-
-/** Атрибуты строки от приложения: всё, кроме data-* и aria-*, отбрасывается. */
-export function pickRowAttributes(attrs: RowAttributes | undefined): RowAttributes {
-  const out: RowAttributes = {}
-  if (!attrs) return out
-  for (const [k, v] of Object.entries(attrs) as [keyof RowAttributes, RowAttributes[keyof RowAttributes]][]) {
-    if (v !== undefined && /^(data|aria)-[\w-]+$/.test(k)) out[k] = v
-  }
-  return out
 }
 
 /**
