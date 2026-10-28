@@ -9,8 +9,8 @@
 Токены, тёмная и светлая темы, пресеты акцента и доступные компоненты без сторонних UI-библиотек.
 
 [![CI](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/RetentionSoftware/endfield-vision/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.1.0-4263eb)](packages/vision/package.json)
-[![npm](https://img.shields.io/badge/npm-coming%20soon-lightgrey)](#установка)
+[![npm](https://img.shields.io/npm/v/endfield-vision?color=4263eb&label=npm)](https://www.npmjs.com/package/endfield-vision)
+[![Downloads](https://img.shields.io/npm/dm/endfield-vision?color=4263eb)](https://www.npmjs.com/package/endfield-vision)
 [![License: MIT](https://img.shields.io/badge/license-MIT-4263eb)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
@@ -65,25 +65,31 @@ Endfield Vision - для экранов, за которыми работают 
 
 ## Установка
 
-> [!NOTE]
-> Пакет готовится к публикации в npm. Пока его там нет, ставьте из [релиза на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases/latest): это та же сборка, что уйдёт в npm, и импорты те же (`from 'endfield-vision'`).
-
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+npm install endfield-vision
 ```
 
 <details>
 <summary>pnpm, yarn, bun</summary>
 
 ```bash
-pnpm add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
-yarn add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
-bun add https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+pnpm add endfield-vision
+yarn add endfield-vision
+bun add endfield-vision
 ```
 
 </details>
 
-К каждому релизу приложен архив `endfield-vision-<версия>.tgz`: чтобы закрепить другую версию, поменяйте её в ссылке. Когда пакет появится в npm, хватит `npm install endfield-vision`.
+<details>
+<summary>Без реестра npm</summary>
+
+К каждому [релизу на GitHub](https://github.com/RetentionSoftware/endfield-vision/releases) приложена та же сборка - архив `endfield-vision-<версия>.tgz`:
+
+```bash
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz
+```
+
+</details>
 
 Нужны `react` и `react-dom` 19. Next.js не обязателен: библиотека работает в любом React-приложении (Vite и т. п.).
 

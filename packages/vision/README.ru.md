@@ -12,7 +12,7 @@
 npm i endfield-vision
 ```
 
-Пока пакет готовится к публикации в npm, ставьте его из релиза на GitHub (та же сборка, те же импорты):
+Без реестра npm: к каждому релизу на GitHub приложена та же сборка архивом.
 
 ```bash
 npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.1.0/endfield-vision-2.1.0.tgz

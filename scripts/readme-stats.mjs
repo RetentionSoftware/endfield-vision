@@ -1,4 +1,4 @@
-// Числа для бейджей README и витрины: компоненты, хуки, токены, версия, тесты.
+// Числа для бейджей README и витрины: компоненты, хуки, токены, тесты.
 // Заодно - версия библиотеки в плейграунде (витрина, экраны входа).
 //
 //   node scripts/readme-stats.mjs          - пересчитать и записать (тесты прогоняются)
@@ -51,7 +51,8 @@ function countTests() {
   }
 }
 
-const stats = { components, hooks, tokens, version: version.replaceAll('-', '--') }
+// Версию на бейдже показывает npm (shields.io/npm/v), здесь - только счётчики.
+const stats = { components, hooks, tokens }
 if (!check) stats.tests = countTests()
 
 // Бейдж shields.io: .../badge/<label>-<value>-<color>
@@ -85,7 +86,7 @@ for (const file of [...READMES, ...READMES.map((f) => `packages/vision/${f}`)])
 // Версия на витрине и на экранах входа плейграунда - из package.json библиотеки.
 for (const file of VERSIONED) update(file, (text) => text.replace(/((?:LIBRARY_)?VERSION = ')[^']+(')/, `$1${version}$2`))
 
-console.log(Object.entries(stats).map(([k, v]) => `${k}: ${v}`).join(', '))
+console.log([...Object.entries(stats).map(([k, v]) => `${k}: ${v}`), `version: ${version}`].join(', '))
 if (stale.length) {
   console.error(`Out of date: ${stale.join(', ')} - run \`npm run stats\``)
   process.exit(1)
