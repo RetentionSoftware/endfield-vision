@@ -129,6 +129,8 @@
   .ev-card-actions {
     display: flex;
     flex: 0 0 auto;
+    /* Не сжимается уже кнопок, но и не шире шапки (на узком экране - своя строка). */
+    max-width: 100%;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--ev-space-2);
@@ -681,11 +683,17 @@
     max-width: 80ch;
   }
 
+  /*
+   * Не шире строки шапки: иначе широкий контрол (SegmentedControl с прокруткой)
+   * растягивает блок по своему min-content и уходит за край экрана.
+   */
   .ev-page-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--ev-space-3);
+    min-width: 0;
+    max-width: 100%;
   }
 
   .ev-page-head-extra {

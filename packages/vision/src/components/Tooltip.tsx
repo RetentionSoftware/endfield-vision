@@ -41,6 +41,15 @@ export interface TooltipProps {
 const PAD = 8
 const GAP = 6
 
+/** Фокус виден (:focus-visible) - пришёл с клавиатуры. Браузер без поддержки - считаем видимым. */
+export function isKeyboardFocus(el: Element): boolean {
+  try {
+    return el.matches(':focus-visible')
+  } catch {
+    return true
+  }
+}
+
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
   if (!ref) return
   if (typeof ref === 'function') ref(node)
@@ -160,7 +169,8 @@ export function Tooltip({ content, placement = 'auto', delay = 200, onlyWhenTrun
       call('onMouseLeave', e)
     },
     onFocus: (e: FocusEvent) => {
-      show()
+      // Только фокус с клавиатуры: начальный фокус ловушки окна или панели после клика мышью подсказку не открывает.
+      if (isKeyboardFocus(e.target as Element)) show()
       call('onFocus', e)
     },
     onBlur: (e: FocusEvent) => {

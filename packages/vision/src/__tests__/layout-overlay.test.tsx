@@ -15,6 +15,7 @@ import { PermissionMatrix } from '../components/PermissionMatrix'
 import { SettingRow } from '../components/SettingsList'
 import { Slider } from '../components/Slider'
 import { Tabs } from '../components/Tabs'
+import { isKeyboardFocus } from '../components/Tooltip'
 import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
 import { insertEscapeLayer, type EscapeLayer } from '../lib/overlay'
@@ -404,5 +405,28 @@ describe('Button: две иконки без подписи', () => {
     expect(two).not.toContain('ev-btn-iconic')
     expect(renderRu(<Button icon={<span>A</span>} aria-label="Меню" />)).toContain('class="ev-btn ev-btn-iconic"')
     expect(renderRu(<Button icon={<span>A</span>} iconRight={<span>v</span>}>Профиль</Button>)).toContain('class="ev-btn"')
+  })
+})
+
+describe('Tooltip: только фокус с клавиатуры', () => {
+  it(':focus-visible - открыть; программный фокус после клика - нет; без поддержки селектора - открыть', () => {
+    const el = (visible: boolean | 'throw') =>
+      ({
+        matches: () => {
+          if (visible === 'throw') throw new SyntaxError('unsupported')
+          return visible
+        },
+      }) as unknown as Element
+    expect(isKeyboardFocus(el(true))).toBe(true)
+    expect(isKeyboardFocus(el(false))).toBe(false)
+    expect(isKeyboardFocus(el('throw'))).toBe(true)
+  })
+})
+
+describe('Шапки: блок действий не шире строки', () => {
+  it('PageHeader и Card: max-width 100%, у шапки страницы ещё min-width 0', () => {
+    const css = readCss('components/display.css')
+    expect(css).toMatch(/\.ev-page-actions \{[^}]*min-width: 0;\s*max-width: 100%;/)
+    expect(css).toMatch(/\.ev-card-actions \{[^}]*max-width: 100%;/)
   })
 })
