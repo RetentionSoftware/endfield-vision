@@ -871,8 +871,8 @@ function ThumbnailCard() {
     <Card
       title="Thumbnail, ThumbnailGrid"
       description={t(
-        'Миниатюра: кадр с пропорциями (aspect) и обрезкой cover или вписыванием contain, подпись, значок поверх и знак по центру, скелетон до загрузки и заглушка при ошибке. kind="video" - немой первый кадр, значок «Видео» и знак воспроизведения. Сетка подбирает число колонок по ширине (minWidth) и открывает снимок в Lightbox, видео - в плеере. Ролик здесь записывается в браузере и подключается blob URL - пока он пишется, у превью скелетон. Ниже - тот же ролик в VideoPlayer.',
-        'A thumbnail: a frame with a set aspect ratio, cropped (cover) or fitted (contain), a caption, a corner badge and a centered mark, a skeleton until it loads and a placeholder on error. kind="video" shows a muted first frame, a Video badge and a play mark. The grid fits as many columns as the width allows (minWidth) and opens images in Lightbox and videos in a player. The clip here is recorded in the browser and attached as a blob URL; while it records, the preview shows a skeleton. Below is the same clip in VideoPlayer.',
+        'Миниатюра: кадр с пропорциями (aspect) и обрезкой cover или вписыванием contain, подпись, значок поверх и знак по центру, скелетон до загрузки и заглушка при ошибке. kind="video" - немой первый кадр, значок «Видео» и знак воспроизведения. Сетка подбирает число колонок по ширине (minWidth) и открывает снимок в Lightbox, видео - в плеере; fill="auto-fit" - несколько плиток делят всю ширину. Ролик здесь записывается в браузере и подключается blob URL - пока он пишется, у превью скелетон. Ниже - тот же ролик в VideoPlayer.',
+        'A thumbnail: a frame with a set aspect ratio, cropped (cover) or fitted (contain), a caption, a corner badge and a centered mark, a skeleton until it loads and a placeholder on error. kind="video" shows a muted first frame, a Video badge and a play mark. The grid fits as many columns as the width allows (minWidth) and opens images in Lightbox and videos in a player; fill="auto-fit" lets a few tiles share the whole width. The clip here is recorded in the browser and attached as a blob URL; while it records, the preview shows a skeleton. Below is the same clip in VideoPlayer.',
       )}
       actions={
         <Switch size="sm" checked={uploading} onChange={setUploading} label={t('Загрузка полиса', 'Policy uploading')} />
@@ -880,6 +880,19 @@ function ThumbnailCard() {
     >
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
         <ThumbnailGrid aria-label={t('Фото и видео осмотра', 'Inspection photos and video')} items={items} minWidth={150} loop />
+        <div className="ev-stack">
+          <Subhead>{t('Три снимка на всю ширину: fill="auto-fit"', 'Three shots across the width: fill="auto-fit"')}</Subhead>
+          <ThumbnailGrid
+            aria-label={t('Показатели приборов', 'Gauge readings')}
+            items={[
+              { key: 'odo', src: SHOTS[0]!, alt: t('Одометр', 'Odometer'), caption: t('Одометр', 'Odometer') },
+              { key: 'fuel', src: SHOTS[1]!, alt: t('Уровень топлива', 'Fuel level'), caption: t('Топливо', 'Fuel') },
+              { key: 'temp', src: SHOTS[2]!, alt: t('Температура двигателя', 'Engine temperature'), caption: t('Температура', 'Temperature') },
+            ]}
+            minWidth={150}
+            fill="auto-fit"
+          />
+        </div>
         <div className="ev-stack">
           <Subhead>VideoPlayer</Subhead>
           {video.status === 'recording' ? (

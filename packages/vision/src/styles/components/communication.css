@@ -918,6 +918,11 @@
     list-style: none;
   }
 
+  /* Пустые колонки схлопываются: несколько снимков делят всю ширину. */
+  .ev-thumb-grid[data-fill='auto-fit'] {
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--ev-thumb-min, 140px), 100%), 1fr));
+  }
+
   .ev-thumb-grid > li {
     min-width: 0;
   }

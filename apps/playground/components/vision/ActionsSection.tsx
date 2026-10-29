@@ -324,12 +324,13 @@ function SegmentedCard() {
   const [view, setView] = useState<'list' | 'grid' | 'board' | 'calendar'>('list')
   const [period, setPeriod] = useState('w2')
   const [tacho, setTacho] = useState<'yes' | 'no' | null>(null)
+  const [scope, setScope] = useState('mine')
   return (
     <Card
-      title={t('SegmentedControl: иконки, прокрутка, без выбора', 'SegmentedControl: icons, scrolling, no selection')}
+      title={t('SegmentedControl: иконки, прокрутка, без выбора, без рамки', 'SegmentedControl: icons, scrolling, no selection, no frame')}
       description={t(
-        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области. value={null} - значение ещё не выбрано: по Tab попадаешь на первый сегмент, стрелки выбирают.',
-        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the control scrolls internally and keeps the selected segment in view. value={null} means nothing is chosen yet: Tab lands on the first segment and the arrows choose.',
+        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области. value={null} - значение ещё не выбрано: по Tab попадаешь на первый сегмент, стрелки выбирают. variant="plain" - без рамки и подложки, выбранный - тонированной плашкой, как у вкладок-плашек; остаётся radiogroup со стрелками.',
+        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the control scrolls internally and keeps the selected segment in view. value={null} means nothing is chosen yet: Tab lands on the first segment and the arrows choose. variant="plain" drops the frame and background and marks the selected segment with a tinted chip, like pill tabs; it is still a radiogroup with arrow keys.',
       )}
     >
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
@@ -390,6 +391,34 @@ function SegmentedCard() {
             <Button size="sm" variant="ghost" disabled={tacho === null} onClick={() => setTacho(null)}>
               {t('Сбросить', 'Reset')}
             </Button>
+          </div>
+        </div>
+        <div className="ev-stack">
+          <Subhead>{t('Без рамки: variant="plain"', 'No frame: variant="plain"')}</Subhead>
+          <div className={s.row}>
+            <SegmentedControl
+              variant="plain"
+              aria-label={t('Чьи задачи', 'Whose tasks')}
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: 'mine', label: t('Мои', 'Mine'), count: 7 },
+                { value: 'team', label: t('Команды', 'Team'), count: 24 },
+                { value: 'all', label: t('Все', 'All') },
+              ]}
+            />
+            <SegmentedControl
+              variant="plain"
+              size="sm"
+              aria-label={t('Вид списка задач, без рамки', 'Task list view, no frame')}
+              value={view}
+              onChange={setView}
+              options={[
+                { value: 'list', icon: <List size={14} />, 'aria-label': t('Список', 'List') },
+                { value: 'grid', icon: <LayoutGrid size={14} />, 'aria-label': t('Плитки', 'Tiles') },
+                { value: 'board', icon: <SquareKanban size={14} />, 'aria-label': t('Доска', 'Board') },
+              ]}
+            />
           </div>
         </div>
       </div>

@@ -202,6 +202,12 @@ export interface SegmentedControlProps<V extends string = string> {
   onChange: (value: V) => void
   options: SegmentedOption<V>[]
   size?: 'sm' | 'md'
+  /**
+   * boxed (по умолчанию) - сегменты в рамке поля; plain - без рамки и
+   * подложки, выбранный - тонированной плашкой, как у Tabs variant="pill":
+   * в тулбаре, шапке карточки, рядом с другими плашками.
+   */
+  variant?: 'boxed' | 'plain'
   /** Растянуть сегменты на всю ширину. */
   block?: boolean
   'aria-label'?: string
@@ -222,6 +228,7 @@ export function SegmentedControl<V extends string = string>({
   onChange,
   options,
   size = 'md',
+  variant = 'boxed',
   block = false,
   className,
   ...aria
@@ -258,7 +265,14 @@ export function SegmentedControl<V extends string = string>({
     }
   }
   return (
-    <div ref={rootRef} role="radiogroup" className={cx('ev-segmented', block && 'ev-segmented-block', className)} data-size={size} {...aria}>
+    <div
+      ref={rootRef}
+      role="radiogroup"
+      className={cx('ev-segmented', block && 'ev-segmented-block', className)}
+      data-size={size}
+      data-variant={variant === 'plain' ? 'plain' : undefined}
+      {...aria}
+    >
       {options.map((o, i) => {
         const on = o.value === value
         const iconOnly = !hasContent(o.label) && Boolean(o.icon)

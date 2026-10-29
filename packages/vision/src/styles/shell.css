@@ -4,6 +4,8 @@
   .ev-shell {
     /* Шапка таблицы со stickyHeader липнет под шапкой приложения. */
     --ev-table-sticky-top: var(--ev-topbar-h);
+    /* Сколько занимает строка состояния каркаса: 0, если её нет. Для calc(100dvh - ...) в раскладках страниц. */
+    --ev-shell-statusbar-h: 0px;
     display: flex;
     min-height: 100dvh;
     width: 100%;
@@ -309,6 +311,10 @@
   }
 
   /* --- Строка состояния --- */
+  .ev-shell[data-statusbar] {
+    --ev-shell-statusbar-h: var(--ev-statusbar-h);
+  }
+
   .ev-shell-statusbar {
     position: sticky;
     bottom: 0;
@@ -317,7 +323,6 @@
   }
 
   .ev-statusbar {
-    --ev-statusbar-h: 28px;
     display: flex;
     align-items: center;
     gap: var(--ev-space-4);

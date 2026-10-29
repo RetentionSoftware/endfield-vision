@@ -230,6 +230,8 @@
 
     /* --- Каркас --- */
     --ev-topbar-h: 56px;
+    /* Высота строки состояния (StatusBar): для раскладок страницы, например липкой колонки до неё. */
+    --ev-statusbar-h: 28px;
     --ev-sidebar-w: 248px;
     --ev-sidebar-w-collapsed: 64px;
     --ev-content-max: 1440px;

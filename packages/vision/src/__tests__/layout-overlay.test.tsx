@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { AppShell, AppShellFill, Topbar, Sidebar } from '../components/AppShell'
+import { SegmentedControl } from '../components/Choice'
 import { FilterBar, Pagination } from '../components/DataTable'
 import { Field, FormRow, FormSection } from '../components/Field'
 import { Input } from '../components/Input'
@@ -12,6 +13,7 @@ import { SectionTitle } from '../components/Page'
 import { SettingRow } from '../components/SettingsList'
 import { Slider } from '../components/Slider'
 import { Tabs } from '../components/Tabs'
+import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
 import { insertEscapeLayer, type EscapeLayer } from '../lib/overlay'
 import { renderRu } from './render-ru'
@@ -221,5 +223,48 @@ describe('Мелочи', () => {
     )
     expect(shell).toContain('data-fill="true"')
     expect(shell).toContain('<div class="ev-shell-fill">Чат</div>')
+  })
+})
+
+describe('SegmentedControl variant="plain"', () => {
+  const options = [
+    { value: 'day', label: 'День' },
+    { value: 'week', label: 'Неделя' },
+  ]
+  it('без рамки - data-variant, по умолчанию - в рамке', () => {
+    const plain = renderRu(<SegmentedControl aria-label="Период" value="day" onChange={noop} options={options} variant="plain" />)
+    expect(plain).toContain('role="radiogroup"')
+    expect(plain).toContain('data-variant="plain"')
+    expect(plain).toContain('role="radio" aria-checked="true"')
+    expect(renderRu(<SegmentedControl aria-label="Период" value="day" onChange={noop} options={options} />)).not.toContain('data-variant')
+  })
+
+  it('выбранный - токенами выделения, не акцентом', () => {
+    const css = readCss('components/form.css')
+    expect(css).toMatch(/\.ev-segmented\[data-variant='plain'\] \.ev-segmented-item\[data-active\] \{\s*background: var\(--ev-selected-bg\);\s*color: var\(--ev-selected-text\);/)
+  })
+})
+
+describe('ThumbnailGrid: заполнение ширины', () => {
+  const items = [{ src: '/1.jpg', alt: 'A' }]
+  it('fill="auto-fit": пустые колонки схлопываются; по умолчанию - auto-fill', () => {
+    const out = renderRu(<ThumbnailGrid items={items} fill="auto-fit" minWidth={160} />)
+    expect(out).toContain('data-fill="auto-fit"')
+    expect(out).toContain('style="--ev-thumb-min:160px"')
+    expect(renderRu(<ThumbnailGrid items={items} />)).not.toContain('data-fill')
+    expect(readCss('components/communication.css')).toMatch(/\.ev-thumb-grid\[data-fill='auto-fit'\] \{\s*grid-template-columns: repeat\(auto-fit,/)
+  })
+})
+
+describe('Высота строки состояния', () => {
+  it('--ev-statusbar-h на :root; у каркаса со строкой состояния - --ev-shell-statusbar-h', () => {
+    expect(readCss('tokens.css')).toMatch(/:root \{[\s\S]*--ev-statusbar-h: 28px;/)
+    const shell = renderRu(
+      <AppShell sidebar={<Sidebar>{null}</Sidebar>} topbar={<Topbar />} statusBar={<span>OK</span>}>
+        {null}
+      </AppShell>,
+    )
+    expect(shell).toContain('data-statusbar=""')
+    expect(readCss('shell.css')).toMatch(/\.ev-shell\[data-statusbar\] \{\s*--ev-shell-statusbar-h: var\(--ev-statusbar-h\);/)
   })
 })

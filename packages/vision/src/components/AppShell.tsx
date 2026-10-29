@@ -86,7 +86,7 @@ export function AppShell({
   )
   return (
     <ShellContext.Provider value={ctx}>
-      <div className={cx('ev-shell', className)} data-collapsed={collapsed || undefined} data-fill={fill || undefined}>
+      <div className={cx('ev-shell', className)} data-collapsed={collapsed || undefined} data-fill={fill || undefined} data-statusbar={statusBar ? '' : undefined}>
         <a href="#ev-main" className="ev-skip-link">
           {t.shell.skipToContent}
         </a>

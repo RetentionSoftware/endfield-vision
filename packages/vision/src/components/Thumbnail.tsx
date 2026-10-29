@@ -211,6 +211,11 @@ export interface ThumbnailGridProps {
   fit?: 'cover' | 'contain'
   /** Минимальная ширина колонки, px (по умолчанию 140): колонок столько, сколько помещается. */
   minWidth?: number
+  /**
+   * auto-fill (по умолчанию) - пустые колонки остаются, плитка шириной в колонку;
+   * auto-fit - пустые колонки схлопываются, несколько плиток делят всю ширину.
+   */
+  fill?: 'auto-fill' | 'auto-fit'
   /** Просмотр в Lightbox по нажатию (по умолчанию да). */
   lightbox?: boolean
   /** Нажатие на элемент (вызывается и при открытии Lightbox). */
@@ -229,6 +234,7 @@ export function ThumbnailGrid({
   aspect,
   fit,
   minWidth = 140,
+  fill = 'auto-fill',
   lightbox = true,
   onItemClick,
   loop,
@@ -252,6 +258,7 @@ export function ThumbnailGrid({
         role="list"
         aria-label={ariaLabel}
         className={cx('ev-thumb-grid', className)}
+        data-fill={fill === 'auto-fit' ? 'auto-fit' : undefined}
         style={{ '--ev-thumb-min': `${minWidth}px` } as CSSProperties}
       >
         {items.map((it, i) => {

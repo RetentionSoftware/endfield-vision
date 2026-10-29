@@ -17,8 +17,8 @@
 
 [![Components](https://img.shields.io/badge/components-143-7b93ff)](#что-внутри)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#что-внутри)
-[![Tokens](https://img.shields.io/badge/tokens-171-7b93ff)](packages/vision/README.ru.md#токены-главное)
-[![Tests](https://img.shields.io/badge/tests-564-2f9e44)](packages/vision/src/__tests__)
+[![Tokens](https://img.shields.io/badge/tokens-172-7b93ff)](packages/vision/README.ru.md#токены-главное)
+[![Tests](https://img.shields.io/badge/tests-568-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.ru.md#язык)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)

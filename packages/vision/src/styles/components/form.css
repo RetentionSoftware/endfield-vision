@@ -689,6 +689,38 @@
     cursor: not-allowed;
   }
 
+  /*
+   * Без рамки: ни подложки, ни рамки поля. Сегменты высотой с контрол того же
+   * размера, выбранный - тоном выделения, как у вкладок-плашек.
+   */
+  .ev-segmented[data-variant='plain'] {
+    gap: var(--ev-space-1);
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .ev-segmented[data-variant='plain'] .ev-segmented-item {
+    height: var(--ev-control-h);
+    padding: 0 var(--ev-space-4);
+    border-radius: var(--ev-radius);
+  }
+
+  .ev-segmented[data-variant='plain'][data-size='sm'] .ev-segmented-item {
+    height: var(--ev-control-h-sm);
+    padding: 0 var(--ev-space-3);
+  }
+
+  .ev-segmented[data-variant='plain'] .ev-segmented-item[data-active] {
+    background: var(--ev-selected-bg);
+    color: var(--ev-selected-text);
+    box-shadow: none;
+  }
+
+  .ev-segmented[data-variant='plain'] .ev-segmented-item:focus-visible {
+    box-shadow: var(--ev-focus-ring-inset);
+  }
+
   .ev-segmented-icon {
     display: inline-flex;
   }
