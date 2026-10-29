@@ -4,6 +4,7 @@ import { Check, Minus } from 'lucide-react'
 import { useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
+import { revealInTrack, ScrollArrows, useScrollOverflow } from '../lib/scroll-overflow'
 import { useFieldProps } from './Field'
 import { Tooltip } from './Tooltip'
 
@@ -220,8 +221,9 @@ function hasContent(v: ReactNode): boolean {
 
 /**
  * Переключатель 2-5 значений (режим, период, статус). Стрелки двигают выбор.
- * Не помещается по ширине - прокручивается внутри себя, выбранный сегмент
- * держится в видимой области.
+ * Не помещается по ширине - сегменты прокручиваются внутри рамки: край со
+ * скрытыми сегментами затухает, на нём стрелка до следующего сегмента,
+ * выбранный держится в видимой области.
  */
 export function SegmentedControl<V extends string = string>({
   value,
@@ -233,21 +235,18 @@ export function SegmentedControl<V extends string = string>({
   className,
   ...aria
 }: SegmentedControlProps<V>) {
-  const rootRef = useRef<HTMLDivElement | null>(null)
+  const trackRef = useRef<HTMLDivElement | null>(null)
   const refs = useRef<Array<HTMLButtonElement | null>>([])
+  const overflow = useScrollOverflow(trackRef, options.length)
   const activeIndex = options.findIndex((o) => o.value === value)
   // Точка входа по Tab: выбранный сегмент, а без выбора (или если он отключён) - первый доступный.
   const tabStop = activeIndex >= 0 && !options[activeIndex]?.disabled ? activeIndex : options.findIndex((o) => !o.disabled)
 
   // Прокрутка только самого переключателя (не страницы, как у scrollIntoView).
   useIsoLayoutEffect(() => {
-    const box = rootRef.current
+    const track = trackRef.current
     const el = refs.current[activeIndex]
-    if (!box || !el || box.scrollWidth <= box.clientWidth) return
-    const b = box.getBoundingClientRect()
-    const r = el.getBoundingClientRect()
-    if (r.left < b.left) box.scrollLeft -= b.left - r.left
-    else if (r.right > b.right) box.scrollLeft += r.right - b.right
+    if (track && el) revealInTrack(track, el)
   }, [activeIndex])
 
   const onKey = (e: KeyboardEvent, index: number) => {
@@ -266,13 +265,15 @@ export function SegmentedControl<V extends string = string>({
   }
   return (
     <div
-      ref={rootRef}
       role="radiogroup"
       className={cx('ev-segmented', block && 'ev-segmented-block', className)}
       data-size={size}
       data-variant={variant === 'plain' ? 'plain' : undefined}
+      data-overflow-start={overflow.start || undefined}
+      data-overflow-end={overflow.end || undefined}
       {...aria}
     >
+      <div ref={trackRef} className="ev-segmented-track ev-scroll-track">
       {options.map((o, i) => {
         const on = o.value === value
         const iconOnly = !hasContent(o.label) && Boolean(o.icon)
@@ -311,6 +312,8 @@ export function SegmentedControl<V extends string = string>({
           button
         )
       })}
+      </div>
+      <ScrollArrows overflow={overflow} track={trackRef} size={size === 'sm' ? 14 : 16} />
     </div>
   )
 }

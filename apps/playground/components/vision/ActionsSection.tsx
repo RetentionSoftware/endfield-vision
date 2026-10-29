@@ -329,8 +329,8 @@ function SegmentedCard() {
     <Card
       title={t('SegmentedControl: иконки, прокрутка, без выбора, без рамки', 'SegmentedControl: icons, scrolling, no selection, no frame')}
       description={t(
-        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - переключатель прокручивается внутри себя, выбранный сегмент остаётся в видимой области. value={null} - значение ещё не выбрано: по Tab попадаешь на первый сегмент, стрелки выбирают. variant="plain" - без рамки и подложки, выбранный - тонированной плашкой, как у вкладок-плашек; остаётся radiogroup со стрелками.',
-        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the control scrolls internally and keeps the selected segment in view. value={null} means nothing is chosen yet: Tab lands on the first segment and the arrows choose. variant="plain" drops the frame and background and marks the selected segment with a tinted chip, like pill tabs; it is still a radiogroup with arrow keys.',
+        'Сегмент без подписи - только иконка: aria-label обязателен, он же текст подсказки. Не помещается по ширине - сегменты прокручиваются внутри: край со скрытыми сегментами затухает, стрелка на нём докручивает до следующего, выбранный сегмент остаётся в видимой области. value={null} - значение ещё не выбрано: по Tab попадаешь на первый сегмент, стрелки выбирают. variant="plain" - без рамки и подложки, выбранный - тонированной плашкой, как у вкладок-плашек; остаётся radiogroup со стрелками.',
+        'A segment without a label shows only an icon: aria-label is required and doubles as the tooltip text. When it does not fit, the segments scroll inside: the edge with hidden segments fades out, its arrow scrolls to the next one, and the selected segment stays in view. value={null} means nothing is chosen yet: Tab lands on the first segment and the arrows choose. variant="plain" drops the frame and background and marks the selected segment with a tinted chip, like pill tabs; it is still a radiogroup with arrow keys.',
       )}
     >
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
@@ -361,20 +361,23 @@ function SegmentedCard() {
         </div>
         <div className="ev-stack">
           <Subhead>{t('Узкий контейнер: 280px', 'Narrow container: 280px')}</Subhead>
-          <div style={{ maxWidth: 280 }}>
-            <SegmentedControl
-              aria-label={t('Период отчёта', 'Report period')}
-              value={period}
-              onChange={setPeriod}
-              options={[
-                { value: 'd1', label: t('День', 'Day') },
-                { value: 'w1', label: t('Неделя', 'Week') },
-                { value: 'w2', label: t('Две недели', 'Two weeks') },
-                { value: 'm1', label: t('Месяц', 'Month') },
-                { value: 'q1', label: t('Квартал', 'Quarter') },
-              ]}
-            />
-          </div>
+          {(['boxed', 'plain'] as const).map((variant) => (
+            <div key={variant} style={{ maxWidth: 280 }}>
+              <SegmentedControl
+                variant={variant}
+                aria-label={variant === 'plain' ? t('Период отчёта, без рамки', 'Report period, no frame') : t('Период отчёта', 'Report period')}
+                value={period}
+                onChange={setPeriod}
+                options={[
+                  { value: 'd1', label: t('День', 'Day') },
+                  { value: 'w1', label: t('Неделя', 'Week') },
+                  { value: 'w2', label: t('Две недели', 'Two weeks') },
+                  { value: 'm1', label: t('Месяц', 'Month') },
+                  { value: 'q1', label: t('Квартал', 'Quarter') },
+                ]}
+              />
+            </div>
+          ))}
         </div>
         <div className="ev-stack">
           <Subhead>{t('Без выбора: тахограф', 'No selection: tachograph')}</Subhead>

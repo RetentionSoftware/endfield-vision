@@ -1,10 +1,10 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { UiLink } from '../lib/link'
+import { revealInTrack, ScrollArrows, useScrollOverflow } from '../lib/scroll-overflow'
 
 export interface TabItem<V extends string = string> {
   value: V
@@ -36,43 +36,6 @@ export function tabPanelId(idBase: string, value: string) {
   return `${idBase}-panel-${value}`
 }
 
-interface TabsOverflow {
-  start: boolean
-  end: boolean
-}
-
-const NO_OVERFLOW: TabsOverflow = { start: false, end: false }
-
-/** Отступ от края при прокрутке к активной вкладке: она не уходит под затухание. */
-const EDGE_GAP = 40
-
-/**
- * Переполнение ленты вкладок: есть ли скрытые вкладки слева и справа.
- * Пересчёт при прокрутке и смене размеров; на сервере - без переполнения.
- */
-function useTabsOverflow(ref: { current: HTMLElement | null }, count: number): TabsOverflow {
-  const [overflow, setOverflow] = useState<TabsOverflow>(NO_OVERFLOW)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const update = () => {
-      const start = el.scrollLeft > 1
-      const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
-      setOverflow((prev) => (prev.start === start && prev.end === end ? prev : { start, end }))
-    }
-    update()
-    el.addEventListener('scroll', update, { passive: true })
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
-    ro?.observe(el)
-    for (const child of Array.from(el.children)) ro?.observe(child)
-    return () => {
-      el.removeEventListener('scroll', update)
-      ro?.disconnect()
-    }
-  }, [ref, count])
-  return overflow
-}
-
 /**
  * Вкладки. С href - ссылки (навигация, вкладка в адресе); без href -
  * role="tab" с переключением стрелками по шаблону WAI-ARIA. Не влезшие по
@@ -91,25 +54,14 @@ export function Tabs<V extends string = string>({
   const refs = useRef<Array<HTMLElement | null>>([])
   const rootRef = useRef<HTMLElement | null>(null)
   const isLinks = items.some((i) => i.href)
-  const overflow = useTabsOverflow(rootRef, items.length)
+  const overflow = useScrollOverflow(rootRef, items.length)
 
   // Выбранная вкладка - в видимой части ленты (только горизонтально: страница не прокручивается).
   useIsoLayoutEffect(() => {
     const root = rootRef.current
     const tab = root?.querySelector<HTMLElement>('.ev-tab[data-active]')
-    if (!root || !tab || root.scrollWidth <= root.clientWidth) return
-    const r = root.getBoundingClientRect()
-    const t = tab.getBoundingClientRect()
-    if (t.left < r.left + EDGE_GAP) root.scrollLeft -= r.left + EDGE_GAP - t.left
-    else if (t.right > r.right - EDGE_GAP) root.scrollLeft += t.right - (r.right - EDGE_GAP)
+    if (root && tab) revealInTrack(root, tab)
   }, [value])
-
-  const scrollBy = (dir: 1 | -1) => {
-    const root = rootRef.current
-    if (!root) return
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    root.scrollBy({ left: dir * root.clientWidth * 0.7, behavior: reduce ? 'auto' : 'smooth' })
-  }
 
   const onKey = (e: KeyboardEvent, index: number) => {
     if (isLinks) return
@@ -141,19 +93,6 @@ export function Tabs<V extends string = string>({
   }
 
   const Root = isLinks ? 'nav' : 'div'
-  // Стрелки - только для мыши: с клавиатуры вкладки перебираются стрелками, выбранная сама прокручивается в вид.
-  const arrow = (dir: 1 | -1) => (
-    <button
-      type="button"
-      className="ev-tabs-arrow"
-      data-dir={dir < 0 ? 'start' : 'end'}
-      tabIndex={-1}
-      aria-hidden="true"
-      onClick={() => scrollBy(dir)}
-    >
-      {dir < 0 ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-    </button>
-  )
   return (
     <div
       className="ev-tabs-frame"
@@ -165,7 +104,7 @@ export function Tabs<V extends string = string>({
         ref={(n: HTMLElement | null) => {
           rootRef.current = n
         }}
-        className={cx('ev-tabs', className)}
+        className={cx('ev-tabs ev-scroll-track', className)}
         data-variant={variant}
         role={isLinks ? undefined : 'tablist'}
         {...aria}
@@ -220,8 +159,7 @@ export function Tabs<V extends string = string>({
           )
         })}
       </Root>
-      {overflow.start ? arrow(-1) : null}
-      {overflow.end ? arrow(1) : null}
+      <ScrollArrows overflow={overflow} track={rootRef} />
     </div>
   )
 }

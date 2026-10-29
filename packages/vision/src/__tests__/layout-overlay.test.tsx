@@ -16,6 +16,7 @@ import { Tabs } from '../components/Tabs'
 import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
 import { insertEscapeLayer, type EscapeLayer } from '../lib/overlay'
+import { nextItemDelta } from '../lib/scroll-overflow'
 import { renderRu } from './render-ru'
 
 /* Слои Escape, Enter в окне-форме, размеры и раскладка контролов, вкладки, каркас во всю высоту. */
@@ -192,7 +193,7 @@ describe('Размеры и раскладка контролов', () => {
 describe('Tabs: переполнение', () => {
   it('лента в рамке; на сервере стрелок нет', () => {
     const out = renderRu(<Tabs aria-label="Разделы" value="a" items={[{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]} className="x" />)
-    expect(out).toMatch(/^<div class="ev-tabs-frame" data-variant="line"><div class="ev-tabs x" data-variant="line" role="tablist"/)
+    expect(out).toMatch(/^<div class="ev-tabs-frame" data-variant="line"><div class="ev-tabs ev-scroll-track x" data-variant="line" role="tablist"/)
     expect(out).not.toContain('ev-tabs-arrow')
   })
 
@@ -266,5 +267,38 @@ describe('Высота строки состояния', () => {
     )
     expect(shell).toContain('data-statusbar=""')
     expect(readCss('shell.css')).toMatch(/\.ev-shell\[data-statusbar\] \{\s*--ev-shell-statusbar-h: var\(--ev-statusbar-h\);/)
+  })
+})
+
+describe('Лента с прокруткой: SegmentedControl и стрелки', () => {
+  it('сегменты - в ленте внутри рамки radiogroup; на сервере стрелок и затухания нет', () => {
+    const out = renderRu(
+      <SegmentedControl aria-label="Период" value="d" onChange={noop} options={[{ value: 'd', label: 'День' }, { value: 'w', label: 'Неделя' }]} />,
+    )
+    expect(out).toMatch(/^<div role="radiogroup" class="ev-segmented" data-size="md" aria-label="Период"><div class="ev-segmented-track ev-scroll-track"><button/)
+    expect(out).not.toContain('ev-scroll-arrow')
+    expect(out).not.toContain('data-overflow')
+  })
+
+  // Лента 0-300, затухание 36: видимая часть 36-264.
+  const track = { left: 0, right: 300 }
+  const items = [0, 100, 200, 300, 400].map((left) => ({ left, right: left + 90 }))
+
+  it('стрелка вправо докручивает до первого скрытого справа элемента, он встаёт целиком', () => {
+    // 200-290 заходит под затухание на 26 px.
+    expect(nextItemDelta(track, items, 36, 1)).toBe(26)
+    // Почти видимый элемент пропускается: следующий за ним.
+    expect(nextItemDelta(track, [{ left: 170, right: 268 }, { left: 280, right: 370 }], 36, 1)).toBe(106)
+  })
+
+  it('стрелка влево - до ближайшего скрытого слева', () => {
+    const shifted = items.map((i) => ({ left: i.left - 150, right: i.right - 150 }))
+    // -50..40 - ближайший скрытый слева: встаёт от 36.
+    expect(nextItemDelta(track, shifted, 36, -1)).toBe(-86)
+  })
+
+  it('без элементов - на половину ширины', () => {
+    expect(nextItemDelta(track, [], 36, 1)).toBe(150)
+    expect(nextItemDelta(track, [], 36, -1)).toBe(-150)
   })
 })

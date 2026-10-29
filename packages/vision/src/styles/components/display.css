@@ -761,42 +761,33 @@
     gap: var(--ev-space-2);
   }
 
-  /* --- Вкладки --- */
+  /* --- Лента с прокруткой (Tabs, SegmentedControl) --- */
   /*
-   * Рамка ленты: стрелки прокрутки поверх краёв. Край с не влезшими вкладками
-   * затухает (маска по прозрачности), на нём - стрелка.
+   * Не влезшие элементы не выглядят обрезанными: край, за которым они есть,
+   * затухает (маска по прозрачности на .ev-scroll-track), поверх него -
+   * стрелка до следующего элемента. Признаки переполнения - data-overflow-*
+   * у родителя ленты, он же держит стрелки (position: relative).
    */
-  .ev-tabs-frame {
-    position: relative;
-    display: flex;
-    min-width: 0;
-    max-width: 100%;
+  /* Под стрелкой (--ev-fade-clear) содержимого не видно совсем, дальше - плавное затухание. */
+  [data-overflow-start] > .ev-scroll-track {
+    mask-image: linear-gradient(to right, transparent var(--ev-fade-clear), var(--ev-mask-opaque) var(--ev-fade-edge));
   }
 
-  .ev-tabs-frame > .ev-tabs {
-    flex: 1 1 auto;
-    min-width: 0;
+  [data-overflow-end] > .ev-scroll-track {
+    mask-image: linear-gradient(to left, transparent var(--ev-fade-clear), var(--ev-mask-opaque) var(--ev-fade-edge));
   }
 
-  .ev-tabs-frame[data-overflow-start] > .ev-tabs {
-    mask-image: linear-gradient(to right, transparent, var(--ev-mask-opaque) var(--ev-fade-edge));
-  }
-
-  .ev-tabs-frame[data-overflow-end] > .ev-tabs {
-    mask-image: linear-gradient(to left, transparent, var(--ev-mask-opaque) var(--ev-fade-edge));
-  }
-
-  .ev-tabs-frame[data-overflow-start][data-overflow-end] > .ev-tabs {
+  [data-overflow-start][data-overflow-end] > .ev-scroll-track {
     mask-image: linear-gradient(
       to right,
-      transparent,
+      transparent var(--ev-fade-clear),
       var(--ev-mask-opaque) var(--ev-fade-edge),
       var(--ev-mask-opaque) calc(100% - var(--ev-fade-edge)),
-      transparent
+      transparent calc(100% - var(--ev-fade-clear))
     );
   }
 
-  .ev-tabs-arrow {
+  .ev-scroll-arrow {
     position: absolute;
     top: 50%;
     z-index: 1;
@@ -813,17 +804,30 @@
       color var(--ev-dur-fast) var(--ev-ease);
   }
 
-  .ev-tabs-arrow[data-dir='start'] {
+  .ev-scroll-arrow[data-dir='start'] {
     left: 0;
   }
 
-  .ev-tabs-arrow[data-dir='end'] {
+  .ev-scroll-arrow[data-dir='end'] {
     right: 0;
   }
 
-  .ev-tabs-arrow:hover {
+  .ev-scroll-arrow:hover {
     background: var(--ev-hover);
     color: var(--ev-text);
+  }
+
+  /* --- Вкладки --- */
+  .ev-tabs-frame {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ev-tabs-frame > .ev-tabs {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .ev-tabs {

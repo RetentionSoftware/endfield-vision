@@ -614,24 +614,63 @@
   }
 
   /* --- Сегментный переключатель --- */
+  /* Рамка переключателя; сегменты - в ленте внутри неё. */
   .ev-segmented {
+    --ev-fade-edge: 44px;
+    --ev-fade-clear: 24px;
+    position: relative;
     display: inline-flex;
     align-items: stretch;
-    gap: 2px;
     max-width: 100%;
     padding: 2px;
     background: var(--ev-surface-input);
     border: 1px solid var(--ev-border-strong);
     border-radius: var(--ev-radius);
     min-width: 0;
+  }
+
+  .ev-segmented[data-size='sm'] {
+    --ev-fade-edge: 36px;
+    --ev-fade-clear: 20px;
+  }
+
+  /*
+   * Не помещается - сегменты прокручиваются внутри рамки (полоса прокрутки
+   * скрыта): край со скрытыми сегментами затухает, на нём стрелка.
+   */
+  .ev-segmented-track {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
   }
 
-  /* Не помещается - прокрутка внутри переключателя, полоса прокрутки скрыта. */
-  .ev-segmented::-webkit-scrollbar {
+  .ev-segmented-track::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Стрелка - высотой с сегмент, внутри рамки. */
+  .ev-segmented > .ev-scroll-arrow {
+    top: 2px;
+    bottom: 2px;
+    height: auto;
+    transform: none;
+  }
+
+  .ev-segmented > .ev-scroll-arrow[data-dir='start'] {
+    left: 2px;
+  }
+
+  .ev-segmented > .ev-scroll-arrow[data-dir='end'] {
+    right: 2px;
+  }
+
+  .ev-segmented[data-size='sm'] > .ev-scroll-arrow {
+    width: 20px;
   }
 
   .ev-segmented-block {
@@ -694,10 +733,26 @@
    * размера, выбранный - тоном выделения, как у вкладок-плашек.
    */
   .ev-segmented[data-variant='plain'] {
-    gap: var(--ev-space-1);
     padding: 0;
     background: transparent;
     border: 0;
+  }
+
+  .ev-segmented[data-variant='plain'] > .ev-segmented-track {
+    gap: var(--ev-space-1);
+  }
+
+  .ev-segmented[data-variant='plain'] > .ev-scroll-arrow {
+    top: 0;
+    bottom: 0;
+  }
+
+  .ev-segmented[data-variant='plain'] > .ev-scroll-arrow[data-dir='start'] {
+    left: 0;
+  }
+
+  .ev-segmented[data-variant='plain'] > .ev-scroll-arrow[data-dir='end'] {
+    right: 0;
   }
 
   .ev-segmented[data-variant='plain'] .ev-segmented-item {

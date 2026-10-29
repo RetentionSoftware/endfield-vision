@@ -17,8 +17,8 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 
 [![Components](https://img.shields.io/badge/components-143-7b93ff)](#whats-inside)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#whats-inside)
-[![Tokens](https://img.shields.io/badge/tokens-172-7b93ff)](packages/vision/README.md#tokens)
-[![Tests](https://img.shields.io/badge/tests-568-2f9e44)](packages/vision/src/__tests__)
+[![Tokens](https://img.shields.io/badge/tokens-173-7b93ff)](packages/vision/README.md#tokens)
+[![Tests](https://img.shields.io/badge/tests-572-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.md#language)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
