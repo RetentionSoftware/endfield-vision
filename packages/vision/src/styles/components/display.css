@@ -744,6 +744,12 @@
     margin: var(--ev-space-8) 0 var(--ev-space-4);
   }
 
+  /* Первый заголовок в окне, карточке или колонке - сразу под шапкой. */
+  .ev-section-title:first-child,
+  .ev-section-title[data-flush] {
+    margin-top: 0;
+  }
+
   .ev-section-title h2 {
     font-size: var(--ev-fs-md);
     font-weight: var(--ev-fw-semibold);
@@ -756,6 +762,70 @@
   }
 
   /* --- Вкладки --- */
+  /*
+   * Рамка ленты: стрелки прокрутки поверх краёв. Край с не влезшими вкладками
+   * затухает (маска по прозрачности), на нём - стрелка.
+   */
+  .ev-tabs-frame {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ev-tabs-frame > .ev-tabs {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ev-tabs-frame[data-overflow-start] > .ev-tabs {
+    mask-image: linear-gradient(to right, transparent, var(--ev-mask-opaque) var(--ev-fade-edge));
+  }
+
+  .ev-tabs-frame[data-overflow-end] > .ev-tabs {
+    mask-image: linear-gradient(to left, transparent, var(--ev-mask-opaque) var(--ev-fade-edge));
+  }
+
+  .ev-tabs-frame[data-overflow-start][data-overflow-end] > .ev-tabs {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      var(--ev-mask-opaque) var(--ev-fade-edge),
+      var(--ev-mask-opaque) calc(100% - var(--ev-fade-edge)),
+      transparent
+    );
+  }
+
+  .ev-tabs-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--ev-radius-sm);
+    color: var(--ev-text-secondary);
+    transform: translateY(-50%);
+    transition:
+      background-color var(--ev-dur-fast) var(--ev-ease),
+      color var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-tabs-arrow[data-dir='start'] {
+    left: 0;
+  }
+
+  .ev-tabs-arrow[data-dir='end'] {
+    right: 0;
+  }
+
+  .ev-tabs-arrow:hover {
+    background: var(--ev-hover);
+    color: var(--ev-text);
+  }
+
   .ev-tabs {
     display: flex;
     align-items: stretch;

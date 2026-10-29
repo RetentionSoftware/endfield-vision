@@ -63,9 +63,31 @@
   }
 
   .ev-form-grid {
+    --ev-form-min: 240px;
+    --ev-form-gap-x: var(--ev-space-6);
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-    gap: var(--ev-space-5) var(--ev-space-6);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ev-form-min)), 1fr));
+    gap: var(--ev-space-5) var(--ev-form-gap-x);
+  }
+
+  /* Не больше --ev-form-cols колонок: колонка не уже доли ширины, но и не уже --ev-form-min. */
+  .ev-form-grid[data-columns] {
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(100%, max(var(--ev-form-min), (100% - (var(--ev-form-cols) - 1) * var(--ev-form-gap-x)) / var(--ev-form-cols))), 1fr)
+    );
+  }
+
+  .ev-field[data-span='full'],
+  .ev-form-row {
+    grid-column: 1 / -1;
+  }
+
+  .ev-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-3);
+    min-width: 0;
   }
 
   /* --- Поле ввода: рамка на обёртке, input внутри без рамки --- */

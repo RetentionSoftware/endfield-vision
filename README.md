@@ -15,10 +15,10 @@ Tokens, dark and light themes, accent presets and accessible components with no 
 [![Last commit](https://img.shields.io/github/last-commit/RetentionSoftware/endfield-vision?color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/commits/main)
 [![Stars](https://img.shields.io/github/stars/RetentionSoftware/endfield-vision?style=flat&color=4263eb)](https://github.com/RetentionSoftware/endfield-vision/stargazers)
 
-[![Components](https://img.shields.io/badge/components-141-7b93ff)](#whats-inside)
+[![Components](https://img.shields.io/badge/components-143-7b93ff)](#whats-inside)
 [![Hooks](https://img.shields.io/badge/hooks-30-7b93ff)](#whats-inside)
-[![Tokens](https://img.shields.io/badge/tokens-169-7b93ff)](packages/vision/README.md#tokens)
-[![Tests](https://img.shields.io/badge/tests-546-2f9e44)](packages/vision/src/__tests__)
+[![Tokens](https://img.shields.io/badge/tokens-171-7b93ff)](packages/vision/README.md#tokens)
+[![Tests](https://img.shields.io/badge/tests-564-2f9e44)](packages/vision/src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-EN%20%7C%20RU-7b93ff)](packages/vision/README.md#language)
 
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
@@ -86,7 +86,7 @@ bun add endfield-vision
 Every [GitHub release](https://github.com/RetentionSoftware/endfield-vision/releases) has the same build attached as `endfield-vision-<version>.tgz`:
 
 ```bash
-npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.5/endfield-vision-2.2.5.tgz
+npm install https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.6/endfield-vision-2.2.6.tgz
 ```
 
 </details>

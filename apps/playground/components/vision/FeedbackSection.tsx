@@ -9,6 +9,7 @@ import {
   EmptyState,
   ErrorState,
   Field,
+  Input,
   KeyValueList,
   LoadingBlock,
   Modal,
@@ -161,8 +162,8 @@ function ModalsCard() {
     <Card
       title="useModals"
       description={t(
-        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, prompt - окно с полем ввода (причина, новое имя), open - своё окно с кнопками. Требует ModalsProvider; modals - тот же API вне компонентов.',
-        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, prompt asks for a value (a reason, a new name), open builds a custom dialog with buttons. Requires ModalsProvider; modals is the same API for use outside components.',
+        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, prompt - окно с полем ввода (причина, новое имя), open - своё окно с кнопками. У okVariant="danger" фокус сначала на «Отмена»: случайный Enter ничего не выполнит. Требует ModalsProvider; modals - тот же API вне компонентов.',
+        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, prompt asks for a value (a reason, a new name), open builds a custom dialog with buttons. With okVariant="danger", focus starts on Cancel so a stray Enter does nothing. Requires ModalsProvider; modals is the same API for use outside components.',
       )}
     >
       <div className={s.row}>
@@ -281,13 +282,15 @@ function WindowsCard() {
   const [notesOpen, setNotesOpen] = useState(false)
   const [notes, setNotes] = useState('')
   const [closeOutside, setCloseOutside] = useState(false)
+  const [carOpen, setCarOpen] = useState(false)
+  const [car, setCar] = useState<string | null>(null)
   const close = () => setSize(null)
   return (
     <Card
       title={t('Modal и Drawer', 'Modal and Drawer')}
       description={t(
-        'Modal - короткая форма или решение поверх страницы, на узком экране - на весь экран. Drawer - детали записи или фильтры сбоку, страница остаётся в контексте. modal={false} - панель без подложки: страница под ней работает (копировать данные в заметку, листать), onInteractOutside решает, закрывать ли по клику вне.',
-        'Modal holds a short form or decision on top of the page and goes full screen on narrow viewports. Drawer shows record details or filters from the side while the page stays in context. modal={false} drops the backdrop so the page underneath keeps working (copy data into a note, scroll), and onInteractOutside decides whether a click outside closes it.',
+        'Modal - короткая форма или решение поверх страницы, на узком экране - на весь экран; submitOnEnter - Enter в поле нажимает главную кнопку подвала. Drawer - детали записи или фильтры сбоку, страница остаётся в контексте. modal={false} - панель без подложки: страница под ней работает (копировать данные в заметку, листать), onInteractOutside решает, закрывать ли по клику вне.',
+        'Modal holds a short form or decision on top of the page and goes full screen on narrow viewports; with submitOnEnter, Enter in a field presses the main footer button. Drawer shows record details or filters from the side while the page stays in context. modal={false} drops the backdrop so the page underneath keeps working (copy data into a note, scroll), and onInteractOutside decides whether a click outside closes it.',
       )}
     >
       <div className="ev-stack">
@@ -298,6 +301,9 @@ function WindowsCard() {
               {sz === 'md' ? t('Новая задача', 'New task') : `size="${sz}"`}
             </Button>
           ))}
+          <Button variant="ghost" onClick={() => setCarOpen(true)}>
+            {t('Список открыт сразу', 'List open on mount')}
+          </Button>
         </div>
         <Subhead>Drawer</Subhead>
         <div className={s.row}>
@@ -318,6 +324,7 @@ function WindowsCard() {
         onClose={close}
         size={size ?? 'md'}
         busy={busy}
+        submitOnEnter
         title={t('Новая задача', 'New task')}
         subtitle={t('Объект Долина-1, линия сборки №3', 'Valley-1 facility, assembly line 3')}
         footerLeft={busy ? <span className="ev-muted">{t('Сохранение...', 'Saving...')}</span> : null}
@@ -343,6 +350,9 @@ function WindowsCard() {
         }
       >
         <div className="ev-stack">
+          <Field label={t('Название', 'Title')} hint={t('Enter - создать задачу', 'Enter creates the task')}>
+            <Input defaultValue={t('Заменить фильтр насоса', 'Replace the pump filter')} data-autofocus="" />
+          </Field>
           <Field label={t('Исполнитель', 'Assignee')} required>
             <Select
               value={assignee}
@@ -367,6 +377,32 @@ function WindowsCard() {
             )}
           </Callout>
         </div>
+      </Modal>
+
+      <Modal
+        open={carOpen}
+        onClose={() => setCarOpen(false)}
+        size="sm"
+        title={t('Изменить автомобиль', 'Change vehicle')}
+        subtitle={t('Список открыт сразу (defaultOpen): первый Escape закрывает его, второй - окно.', 'The list opens right away (defaultOpen): the first Escape closes it, the second closes the dialog.')}
+        footer={
+          <Button variant="primary" onClick={() => setCarOpen(false)}>
+            {t('Готово', 'Done')}
+          </Button>
+        }
+      >
+        <Field label={t('Автомобиль', 'Vehicle')}>
+          <Select
+            defaultOpen
+            value={car}
+            onChange={setCar}
+            options={[
+              { value: 'a123', label: 'А123ВС 77', hint: 'Lada Largus' },
+              { value: 'k456', label: 'К456МН 199', hint: 'Hyundai Solaris' },
+              { value: 'o789', label: 'О789РТ 750', hint: 'Skoda Rapid' },
+            ]}
+          />
+        </Field>
       </Modal>
 
       <Drawer

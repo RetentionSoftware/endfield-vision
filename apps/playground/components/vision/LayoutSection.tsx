@@ -385,8 +385,8 @@ export function LayoutSection() {
       <Card
         title="SectionTitle"
         description={t(
-          'Заголовок раздела внутри страницы с действиями справа: разбивает длинный экран на смысловые блоки.',
-          'An in-page section heading with actions on the right. It splits a long screen into meaningful blocks.',
+          'Заголовок раздела внутри страницы с действиями справа: разбивает длинный экран на смысловые блоки. Первый в окне или карточке - без отступа сверху (или проп flush).',
+          'An in-page section heading with actions on the right. It splits a long screen into meaningful blocks. The first one in a dialog or card has no top margin (or use the flush prop).',
         )}
       >
         <div className="ev-stack">

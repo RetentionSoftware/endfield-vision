@@ -33,6 +33,8 @@ export interface TooltipProps {
   placement?: TooltipPlacement
   /** Задержка появления, мс. */
   delay?: number
+  /** Показывать, только если текст якоря обрезан (многоточие): полное имя без лишних подсказок. */
+  onlyWhenTruncated?: boolean
   children: ReactElement
 }
 
@@ -45,7 +47,7 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
   else (ref as { current: T | null }).current = node
 }
 
-export function Tooltip({ content, placement = 'auto', delay = 200, children }: TooltipProps) {
+export function Tooltip({ content, placement = 'auto', delay = 200, onlyWhenTruncated = false, children }: TooltipProps) {
   const id = useId()
   const anchorRef = useRef<HTMLElement | null>(null)
   const tipRef = useRef<HTMLDivElement | null>(null)
@@ -63,8 +65,10 @@ export function Tooltip({ content, placement = 'auto', delay = 200, children }: 
   const show = useCallback(() => {
     cancel()
     if (!content) return
+    const anchor = anchorRef.current
+    if (onlyWhenTruncated && anchor && anchor.scrollWidth <= anchor.clientWidth) return
     timer.current = window.setTimeout(() => setOpen(true), delay)
-  }, [cancel, content, delay])
+  }, [cancel, content, delay, onlyWhenTruncated])
 
   const hide = useCallback(() => {
     cancel()

@@ -208,7 +208,7 @@ export function TagInput({
 
   const { style, side } = useFloating(wrapRef, popRef, { open: showList, placement: 'bottom-start', matchWidth: true, offset: 4 })
   useOutsideClick([wrapRef, popRef], () => setOpen(false), showList)
-  useEscapeLayer(showList, () => setOpen(false))
+  useEscapeLayer(showList, () => setOpen(false), { nodes: () => [wrapRef.current, popRef.current] })
 
   const reasonText = (r: TagRejection): string =>
     r.kind === 'duplicate' ? t.tagInput.duplicate : r.kind === 'limit' ? t.tagInput.limit(max ?? 0) : r.message

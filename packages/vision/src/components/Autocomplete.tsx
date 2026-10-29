@@ -111,7 +111,7 @@ export function Autocomplete({
 
   const { style, side } = useFloating(wrapRef, popRef, { open: showList, placement: 'bottom-start', matchWidth: true, offset: 4 })
   useOutsideClick([wrapRef, popRef], () => setOpen(false), showList)
-  useEscapeLayer(showList, () => setOpen(false))
+  useEscapeLayer(showList, () => setOpen(false), { nodes: () => [wrapRef.current, popRef.current] })
 
   const pick = (s: AutocompleteSuggestion) => {
     setOpen(false)

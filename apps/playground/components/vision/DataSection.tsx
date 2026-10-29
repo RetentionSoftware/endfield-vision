@@ -208,13 +208,14 @@ function TableCard() {
     <Card
       title={t('DataTable, FilterBar и Pagination', 'DataTable, FilterBar and Pagination')}
       description={t(
-        'Список сущностей: поиск и фильтры над таблицей (слот toolbar карточки), сортировка, выбор строк, клик по строке, загрузка, ошибка и пустой результат. sortClearable={false} - третий клик по заголовку не снимает сортировку. На узком экране строки становятся карточками.',
-        'An entity list: search and filters above the table (the card toolbar slot), sorting, row selection, row click, loading, error and empty states. With sortClearable={false}, a third click on a header keeps the sort instead of clearing it. On narrow screens, rows turn into cards.',
+        'Список сущностей: поиск и фильтры над таблицей (слот toolbar карточки), сортировка, выбор строк, клик по строке, загрузка, ошибка и пустой результат. sortClearable={false} - третий клик по заголовку не снимает сортировку. На узком экране строки становятся карточками. «Плотно» - dense у таблицы и size="sm" у FilterBar, фильтров и Pagination: вся строка одной высоты.',
+        'An entity list: search and filters above the table (the card toolbar slot), sorting, row selection, row click, loading, error and empty states. With sortClearable={false}, a third click on a header keeps the sort instead of clearing it. On narrow screens, rows turn into cards. Dense sets dense on the table and size="sm" on FilterBar, the filters and Pagination, so the whole row has one height.',
       )}
       flush
       toolbar={
         <div className="ev-stack">
           <FilterBar
+            size={dense ? 'sm' : 'md'}
             search={{ value: q, onChange: resetPage(setQ), placeholder: t('Название или артикул', 'Name or SKU') }}
             activeCount={(status ? 1 : 0) + (warehouse ? 1 : 0)}
             onReset={() => {
@@ -233,6 +234,7 @@ function TableCard() {
             }
           >
             <Select<StockStatus>
+              size={dense ? 'sm' : 'md'}
               aria-label={t('Статус', 'Status')}
               placeholder={t('Любой статус', 'Any status')}
               value={status}
@@ -241,6 +243,7 @@ function TableCard() {
               options={(Object.keys(STOCK_STATUS) as StockStatus[]).map((k) => ({ value: k, label: tx(STOCK_STATUS[k].label) }))}
             />
             <Select
+              size={dense ? 'sm' : 'md'}
               aria-label={t('Склад', 'Warehouse')}
               placeholder={t('Все склады', 'All warehouses')}
               value={warehouse}
@@ -305,6 +308,7 @@ function TableCard() {
         maxHeight={460}
         footer={
           <Pagination
+            size={dense ? 'sm' : 'md'}
             page={page}
             pageSize={pageSize}
             total={filtered.length}

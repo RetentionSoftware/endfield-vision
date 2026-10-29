@@ -64,7 +64,7 @@ export function Popover({
   })
 
   useOutsideClick([anchorRef, popRef], () => setOpen(false), open)
-  useEscapeLayer(open, close)
+  useEscapeLayer(open, close, { nodes: () => [anchorRef.current, popRef.current] })
 
   useIsoLayoutEffect(() => {
     if (!open || !autoFocus) return

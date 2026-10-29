@@ -221,7 +221,7 @@ function useSelectCore<V extends string>(props: CommonSelectProps<V>, initialAct
   }
 
   useOutsideClick([wrapRef, popRef], () => close(false), open)
-  useEscapeLayer(open, () => close(true))
+  useEscapeLayer(open, () => close(true), { nodes: () => [wrapRef.current, popRef.current] })
 
   useEffect(() => {
     if (!open) return

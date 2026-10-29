@@ -1,15 +1,14 @@
-/* Две панели: список и чтение. Высота - по окну, прокрутка внутри панелей. */
+/* Две панели: список и чтение. Высоту даёт AppShellFill, прокрутка - внутри панелей. */
 .layout {
   display: grid;
   grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--ev-space-6);
-  height: max(560px, calc(100dvh - var(--ev-topbar-h) - 250px));
 }
 
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
-    height: auto;
   }
 }
 

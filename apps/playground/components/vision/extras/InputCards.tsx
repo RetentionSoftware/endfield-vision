@@ -87,8 +87,11 @@ function SliderCard() {
             format={(v) => `${nf(v)} ₽`}
           />
         </Field>
-        <Field label={t('Порог вибрации, мм/с', 'Vibration threshold, mm/s')} hint={t('size=sm, шаг 0,1.', 'size=sm, step 0.1.')}>
-          <Slider value={vibration} onChange={setVibration} min={0} max={10} step={0.1} size="sm" showValue />
+        <Field
+          label={t('Порог вибрации, мм/с', 'Vibration threshold, mm/s')}
+          hint={t('size="sm", шаг 0,1, width="md" - как у полей.', 'size="sm", step 0.1, width="md" like the fields.')}
+        >
+          <Slider value={vibration} onChange={setVibration} min={0} max={10} step={0.1} size="sm" width="md" showValue />
         </Field>
         <Field
           label={t('Резерв мощности', 'Capacity reserve')}

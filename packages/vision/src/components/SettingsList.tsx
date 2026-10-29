@@ -81,11 +81,28 @@ export interface SettingRowProps {
   disabled?: boolean
   /** id контрола (иначе генерируется). */
   controlId?: string
+  /**
+   * inline (по умолчанию) - контрол справа; stacked - под подписью на всю
+   * ширину: для широких контролов (RadioGroup variant="card", Textarea),
+   * чтобы строки не разъезжались левыми краями.
+   */
+  layout?: 'inline' | 'stacked'
   className?: string
 }
 
 /** Строка настройки: название, описание и контрол справа; на узком экране контрол уходит вниз. */
-export function SettingRow({ label, description, control, badge, hint, changed = false, disabled = false, controlId, className }: SettingRowProps) {
+export function SettingRow({
+  label,
+  description,
+  control,
+  badge,
+  hint,
+  changed = false,
+  disabled = false,
+  controlId,
+  layout = 'inline',
+  className,
+}: SettingRowProps) {
   const t = useMessages()
   const auto = useId()
   const id = controlId ?? `set${auto}`
@@ -98,6 +115,7 @@ export function SettingRow({ label, description, control, badge, hint, changed =
       className={cx('ev-setting', changed && 'ev-corners', className)}
       data-changed={changed || undefined}
       data-disabled={disabled || undefined}
+      data-layout={layout === 'stacked' ? 'stacked' : undefined}
     >
       <div className="ev-setting-main">
         <div className="ev-setting-label-row">

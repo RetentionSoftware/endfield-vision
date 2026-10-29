@@ -5,6 +5,7 @@ import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { useMessages, useNumberFormat } from '../lib/i18n'
 import { useFieldLabelId, useFieldProps } from './Field'
+import { controlWidthStyle, type ControlWidth } from './Input'
 
 /*
  * Ползунок: одно значение или диапазон из двух бегунков. В каждом бегунке
@@ -41,6 +42,8 @@ export interface SliderProps<V extends number | SliderRange = number> {
   format?: (value: number) => string
   disabled?: boolean
   size?: 'sm' | 'md'
+  /** Ширина вместе со значением справа: xs | sm | md | lg (токены --ev-control-w-*), px или CSS-длина. Без неё - на всю ширину. */
+  width?: ControlWidth
   invalid?: boolean
   id?: string
   /** Имя для отправки формы (у диапазона - у обоих бегунков). */
@@ -151,6 +154,7 @@ export function Slider<V extends number | SliderRange = number>({
   format: formatProp,
   disabled,
   size = 'md',
+  width,
   invalid,
   id,
   name,
@@ -254,6 +258,7 @@ export function Slider<V extends number | SliderRange = number>({
   return (
     <div
       className={cx('ev-slider', className)}
+      style={controlWidthStyle(width)}
       data-size={size}
       data-range={isRange || undefined}
       data-disabled={f.disabled || undefined}

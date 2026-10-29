@@ -47,10 +47,25 @@ export interface AppShellProps {
   onCollapsedChange?: (collapsed: boolean) => void
   /** Строка состояния (StatusBar) внизу колонки содержимого; прилипает к низу окна. */
   statusBar?: ReactNode
+  /**
+   * Содержимое ровно во всю высоту между шапкой и строкой состояния, без
+   * прокрутки страницы: последний ребёнок занимает остаток и прокручивается сам
+   * (чат, редактор). Для одной страницы - AppShellFill вокруг её содержимого.
+   */
+  fill?: boolean
   className?: string
 }
 
-export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, onCollapsedChange, statusBar, className }: AppShellProps) {
+export function AppShell({
+  sidebar,
+  topbar,
+  children,
+  collapsed: collapsedProp,
+  onCollapsedChange,
+  statusBar,
+  fill = false,
+  className,
+}: AppShellProps) {
   const t = useMessages()
   const mobile = useMediaQuery('(max-width: 1023px)')
   const [navOpen, setNavOpen] = useState(false)
@@ -71,7 +86,7 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
   )
   return (
     <ShellContext.Provider value={ctx}>
-      <div className={cx('ev-shell', className)} data-collapsed={collapsed || undefined}>
+      <div className={cx('ev-shell', className)} data-collapsed={collapsed || undefined} data-fill={fill || undefined}>
         <a href="#ev-main" className="ev-skip-link">
           {t.shell.skipToContent}
         </a>
@@ -91,6 +106,15 @@ export function AppShell({ sidebar, topbar, children, collapsed: collapsedProp, 
       </div>
     </ShellContext.Provider>
   )
+}
+
+/**
+ * Страница во всю высоту каркаса (режим fill только для неё): шапка страницы
+ * сверху, последний ребёнок - на остаток высоты со своей прокруткой. Чистый
+ * CSS, без эффектов: серверная разметка сразу правильной высоты.
+ */
+export function AppShellFill({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cx('ev-shell-fill', className)}>{children}</div>
 }
 
 /** Кнопка меню в шапке: видна только на узком экране. */

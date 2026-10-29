@@ -547,6 +547,14 @@ const facilities = (t: T): TreeNode[] => [
           },
           { id: 'press-250', label: t('Пресс ГП-250', 'Press HP-250'), icon: <Wrench /> },
           { id: 'plc-7', label: t('Контроллер КЛ-7', 'Controller LC-7'), icon: <Cpu /> },
+          {
+            id: 'pump-160',
+            label: t(
+              'Насос циркуляционный высокого давления НЦВ-160/30 с частотным приводом',
+              'High-pressure circulation pump HPC-160/30 with a variable-frequency drive',
+            ),
+            icon: <Wrench />,
+          },
         ],
       },
       {
@@ -603,8 +611,8 @@ function TreeCard() {
     <Card
       title="TreeView"
       description={t(
-        'Иерархия по шаблону WAI-ARIA tree: один Tab-стоп, стрелки вверх/вниз, вправо раскрывает и входит в узел, влево сворачивает и выходит к родителю, Home/End, поиск по первым буквам, * раскрывает соседей. Выбор одного узла или флажки с частичным состоянием родителя.',
-        'A hierarchy following the WAI-ARIA tree pattern: a single Tab stop, up/down arrows, right expands and enters a node, left collapses and returns to the parent, Home/End, type-ahead, and * expands siblings. Select a single node, or use checkboxes with a partial parent state.',
+        'Иерархия по шаблону WAI-ARIA tree: один Tab-стоп, стрелки вверх/вниз, вправо раскрывает и входит в узел, влево сворачивает и выходит к родителю, Home/End, поиск по первым буквам, * раскрывает соседей. Выбор одного узла или флажки с частичным состоянием родителя. Обрезанная подпись показывается целиком в подсказке; tooltip у узла - своя подсказка.',
+        'A hierarchy following the WAI-ARIA tree pattern: a single Tab stop, up/down arrows, right expands and enters a node, left collapses and returns to the parent, Home/End, type-ahead, and * expands siblings. Select a single node, or use checkboxes with a partial parent state. A truncated label shows in full in a tooltip; tooltip on a node sets your own.',
       )}
     >
       <div className="ev-grid" style={{ '--ev-grid-min': '320px', '--ev-gap': 'var(--ev-space-7)' } as CSSProperties}>

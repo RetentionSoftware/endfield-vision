@@ -157,7 +157,7 @@
   /* Блок обрезает углы (overflow: hidden) - кольцо фокуса внутри. */
   .ev-codeblock-pre:focus-visible {
     outline: none;
-    box-shadow: inset var(--ev-focus-ring-inset);
+    box-shadow: var(--ev-focus-ring-inset);
   }
 
   .ev-codeblock-code {

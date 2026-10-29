@@ -660,6 +660,23 @@
     min-width: 0;
   }
 
+  /* Контрол под подписью на всю ширину: широкие контролы начинаются с одного левого края. */
+  .ev-setting[data-layout='stacked'] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ev-space-3);
+  }
+
+  .ev-setting[data-layout='stacked'] .ev-setting-control {
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+
+  .ev-setting[data-layout='stacked'] .ev-setting-control > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   @media (max-width: 600px) {
     .ev-setting {
       flex-wrap: wrap;

@@ -10,6 +10,7 @@ import {
   KeyValueList,
   NumberInput,
   PermissionMatrix,
+  RadioGroup,
   SaveBar,
   Select,
   SettingRow,
@@ -344,16 +345,25 @@ function PermissionsCard() {
 /* ------------------------------------------------------------------ */
 
 type Escalation = 'supervisor' | 'dispatcher' | 'nobody'
+type Channel = 'email' | 'sms' | 'push'
 
 interface NotifySettings {
   digest: boolean
   digestHour: number | null
   escalation: Escalation
+  channel: Channel
   warnMinutes: number | null
   autoClose: boolean
 }
 
-const INITIAL_SETTINGS: NotifySettings = { digest: true, digestHour: 9, escalation: 'supervisor', warnMinutes: 30, autoClose: false }
+const INITIAL_SETTINGS: NotifySettings = {
+  digest: true,
+  digestHour: 9,
+  escalation: 'supervisor',
+  channel: 'email',
+  warnMinutes: 30,
+  autoClose: false,
+}
 
 function SettingsCard() {
   const { t } = useT()
@@ -376,8 +386,8 @@ function SettingsCard() {
     <Card
       title="SettingsList, SettingRow, SaveBar"
       description={t(
-        'Одна настройка - одна строка: название и описание слева, контрол справа (на узком экране - снизу). Контролы кита сами связываются с подписью строки. Изменённая строка отмечена уголком. Панель «Сохранить» закреплена снизу и появляется, только когда есть изменения; при уходе со страницы браузер предупредит (warnOnLeave). Черновик - хук useDirtyState.',
-        'One setting per row: label and description on the left, control on the right (below on narrow screens). Kit controls link to the row label automatically. A changed row is marked with a corner. The sticky "Save" bar appears only when there are changes, and the browser warns before leaving the page (warnOnLeave). The draft lives in the useDirtyState hook.',
+        'Одна настройка - одна строка: название и описание слева, контрол справа (на узком экране - снизу); layout="stacked" - широкий контрол под подписью на всю ширину. Контролы кита сами связываются с подписью строки. Изменённая строка отмечена уголком. Панель «Сохранить» закреплена снизу и появляется, только когда есть изменения; при уходе со страницы браузер предупредит (warnOnLeave). Черновик - хук useDirtyState.',
+        'One setting per row: label and description on the left, control on the right (below on narrow screens); layout="stacked" puts a wide control under the label at full width. Kit controls link to the row label automatically. A changed row is marked with a corner. The sticky "Save" bar appears only when there are changes, and the browser warns before leaving the page (warnOnLeave). The draft lives in the useDirtyState hook.',
       )}
     >
       <SettingsList>
@@ -394,9 +404,7 @@ function SettingsCard() {
             disabled={!v.digest}
             changed={changed('digestHour')}
             control={
-              <div style={{ width: 120 }}>
-                <NumberInput value={v.digestHour} onChange={(digestHour) => patch({ digestHour })} min={0} max={23} unit={t('ч', 'h')} />
-              </div>
+              <NumberInput width={120} value={v.digestHour} onChange={(digestHour) => patch({ digestHour })} min={0} max={23} unit={t('ч', 'h')} />
             }
           />
           <SettingRow
@@ -416,6 +424,25 @@ function SettingsCard() {
               />
             }
           />
+          <SettingRow
+            layout="stacked"
+            label={t('Канал срочных уведомлений', 'Urgent notification channel')}
+            description={t('Куда уходит сигнал об аварии на линии', 'Where a line breakdown alert goes')}
+            changed={changed('channel')}
+            control={(p) => (
+              <RadioGroup<Channel>
+                variant="card"
+                aria-labelledby={p['aria-labelledby']}
+                value={v.channel}
+                onChange={(channel) => patch({ channel })}
+                options={[
+                  { value: 'email', label: t('Почта', 'Email'), description: t('Сводка и ссылки на наряды', 'A digest with work order links') },
+                  { value: 'sms', label: 'SMS', description: t('Работает без интернета на объекте', 'Works without internet on site') },
+                  { value: 'push', label: t('Push в приложении', 'In-app push'), description: t('Мгновенно, нужна установка', 'Instant, needs the app') },
+                ]}
+              />
+            )}
+          />
         </SettingsSection>
         <SettingsSection title="SLA" description={t('Пороги таймеров на карточках нарядов', 'Timer thresholds on work order cards')}>
           <SettingRow
@@ -424,9 +451,16 @@ function SettingsCard() {
             hint={t('Изменено 2 октября, Алина Воронцова', 'Changed on October 2 by Alina Vorontsova')}
             changed={changed('warnMinutes')}
             control={
-              <div style={{ width: 140 }}>
-                <NumberInput value={v.warnMinutes} onChange={(warnMinutes) => patch({ warnMinutes })} min={5} max={240} step={5} stepper unit={t('мин', 'min')} />
-              </div>
+              <NumberInput
+                width="sm"
+                value={v.warnMinutes}
+                onChange={(warnMinutes) => patch({ warnMinutes })}
+                min={5}
+                max={240}
+                step={5}
+                stepper
+                unit={t('мин', 'min')}
+              />
             }
           />
           <SettingRow

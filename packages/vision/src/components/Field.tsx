@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useId, useState, type ReactNode } from 'react'
+import { createContext, useContext, useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 
@@ -85,8 +85,14 @@ export interface FieldProps {
    * настройки, в которую вложено поле.
    */
   describedBy?: string
+  /** Ширина в сетке FormSection: full - строка целиком (адрес, комментарий), число - сколько колонок занять. */
+  span?: 'full' | number
   className?: string
   children: ReactNode
+}
+
+function spanStyle(span: 'full' | number | undefined): CSSProperties | undefined {
+  return typeof span === 'number' ? { gridColumn: `span ${span}` } : undefined
 }
 
 export function Field({
@@ -98,6 +104,7 @@ export function Field({
   id,
   labelAside,
   describedBy: extraDescribedBy,
+  span,
   className,
   children,
 }: FieldProps) {
@@ -111,7 +118,13 @@ export function Field({
   const describedBy = [extraDescribedBy, own].filter(Boolean).join(' ') || undefined
   return (
     <FieldContext.Provider value={{ id: controlId, labelId: label ? labelId : undefined, describedBy, invalid: hasError, required, disabled }}>
-      <div className={cx('ev-field', className)} data-invalid={hasError || undefined} data-disabled={disabled || undefined}>
+      <div
+        className={cx('ev-field', className)}
+        data-invalid={hasError || undefined}
+        data-disabled={disabled || undefined}
+        data-span={span === 'full' ? 'full' : undefined}
+        style={spanStyle(span)}
+      >
         {label || labelAside ? (
           <div className="ev-field-head">
             {label ? (
@@ -142,18 +155,25 @@ export function Field({
   )
 }
 
-/** Группа полей с заголовком (секция формы). */
-export function FormSection({
-  title,
-  description,
-  children,
-  className,
-}: {
+export interface FormSectionProps {
   title?: ReactNode
   description?: ReactNode
+  /**
+   * Наибольшее число колонок. Колонка не уже minColumn: на узком экране их
+   * становится меньше. Без columns - сколько влезет.
+   */
+  columns?: number
+  /** Наименьшая ширина колонки, px или CSS-длина. По умолчанию 240px. */
+  minColumn?: number | string
   children: ReactNode
   className?: string
-}) {
+}
+
+/** Группа полей с заголовком (секция формы). Не-поле на всю ширину - FormSection.Row или Field span="full". */
+export function FormSection({ title, description, columns, minColumn, children, className }: FormSectionProps) {
+  const grid: Record<string, string> = {}
+  if (columns !== undefined) grid['--ev-form-cols'] = String(Math.max(1, Math.floor(columns)))
+  if (minColumn !== undefined) grid['--ev-form-min'] = typeof minColumn === 'number' ? `${minColumn}px` : minColumn
   return (
     <section className={cx('ev-form-section', className)}>
       {title || description ? (
@@ -162,7 +182,20 @@ export function FormSection({
           {description ? <p className="ev-form-section-desc">{description}</p> : null}
         </header>
       ) : null}
-      <div className="ev-form-grid">{children}</div>
+      <div
+        className="ev-form-grid"
+        data-columns={columns !== undefined ? '' : undefined}
+        style={Object.keys(grid).length ? (grid as CSSProperties) : undefined}
+      >
+        {children}
+      </div>
     </section>
   )
 }
+
+/** Строка секции формы на всю ширину: переключатель, RadioGroup, пояснение, блок из нескольких контролов. */
+export function FormRow({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cx('ev-form-row', className)}>{children}</div>
+}
+
+FormSection.Row = FormRow

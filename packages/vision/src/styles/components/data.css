@@ -459,9 +459,22 @@
     margin-left: auto;
   }
 
+  /* Номера страниц - высотой с кнопки-стрелки того же размера. */
+  .ev-pagination {
+    --ev-pagination-h: var(--ev-control-h-sm);
+  }
+
+  .ev-pagination[data-size='md'] {
+    --ev-pagination-h: var(--ev-control-h);
+  }
+
+  .ev-pagination[data-size='lg'] {
+    --ev-pagination-h: var(--ev-control-h-lg);
+  }
+
   .ev-pagination-num {
-    min-width: 30px;
-    height: 30px;
+    min-width: var(--ev-pagination-h);
+    height: var(--ev-pagination-h);
     padding: 0 var(--ev-space-2);
     border-radius: var(--ev-radius-sm);
     color: var(--ev-text-secondary);

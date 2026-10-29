@@ -7,6 +7,7 @@ import { useControllable } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
 import { Checkbox } from './Choice'
 import { findTypeaheadMatch } from './Menu'
+import { Tooltip } from './Tooltip'
 
 /*
  * Дерево (WAI-ARIA tree): вложенные role="tree" / treeitem / group,
@@ -27,6 +28,8 @@ export interface TreeNode {
   meta?: ReactNode
   /** Узел нельзя выбрать или отметить (раскрывать можно). */
   disabled?: boolean
+  /** Подсказка при наведении. По умолчанию - полная подпись, если она обрезана многоточием. */
+  tooltip?: ReactNode
 }
 
 export type TreeSelectionMode = 'none' | 'single' | 'multiple'
@@ -456,9 +459,11 @@ function TreeItem({ node, level, posinset, setsize, ctx }: { node: TreeNode; lev
             {node.icon}
           </span>
         ) : null}
-        <span className="ev-tree-label" id={labelId}>
-          {node.label}
-        </span>
+        <Tooltip content={node.tooltip ?? node.label} onlyWhenTruncated={node.tooltip === undefined}>
+          <span className="ev-tree-label" id={labelId}>
+            {node.label}
+          </span>
+        </Tooltip>
         {node.meta ? (
           <span className="ev-tree-meta" id={metaId}>
             {node.meta}

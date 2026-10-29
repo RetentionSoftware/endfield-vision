@@ -9,7 +9,7 @@ import { pickRowAttributes, type RowAttributes } from '../lib/row-attributes'
 import { Button } from './Button'
 import { Checkbox } from './Choice'
 import { Skeleton, type Tone } from './Display'
-import { SearchInput } from './Input'
+import { SearchInput, type ControlSize } from './Input'
 import { EmptyState, ErrorState } from './Page'
 import { Select } from './Select'
 
@@ -562,6 +562,8 @@ export interface PaginationProps {
   onPageSizeChange?: (pageSize: number) => void
   pageSizeOptions?: number[]
   disabled?: boolean
+  /** Высота кнопок и списка размера страницы - как у контролов того же размера. По умолчанию sm. */
+  size?: ControlSize
   className?: string
 }
 
@@ -586,6 +588,7 @@ export function Pagination({
   onPageSizeChange,
   pageSizeOptions = [25, 50, 100],
   disabled = false,
+  size = 'sm',
   className,
 }: PaginationProps) {
   const t = useMessages()
@@ -600,7 +603,7 @@ export function Pagination({
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(total, page * pageSize)
   return (
-    <div className={cx('ev-pagination', className)}>
+    <div className={cx('ev-pagination', className)} data-size={size}>
       <div className="ev-pagination-info ev-num">
         {total === 0 ? t.pagination.noRecords : t.pagination.range(fmt(from), fmt(to), fmt(total))}
       </div>
@@ -608,7 +611,7 @@ export function Pagination({
         <div className="ev-pagination-size">
           <span className="ev-muted">{t.pagination.rows}</span>
           <Select
-            size="sm"
+            size={size}
             width={76}
             aria-label={t.pagination.rowsPerPage}
             value={String(pageSize)}
@@ -622,9 +625,9 @@ export function Pagination({
       {count > 1 ? (
         <nav className="ev-pagination-pages" aria-label={t.pagination.pages}>
           {!narrow ? (
-            <Button size="sm" variant="ghost" aria-label={t.pagination.first} icon={<ChevronsLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(1)} />
+            <Button size={size} variant="ghost" aria-label={t.pagination.first} icon={<ChevronsLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(1)} />
           ) : null}
-          <Button size="sm" variant="ghost" aria-label={t.pagination.prev} icon={<ChevronLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(page - 1)} />
+          <Button size={size} variant="ghost" aria-label={t.pagination.prev} icon={<ChevronLeft size={15} />} disabled={disabled || page <= 1} onClick={() => onPageChange(page - 1)} />
           {narrow ? (
             <span className="ev-pagination-current ev-num">
               {page} / {count}
@@ -651,9 +654,9 @@ export function Pagination({
               ),
             )
           )}
-          <Button size="sm" variant="ghost" aria-label={t.pagination.next} icon={<ChevronRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(page + 1)} />
+          <Button size={size} variant="ghost" aria-label={t.pagination.next} icon={<ChevronRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(page + 1)} />
           {!narrow ? (
-            <Button size="sm" variant="ghost" aria-label={t.pagination.last} icon={<ChevronsRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(count)} />
+            <Button size={size} variant="ghost" aria-label={t.pagination.last} icon={<ChevronsRight size={15} />} disabled={disabled || page >= count} onClick={() => onPageChange(count)} />
           ) : null}
         </nav>
       ) : null}
@@ -670,11 +673,13 @@ export interface FilterBarProps {
   onReset?: () => void
   /** Справа: экспорт, создание. */
   actions?: ReactNode
+  /** Размер встроенных контролов (поиск, «Фильтры», «Сбросить») - под размер фильтров в строке. */
+  size?: ControlSize
   className?: string
 }
 
 /** Строка фильтров над таблицей. На узком экране фильтры прячутся под кнопку. */
-export function FilterBar({ search, children, activeCount = 0, onReset, actions, className }: FilterBarProps) {
+export function FilterBar({ search, children, activeCount = 0, onReset, actions, size, className }: FilterBarProps) {
   const t = useMessages()
   const narrow = useMediaQuery('(max-width: 720px)')
   const [expanded, setExpanded] = useState(false)
@@ -686,6 +691,7 @@ export function FilterBar({ search, children, activeCount = 0, onReset, actions,
       <div className="ev-filterbar-main">
         {search ? (
           <SearchInput
+            size={size}
             wrapperClassName="ev-filterbar-search"
             value={search.value}
             onChange={search.onChange}
@@ -695,6 +701,7 @@ export function FilterBar({ search, children, activeCount = 0, onReset, actions,
         ) : null}
         {narrow && hasFilters ? (
           <Button
+            size={size}
             variant="secondary"
             icon={<SlidersHorizontal size={15} />}
             aria-expanded={expanded}
@@ -706,7 +713,7 @@ export function FilterBar({ search, children, activeCount = 0, onReset, actions,
         ) : null}
         {showFilters && hasFilters ? <div className="ev-filterbar-filters">{children}</div> : null}
         {canReset ? (
-          <Button variant="ghost" onClick={onReset}>
+          <Button size={size} variant="ghost" onClick={onReset}>
             {t.common.reset}
           </Button>
         ) : null}

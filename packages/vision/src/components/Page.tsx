@@ -77,9 +77,17 @@ export function PageHeader({ title, subtitle, breadcrumbs, actions, meta, childr
 }
 
 /** Заголовок раздела внутри страницы. */
-export function SectionTitle({ children, actions, className }: { children: ReactNode; actions?: ReactNode; className?: string }) {
+export interface SectionTitleProps {
+  children: ReactNode
+  actions?: ReactNode
+  /** Без отступа сверху. У первого ребёнка контейнера его нет и так. */
+  flush?: boolean
+  className?: string
+}
+
+export function SectionTitle({ children, actions, flush = false, className }: SectionTitleProps) {
   return (
-    <div className={cx('ev-section-title', className)}>
+    <div className={cx('ev-section-title', className)} data-flush={flush || undefined}>
       <h2>{children}</h2>
       {actions ? <div className="ev-section-title-actions">{actions}</div> : null}
     </div>

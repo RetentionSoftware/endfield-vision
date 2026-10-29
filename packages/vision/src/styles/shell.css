@@ -60,6 +60,7 @@
     position: sticky;
     top: 0;
     z-index: var(--ev-z-topbar);
+    flex: none;
     height: var(--ev-topbar-h);
     background: color-mix(in srgb, var(--ev-bg) 82%, transparent);
     backdrop-filter: blur(10px);
@@ -80,6 +81,34 @@
     .ev-shell-content {
       padding-top: var(--ev-space-6);
     }
+  }
+
+  /*
+   * Во всю высоту (AppShell fill или страница в AppShellFill): колонка
+   * содержимого ровно в окно, страница не прокручивается, последний ребёнок
+   * занимает остаток высоты и прокручивается сам.
+   */
+  .ev-shell:is([data-fill], :has(> .ev-shell-main > .ev-shell-content > .ev-shell-fill)) .ev-shell-main {
+    height: 100dvh;
+  }
+
+  .ev-shell:is([data-fill], :has(> .ev-shell-main > .ev-shell-content > .ev-shell-fill)) .ev-shell-content,
+  .ev-shell-fill {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-5);
+    min-height: 0;
+  }
+
+  .ev-shell:is([data-fill], :has(> .ev-shell-main > .ev-shell-content > .ev-shell-fill)) .ev-shell-content {
+    padding-bottom: var(--ev-space-6);
+    overflow: hidden;
+  }
+
+  .ev-shell:is([data-fill], :has(> .ev-shell-main > .ev-shell-content > .ev-shell-fill)) .ev-shell-content > :last-child,
+  .ev-shell-fill > :last-child {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .ev-topbar {
@@ -284,6 +313,7 @@
     position: sticky;
     bottom: 0;
     z-index: var(--ev-z-topbar);
+    flex: none;
   }
 
   .ev-statusbar {

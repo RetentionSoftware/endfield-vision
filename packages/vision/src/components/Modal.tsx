@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react'
 import { useMessages } from '../lib/i18n'
@@ -47,6 +48,41 @@ export interface ModalProps {
   className?: string
   /** Тело без отступов (таблица, редактор). */
   flush?: boolean
+  /**
+   * Окно-форма: Enter без модификаторов нажимает главную кнопку подвала, если
+   * она не заблокирована. Главная - кнопка с data-modal-submit, иначе последняя
+   * primary или danger. Не срабатывает в textarea, на кнопках и ссылках, в
+   * contenteditable, при открытом списке и внутри <form> (у неё своя отправка).
+   */
+  submitOnEnter?: boolean
+}
+
+/** Главная кнопка подвала: data-modal-submit или последняя primary / danger. */
+function modalSubmitButton(dialog: HTMLElement): HTMLButtonElement | null {
+  const actions = dialog.querySelector(':scope > .ev-modal-foot .ev-modal-foot-actions')
+  if (!actions) return null
+  const marked = actions.querySelector<HTMLButtonElement>('button[data-modal-submit]')
+  const list = actions.querySelectorAll<HTMLButtonElement>('button.ev-btn[data-variant="primary"], button.ev-btn[data-variant="danger"]')
+  const main = marked ?? list[list.length - 1] ?? null
+  if (!main || main.disabled || main.getAttribute('aria-disabled') === 'true') return null
+  return main
+}
+
+const ENTER_OWN =
+  'textarea, button, a[href], select, summary, [role="button"], [role="link"], [role="option"], [role="menuitem"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [aria-expanded="true"], form'
+
+/** Enter в окне-форме: главная кнопка подвала. */
+export function submitModalOnEnter(e: ReactKeyboardEvent<HTMLElement>): void {
+  if (e.key !== 'Enter' || e.defaultPrevented || e.nativeEvent.isComposing) return
+  if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return
+  const dialog = e.currentTarget
+  const target = e.target as HTMLElement
+  // События из порталов (список Select, вложенное окно) всплывают по дереву React - их пропускаем.
+  if (!dialog.contains(target) || target.isContentEditable || target.closest(ENTER_OWN)) return
+  const main = modalSubmitButton(dialog)
+  if (!main) return
+  e.preventDefault()
+  main.click()
 }
 
 const SIZE_WIDTH: Record<ModalSize, string> = {
@@ -70,6 +106,7 @@ export function Modal({
   children,
   className,
   flush = false,
+  submitOnEnter = false,
 }: ModalProps) {
   const t = useMessages()
   const titleId = useId()
@@ -78,9 +115,13 @@ export function Modal({
   const canClose = closable && !busy
   useFocusTrap(ref, open)
   useScrollLock(open)
-  useEscapeLayer(open, () => {
-    if (canClose) onClose()
-  })
+  useEscapeLayer(
+    open,
+    () => {
+      if (canClose) onClose()
+    },
+    { nodes: () => [ref.current] },
+  )
   if (!open) return null
   return (
     <Portal>
@@ -103,6 +144,7 @@ export function Modal({
           className={cx('ev-modal', className)}
           data-size={size}
           style={{ '--ev-modal-w': SIZE_WIDTH[size] } as CSSProperties}
+          onKeyDown={submitOnEnter ? submitModalOnEnter : undefined}
         >
           {title || closable ? (
             <header className="ev-modal-head">
@@ -188,9 +230,13 @@ export function Drawer({
   const canClose = closable && !busy
   useFocusTrap(ref, open, { trap: modal })
   useScrollLock(open && modal)
-  useEscapeLayer(open, () => {
-    if (canClose) onClose()
-  })
+  useEscapeLayer(
+    open,
+    () => {
+      if (canClose) onClose()
+    },
+    { nodes: () => [ref.current] },
+  )
   useOutsideClick([ref], (e) => onInteractOutside?.(e), open && !modal && onInteractOutside !== undefined)
   if (!open) return null
   const panel = (
@@ -277,6 +323,8 @@ export interface ModalOptions<R = unknown> {
   footer?: { left?: ReactNode; buttons?: ModalButton<R>[] } | null
   flush?: boolean
   className?: string
+  /** Enter нажимает главную кнопку подвала (см. ModalProps.submitOnEnter). */
+  submitOnEnter?: boolean
   onClose?: (result: R | undefined) => void
 }
 
@@ -293,7 +341,7 @@ export interface ConfirmOptions {
   subtitle?: ReactNode
   okLabel?: string
   cancelLabel?: string
-  /** danger - для необратимых действий. */
+  /** danger - для необратимых действий: фокус при открытии - на «Отмена», случайный Enter ничего не выполнит. */
   okVariant?: 'primary' | 'danger'
   okIcon?: ReactNode
   size?: ModalSize
@@ -439,6 +487,7 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
     }
 
     const confirm = (o: ConfirmOptions): Promise<boolean> => {
+      const danger = o.okVariant === 'danger'
       const h = open<boolean>({
         title: o.title,
         subtitle: o.subtitle,
@@ -446,12 +495,12 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         body: o.message ? <div className="ev-modal-message">{o.message}</div> : undefined,
         footer: {
           buttons: [
-            { label: o.cancelLabel ?? tRef.current.common.cancel, variant: 'ghost', result: false },
+            { label: o.cancelLabel ?? tRef.current.common.cancel, variant: 'ghost', result: false, autoFocus: danger },
             {
               label: o.okLabel ?? tRef.current.common.confirm,
               variant: o.okVariant ?? 'primary',
               icon: o.okIcon,
-              autoFocus: true,
+              autoFocus: !danger,
               onClick: async (ctx) => {
                 if (!o.onOk) {
                   ctx.close(true)
@@ -682,6 +731,7 @@ function ModalEntry({
       busy={busy}
       flush={opts.flush}
       className={opts.className}
+      submitOnEnter={opts.submitOnEnter}
       footer={footer}
       footerLeft={opts.footer?.left}
     >

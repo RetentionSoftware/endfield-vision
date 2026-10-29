@@ -479,16 +479,21 @@
     min-width: 0;
   }
 
+  /*
+   * Ширина задана в px, а не min(..., 100%): пузырь сжимается по содержимому,
+   * и процент от него у сообщения без текста схлопнул бы превью до ширины времени.
+   */
   .ev-chat-images {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--ev-space-1);
-    width: min(320px, 100%);
+    width: 320px;
+    max-width: 100%;
   }
 
   .ev-chat-images[data-count='1'] {
     grid-template-columns: minmax(0, 1fr);
-    width: min(280px, 100%);
+    width: 280px;
   }
 
   .ev-chat-images[data-count='2'],

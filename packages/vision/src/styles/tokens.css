@@ -142,6 +142,9 @@
     --ev-control-w-sm: 144px;
     --ev-control-w-md: 200px;
     --ev-control-w-lg: 320px;
+    /* Затухание края прокручиваемой ленты (вкладки): маска работает по прозрачности, цвет не важен. */
+    --ev-mask-opaque: #000;
+    --ev-fade-edge: 48px;
 
     /* --- Типографика --- */
     --ev-font-sans: var(--font-inter, 'Inter'), system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
@@ -177,9 +180,10 @@
     --ev-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--ev-border-strong);
     --ev-shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 6px 16px -6px rgba(var(--ev-accent-rgb), 0.55);
     --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 4px rgba(var(--ev-accent-rgb), 0.7);
-    --ev-focus-ring-inset: 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
+    /* Кольцо внутри элемента: не срезается у прокручиваемых контейнеров (вкладки, дерево, список). */
+    --ev-focus-ring-inset: inset 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
     /* Фокус полей с рамкой (input, textarea, select, OTP): рядом с рамкой, не вместо неё. */
-    --ev-focus-field: var(--ev-focus-ring-inset);
+    --ev-focus-field: 0 0 0 2px rgba(var(--ev-accent-rgb), 0.55);
     --ev-focus-field-invalid: 0 0 0 2px var(--ev-danger-soft);
     /* Сдвиг кнопки при нажатии. */
     --ev-press-shift: 1px;
@@ -375,7 +379,7 @@
     --ev-shadow-primary: none;
     /* Фокус без полупрозрачного ореола: тонкая чёткая линия; у полей рамка только меняет цвет. */
     --ev-focus-ring: 0 0 0 2px var(--ev-bg), 0 0 0 3.5px var(--ev-accent);
-    --ev-focus-ring-inset: 0 0 0 1px var(--ev-accent);
+    --ev-focus-ring-inset: inset 0 0 0 1.5px var(--ev-accent);
     --ev-focus-field: none;
     --ev-focus-field-invalid: none;
     --ev-press-shift: 0;

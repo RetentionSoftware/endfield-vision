@@ -237,7 +237,8 @@
     text-underline-offset: 3px;
   }
 
+  /* Прочерк - значимое «нет данных», не выключенный элемент: контраст как у вторичного текста. */
   .ev-empty-value {
-    color: var(--ev-text-disabled);
+    color: var(--ev-text-muted);
   }
 }

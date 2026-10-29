@@ -23,6 +23,7 @@ import {
   SearchInput,
   Select,
   SnilsInput,
+  Switch,
   Textarea,
   TimeInput,
   useDebouncedValue,
@@ -283,7 +284,48 @@ function NumberFields() {
       </FormSection>
       <Divider />
       <ControlWidths />
+      <Divider />
+      <FormColumns />
     </Card>
+  )
+}
+
+/** Сетка секции: число колонок, ширина колонки, поле и строка на всю ширину. */
+function FormColumns() {
+  const { t } = useT()
+  const [night, setNight] = useState(true)
+  return (
+    <FormSection
+      title={t('Колонки и строки на всю ширину', 'Columns and full-width rows')}
+      description={t(
+        'columns - не больше N колонок, minColumn - колонка не уже (на узком экране их становится меньше). Field span="full" - поле на всю строку (адрес, комментарий), FormSection.Row - не-поле на всю строку: переключатель, пояснение.',
+        'columns caps the number of columns and minColumn sets the narrowest column (fewer columns on narrow screens). Field span="full" stretches a field across the row (an address, a comment); FormSection.Row does the same for anything else: a switch, a note.',
+      )}
+      columns={3}
+      minColumn={180}
+    >
+      <Field label={t('Название парка', 'Fleet name')} required>
+        <Input defaultValue={t('Северный', 'North')} />
+      </Field>
+      <Field label={t('ИНН', 'Tax ID')}>
+        <Input defaultValue="7704217370" inputMode="numeric" />
+      </Field>
+      <Field label={t('Телефон диспетчера', 'Dispatcher phone')}>
+        <Input defaultValue="+7 495 120-40-40" />
+      </Field>
+      <Field label={t('Адрес площадки', 'Site address')} span="full">
+        <Input defaultValue={t('Москва, Огородный проезд, 5, стр. 3', '5 Ogorodny Lane, bldg 3, Moscow')} />
+      </Field>
+      <FormSection.Row>
+        <Switch checked={night} onChange={setNight} label={t('Ночные выезды', 'Night trips')} />
+        <span className="ev-muted">
+          {t('Выезды с 22:00 до 6:00 требуют второго водителя.', 'Trips between 10 PM and 6 AM need a second driver.')}
+        </span>
+      </FormSection.Row>
+      <Field label={t('Комментарий', 'Comment')} span="full">
+        <Textarea autoResize rows={2} placeholder={t('Для диспетчеров', 'For dispatchers')} />
+      </Field>
+    </FormSection>
   )
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  AppShellFill,
   Avatar,
   Badge,
   Button,
@@ -188,8 +189,9 @@ export function InboxScreen() {
     />
   )
 
+  // Во всю высоту каркаса: страница не прокручивается, список и письмо - каждый со своей прокруткой.
   return (
-    <>
+    <AppShellFill>
       <PageHeader
         title={t('Входящие', 'Inbox')}
         subtitle={t('Инциденты, задачи и системные уведомления по объектам.', 'Incidents, tasks and system notifications across facilities.')}
@@ -316,6 +318,6 @@ export function InboxScreen() {
       >
         {selected ? view(selected, false) : null}
       </Drawer>
-    </>
+    </AppShellFill>
   )
 }

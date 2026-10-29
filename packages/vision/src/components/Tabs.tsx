@@ -1,7 +1,9 @@
 'use client'
 
-import { useRef, type KeyboardEvent, type ReactNode } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
+import { useIsoLayoutEffect } from '../lib/hooks'
 import { UiLink } from '../lib/link'
 
 export interface TabItem<V extends string = string> {
@@ -34,13 +36,80 @@ export function tabPanelId(idBase: string, value: string) {
   return `${idBase}-panel-${value}`
 }
 
+interface TabsOverflow {
+  start: boolean
+  end: boolean
+}
+
+const NO_OVERFLOW: TabsOverflow = { start: false, end: false }
+
+/** Отступ от края при прокрутке к активной вкладке: она не уходит под затухание. */
+const EDGE_GAP = 40
+
+/**
+ * Переполнение ленты вкладок: есть ли скрытые вкладки слева и справа.
+ * Пересчёт при прокрутке и смене размеров; на сервере - без переполнения.
+ */
+function useTabsOverflow(ref: { current: HTMLElement | null }, count: number): TabsOverflow {
+  const [overflow, setOverflow] = useState<TabsOverflow>(NO_OVERFLOW)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => {
+      const start = el.scrollLeft > 1
+      const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+      setOverflow((prev) => (prev.start === start && prev.end === end ? prev : { start, end }))
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    ro?.observe(el)
+    for (const child of Array.from(el.children)) ro?.observe(child)
+    return () => {
+      el.removeEventListener('scroll', update)
+      ro?.disconnect()
+    }
+  }, [ref, count])
+  return overflow
+}
+
 /**
  * Вкладки. С href - ссылки (навигация, вкладка в адресе); без href -
- * role="tab" с переключением стрелками по шаблону WAI-ARIA.
+ * role="tab" с переключением стрелками по шаблону WAI-ARIA. Не влезшие по
+ * ширине вкладки не теряются: край с ними затухает, на нём - стрелка
+ * прокрутки, а выбранная вкладка прокручивается в видимую часть.
  */
-export function Tabs<V extends string = string>({ value, onChange, items, variant = 'line', idBase, className, ...aria }: TabsProps<V>) {
+export function Tabs<V extends string = string>({
+  value,
+  onChange,
+  items,
+  variant = 'line',
+  idBase,
+  className,
+  ...aria
+}: TabsProps<V>) {
   const refs = useRef<Array<HTMLElement | null>>([])
+  const rootRef = useRef<HTMLElement | null>(null)
   const isLinks = items.some((i) => i.href)
+  const overflow = useTabsOverflow(rootRef, items.length)
+
+  // Выбранная вкладка - в видимой части ленты (только горизонтально: страница не прокручивается).
+  useIsoLayoutEffect(() => {
+    const root = rootRef.current
+    const tab = root?.querySelector<HTMLElement>('.ev-tab[data-active]')
+    if (!root || !tab || root.scrollWidth <= root.clientWidth) return
+    const r = root.getBoundingClientRect()
+    const t = tab.getBoundingClientRect()
+    if (t.left < r.left + EDGE_GAP) root.scrollLeft -= r.left + EDGE_GAP - t.left
+    else if (t.right > r.right - EDGE_GAP) root.scrollLeft += t.right - (r.right - EDGE_GAP)
+  }, [value])
+
+  const scrollBy = (dir: 1 | -1) => {
+    const root = rootRef.current
+    if (!root) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    root.scrollBy({ left: dir * root.clientWidth * 0.7, behavior: reduce ? 'auto' : 'smooth' })
+  }
 
   const onKey = (e: KeyboardEvent, index: number) => {
     if (isLinks) return
@@ -72,58 +141,88 @@ export function Tabs<V extends string = string>({ value, onChange, items, varian
   }
 
   const Root = isLinks ? 'nav' : 'div'
+  // Стрелки - только для мыши: с клавиатуры вкладки перебираются стрелками, выбранная сама прокручивается в вид.
+  const arrow = (dir: 1 | -1) => (
+    <button
+      type="button"
+      className="ev-tabs-arrow"
+      data-dir={dir < 0 ? 'start' : 'end'}
+      tabIndex={-1}
+      aria-hidden="true"
+      onClick={() => scrollBy(dir)}
+    >
+      {dir < 0 ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+    </button>
+  )
   return (
-    <Root className={cx('ev-tabs', className)} data-variant={variant} role={isLinks ? undefined : 'tablist'} {...aria}>
-      {items.map((it, i) => {
-        const active = it.value === value
-        const content = (
-          <>
-            {it.icon ? <span className="ev-tab-icon">{it.icon}</span> : null}
-            <span className="ev-tab-label">{it.label}</span>
-            {it.count !== undefined ? <span className="ev-tab-count ev-num">{it.count}</span> : null}
-          </>
-        )
-        if (it.href) {
+    <div
+      className="ev-tabs-frame"
+      data-variant={variant}
+      data-overflow-start={overflow.start || undefined}
+      data-overflow-end={overflow.end || undefined}
+    >
+      <Root
+        ref={(n: HTMLElement | null) => {
+          rootRef.current = n
+        }}
+        className={cx('ev-tabs', className)}
+        data-variant={variant}
+        role={isLinks ? undefined : 'tablist'}
+        {...aria}
+      >
+        {items.map((it, i) => {
+          const active = it.value === value
+          const content = (
+            <>
+              {it.icon ? <span className="ev-tab-icon">{it.icon}</span> : null}
+              <span className="ev-tab-label">{it.label}</span>
+              {it.count !== undefined ? <span className="ev-tab-count ev-num">{it.count}</span> : null}
+            </>
+          )
+          if (it.href) {
+            return (
+              <UiLink
+                key={it.value}
+                href={it.href}
+                className="ev-tab"
+                data-active={active || undefined}
+                aria-current={active ? 'page' : undefined}
+                aria-disabled={it.disabled || undefined}
+                onClick={(e) => {
+                  if (it.disabled) e.preventDefault()
+                  else onChange?.(it.value)
+                }}
+              >
+                {content}
+              </UiLink>
+            )
+          }
           return (
-            <UiLink
+            <button
               key={it.value}
-              href={it.href}
+              ref={(n) => {
+                refs.current[i] = n
+              }}
+              type="button"
+              role="tab"
+              id={idBase ? tabId(idBase, it.value) : undefined}
+              aria-controls={idBase ? tabPanelId(idBase, it.value) : undefined}
+              aria-selected={active}
+              tabIndex={active ? 0 : -1}
+              disabled={it.disabled}
               className="ev-tab"
               data-active={active || undefined}
-              aria-current={active ? 'page' : undefined}
-              aria-disabled={it.disabled || undefined}
-              onClick={(e) => {
-                if (it.disabled) e.preventDefault()
-                else onChange?.(it.value)
-              }}
+              onClick={() => onChange?.(it.value)}
+              onKeyDown={(e) => onKey(e, i)}
             >
               {content}
-            </UiLink>
+            </button>
           )
-        }
-        return (
-          <button
-            key={it.value}
-            ref={(n) => {
-              refs.current[i] = n
-            }}
-            type="button"
-            role="tab"
-            id={idBase ? tabId(idBase, it.value) : undefined}
-            aria-controls={idBase ? tabPanelId(idBase, it.value) : undefined}
-            aria-selected={active}
-            tabIndex={active ? 0 : -1}
-            disabled={it.disabled}
-            className="ev-tab"
-            data-active={active || undefined}
-            onClick={() => onChange?.(it.value)}
-            onKeyDown={(e) => onKey(e, i)}
-          >
-            {content}
-          </button>
-        )
-      })}
-    </Root>
+        })}
+      </Root>
+      {overflow.start ? arrow(-1) : null}
+      {overflow.end ? arrow(1) : null}
+    </div>
   )
 }
 
@@ -143,7 +242,14 @@ export interface TabPanelProps {
   keepMounted?: boolean
 }
 
-export function TabPanel({ idBase, value, children, className, activeValue, keepMounted = false }: TabPanelProps) {
+export function TabPanel({
+  idBase,
+  value,
+  children,
+  className,
+  activeValue,
+  keepMounted = false,
+}: TabPanelProps) {
   const active = activeValue === undefined || activeValue === value
   if (!active && !keepMounted) return null
   return (

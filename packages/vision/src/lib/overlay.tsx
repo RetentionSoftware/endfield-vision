@@ -196,6 +196,8 @@ export interface EscapeLayer {
   id: number
   cb: () => void
   claims?: () => boolean
+  /** Узлы слоя (окно, панель попапа, его поле): по ним слой встаёт выше слоёв, в чьих узлах лежит. */
+  nodes?: readonly Element[]
 }
 
 const escapeStack: EscapeLayer[] = []
@@ -214,6 +216,21 @@ export function topEscapeLayer(stack: readonly EscapeLayer[]): EscapeLayer | und
   return undefined
 }
 
+/**
+ * Новый слой в стек. Обычно - наверх, но если в его узлах лежит узел уже
+ * зарегистрированного слоя, новый встаёт под него. Так окно, смонтированное в
+ * одном коммите с открытым сразу списком внутри (эффекты ребёнка идут раньше
+ * родителя), оказывается под списком, и первый Escape закрывает список.
+ */
+export function insertEscapeLayer(stack: EscapeLayer[], layer: EscapeLayer): void {
+  const own = layer.nodes ?? []
+  const at = own.length
+    ? stack.findIndex((other) => (other.nodes ?? []).some((n) => own.some((o) => o !== n && o.contains(n))))
+    : -1
+  if (at < 0) stack.push(layer)
+  else stack.splice(at, 0, layer)
+}
+
 function onGlobalEscape(e: KeyboardEvent) {
   if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) return
   const top = topEscapeLayer(escapeStack)
@@ -226,22 +243,30 @@ function onGlobalEscape(e: KeyboardEvent) {
 export interface EscapeLayerOptions {
   /** Забирать ли Escape сейчас (проверяется при нажатии); false - событие уходит слою ниже. */
   claims?: () => boolean
+  /**
+   * Узлы слоя на момент открытия: у окна - само окно, у попапа - поле-якорь и
+   * панель. Слой, чей узел лежит внутри узла другого, всегда выше него.
+   */
+  nodes?: () => ReadonlyArray<Element | null | undefined>
 }
 
 export function useEscapeLayer(active: boolean, onEscape: () => void, options?: EscapeLayerOptions): void {
   const cbRef = useRef(onEscape)
   const claimsRef = useRef(options?.claims)
+  const nodesRef = useRef(options?.nodes)
   useIsoLayoutEffect(() => {
     cbRef.current = onEscape
     claimsRef.current = options?.claims
+    nodesRef.current = options?.nodes
   })
   useEffect(() => {
     if (!active) return
     const id = ++escapeSeq
-    escapeStack.push({
+    insertEscapeLayer(escapeStack, {
       id,
       cb: () => cbRef.current(),
       claims: () => claimsRef.current?.() ?? true,
+      nodes: (nodesRef.current?.() ?? []).filter((n): n is Element => Boolean(n)),
     })
     if (!escapeListening) {
       document.addEventListener('keydown', onGlobalEscape, true)

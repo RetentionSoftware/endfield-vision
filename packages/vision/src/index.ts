@@ -75,7 +75,7 @@ export {
 export { Button, IconButton, LinkButton, type ButtonProps, type ButtonSize, type ButtonVariant, type IconButtonProps, type LinkButtonProps } from './components/Button'
 export { Spinner, LoadingBlock } from './components/Spinner'
 export { Tooltip, type TooltipPlacement, type TooltipProps } from './components/Tooltip'
-export { Field, FormSection, useFieldContext, useFieldProps, type FieldProps } from './components/Field'
+export { Field, FormRow, FormSection, useFieldContext, useFieldProps, type FieldProps, type FormSectionProps } from './components/Field'
 export {
   Input,
   MoneyInput,
@@ -154,6 +154,7 @@ export {
   PageHeader,
   SectionTitle,
   type Crumb,
+  type SectionTitleProps,
   type EmptyStateProps,
   type ErrorStateProps,
   type PageHeaderProps,
@@ -217,6 +218,7 @@ export {
 } from './components/charts/Charts'
 export {
   AppShell,
+  AppShellFill,
   AppShellMenuButton,
   Sidebar,
   SidebarCollapseButton,

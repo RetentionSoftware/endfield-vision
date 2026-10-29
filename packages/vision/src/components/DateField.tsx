@@ -82,7 +82,7 @@ export function DateField({
     if (refocus) inputRef.current?.focus({ preventScroll: true })
   }
   useOutsideClick([wrapRef, popRef], () => setOpen(false), open)
-  useEscapeLayer(open, () => close(true))
+  useEscapeLayer(open, () => close(true), { nodes: () => [wrapRef.current, popRef.current] })
 
   const onDigits = (next: string) => {
     setDigits(next)
@@ -230,7 +230,7 @@ export function DateRangePicker({
     if (refocus) triggerRef.current?.focus({ preventScroll: true })
   }
   useOutsideClick([triggerRef, popRef], () => setOpen(false), open)
-  useEscapeLayer(open, () => close(true))
+  useEscapeLayer(open, () => close(true), { nodes: () => [triggerRef.current, popRef.current] })
 
   const openPop = () => {
     setDraft({ from: value?.from ?? '', to: value?.to ?? '' })

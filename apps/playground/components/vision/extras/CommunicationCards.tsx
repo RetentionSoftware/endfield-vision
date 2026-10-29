@@ -456,6 +456,12 @@ const SEED_MESSAGES: DemoMessage[] = [
       'Stock is syncing again, I can see fresh data. Thank you!',
     ),
     time: at(0, 11, 48),
+  },
+  // Фото без подписи: превью своей ширины, пузырь не сжимается до ширины времени.
+  {
+    id: 'm8',
+    author: 'customer',
+    time: at(0, 11, 48),
     attachments: [{ id: 'a4', name: 'sync-ok.svg', url: SHOTS[1]!, alt: 'SYNC OK' }],
   },
 ]

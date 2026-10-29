@@ -401,12 +401,13 @@ function TabsCard() {
   const { t, tx } = useT()
   const [v, setV] = useState('all')
   const [p, setP] = useState('week')
+  const [section, setSection] = useState('fleet')
   return (
     <Card
       title={t('Tabs и TabPanel', 'Tabs and TabPanel')}
       description={t(
-        'line - разделы страницы под заголовком; pill - переключатель внутри карточки. С idBase вкладки связаны с TabPanel (aria-controls), стрелки переключают вкладки. С href вкладка - ссылка.',
-        'line is for page sections under a header; pill is a switch inside a card. With idBase, tabs are linked to TabPanel (aria-controls) and arrow keys move between them. With href, a tab becomes a link.',
+        'line - разделы страницы под заголовком; pill - переключатель внутри карточки. С idBase вкладки связаны с TabPanel (aria-controls), стрелки переключают вкладки. С href вкладка - ссылка. Не влезшие по ширине вкладки не теряются: край с ними затухает, на нём стрелка прокрутки, выбранная вкладка прокручивается в вид.',
+        'line is for page sections under a header; pill is a switch inside a card. With idBase, tabs are linked to TabPanel (aria-controls) and arrow keys move between them. With href, a tab becomes a link. Tabs that don’t fit stay discoverable: the edge with hidden tabs fades out and shows a scroll arrow, and the selected tab scrolls into view.',
       )}
     >
       <div className="ev-stack" style={{ '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
@@ -442,6 +443,22 @@ function TabsCard() {
             { value: 'month', label: t('Месяц', 'Month') },
           ]}
         />
+        <div style={{ maxWidth: 380 }}>
+          <Tabs
+            aria-label={t('Разделы настроек', 'Settings sections')}
+            value={section}
+            onChange={setSection}
+            items={[
+              { value: 'fleet', label: t('Парк', 'Fleet') },
+              { value: 'drivers', label: t('Водители', 'Drivers') },
+              { value: 'medical', label: t('Медцентр', 'Medical center') },
+              { value: 'tariffs', label: t('Тарифы', 'Rates') },
+              { value: 'notifications', label: t('Уведомления', 'Notifications'), count: 4 },
+              { value: 'integrations', label: t('Интеграции', 'Integrations') },
+              { value: 'audit', label: t('Журнал', 'Audit log') },
+            ]}
+          />
+        </div>
         <Tabs
           aria-label={t('Разделы витрины', 'Showcase sections')}
           value="actions"

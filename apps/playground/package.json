@@ -1,6 +1,6 @@
 {
   "name": "@endfield-vision/playground",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "private": true,
   "description": "Endfield Vision playground: demo console and component showcase (Next.js)",
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "endfield-vision": "2.2.5",
+    "endfield-vision": "2.2.6",
     "lucide-react": "^1.53.0",
     "next": "^16.4.3",
     "react": "^19.3.0",
