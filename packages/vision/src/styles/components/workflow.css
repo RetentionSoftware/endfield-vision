@@ -348,6 +348,9 @@
 
   .ev-perm {
     --ev-perm-bg: var(--ev-surface-1);
+    /* Ширины колонки роли и первого столбца: пропы columnWidth / rowHeaderWidth. */
+    --ev-perm-col-w: 156px; /* «Полный доступ» с иконкой - без обрезки */
+    --ev-perm-rowhead-w: 200px;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -401,9 +404,14 @@
     padding-left: var(--ev-space-5);
   }
 
+  .ev-perm[data-density='compact'] {
+    --ev-perm-col-w: 96px;
+    --ev-perm-rowhead-w: 168px;
+  }
+
   .ev-perm-rowhead {
-    min-width: 200px;
-    max-width: 320px;
+    min-width: var(--ev-perm-rowhead-w);
+    max-width: max(var(--ev-perm-rowhead-w), 320px);
     padding-left: var(--ev-space-5);
     font-weight: var(--ev-fw-regular);
   }
@@ -431,8 +439,19 @@
     text-transform: var(--ev-caps-transform);
   }
 
+  /* Лишние роли уходят в горизонтальную прокрутку; длинное имя роли - с многоточием и подсказкой. */
   .ev-perm-colhead {
-    min-width: 156px; /* «Полный доступ» с иконкой - без обрезки; лишние роли уходят в горизонтальную прокрутку */
+    min-width: var(--ev-perm-col-w);
+    width: var(--ev-perm-col-w);
+  }
+
+  .ev-perm-coltext {
+    display: block;
+    min-width: 0;
+    /* Колонка минус отступы ячейки и шеврон меню. */
+    max-width: calc(var(--ev-perm-col-w) - var(--ev-space-3) * 2 - 18px);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .ev-perm-colbtn,
@@ -517,6 +536,23 @@
   .ev-perm-cell-label {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* compact: ячейка - круглая метка с иконкой тона. */
+  .ev-perm[data-density='compact'] .ev-perm-cell {
+    justify-content: center;
+    width: 26px;
+    padding: 0;
+  }
+
+  .ev-perm[data-density='compact'] .ev-perm-colhead,
+  .ev-perm[data-density='compact'] .ev-perm-td {
+    padding-left: var(--ev-space-2);
+    padding-right: var(--ev-space-2);
+  }
+
+  .ev-perm[data-density='compact'] .ev-perm-coltext {
+    max-width: calc(var(--ev-perm-col-w) - var(--ev-space-2) * 2 - 18px);
   }
 
   .ev-perm-foot {

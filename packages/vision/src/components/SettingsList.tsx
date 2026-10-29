@@ -46,7 +46,7 @@ export function SettingsSection({ title, description, actions, children, classNa
                 {title}
               </h3>
             ) : null}
-            {description ? <p className="ev-settings-section-desc">{description}</p> : null}
+            {description ? <div className="ev-settings-section-desc">{description}</div> : null}
           </div>
           {actions ? <div className="ev-settings-section-actions">{actions}</div> : null}
         </header>
@@ -126,11 +126,12 @@ export function SettingRow({
           {badge ? <span className="ev-setting-badge">{badge}</span> : null}
         </div>
         {description ? (
-          <p id={descId} className="ev-setting-desc">
+          // div, а не p: в описании и подсказке бывает блочный контент (ExpandableText), p его не допускает.
+          <div id={descId} className="ev-setting-desc">
             {description}
-          </p>
+          </div>
         ) : null}
-        {hint ? <p className="ev-setting-hint">{hint}</p> : null}
+        {hint ? <div className="ev-setting-hint">{hint}</div> : null}
       </div>
       {content !== undefined && content !== null ? (
         <div className="ev-setting-control">

@@ -183,6 +183,7 @@ export {
   type DrawerProps,
   type ModalButton,
   type ModalHandle,
+  type ModalIconTone,
   type ModalOptions,
   type ModalProps,
   type ModalsApi,

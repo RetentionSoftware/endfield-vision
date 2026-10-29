@@ -204,7 +204,7 @@ export function EditablePanel({
           <Heading id={titleId} className="ev-card-title">
             {title}
           </Heading>
-          {description ? <p className="ev-card-desc">{description}</p> : null}
+          {description ? <div className="ev-card-desc">{description}</div> : null}
         </div>
         {actions ? <div className="ev-card-actions">{actions}</div> : null}
       </header>

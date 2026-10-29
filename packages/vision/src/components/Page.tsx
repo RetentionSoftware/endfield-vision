@@ -67,7 +67,7 @@ export function PageHeader({ title, subtitle, breadcrumbs, actions, meta, childr
             <Heading className="ev-page-title">{title}</Heading>
             {meta ? <div className="ev-page-meta">{meta}</div> : null}
           </div>
-          {subtitle ? <p className="ev-page-subtitle">{subtitle}</p> : null}
+          {subtitle ? <div className="ev-page-subtitle">{subtitle}</div> : null}
         </div>
         {actions ? <div className="ev-page-actions">{actions}</div> : null}
       </div>

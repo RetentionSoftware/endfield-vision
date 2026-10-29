@@ -337,7 +337,7 @@ describe('SettingsList', () => {
     expect(out).toContain(
       '<label id="digest-label" class="ev-setting-label" for="digest">Ежедневная сводка<span class="ev-visually-hidden">, изменено</span></label>',
     )
-    expect(out).toContain('<p id="digest-desc" class="ev-setting-desc">Письмо в 9:00</p>')
+    expect(out).toContain('<div id="digest-desc" class="ev-setting-desc">Письмо в 9:00</div>')
     expect(out).toContain('class="ev-setting ev-corners" data-changed="true"')
     expect(out).toContain('ev-setting-hint')
     // Функция-контрол получает id и aria-атрибуты.
@@ -349,7 +349,7 @@ describe('SettingsList', () => {
       <SettingRow controlId="sound" label="Звук" description="При новом обращении" control={<Switch checked={false} onChange={noop} />} />,
     )
     expect(out).toMatch(/id="sound"[^>]*aria-describedby="sound-desc"/)
-    expect(out).toContain('<p id="sound-desc" class="ev-setting-desc">')
+    expect(out).toContain('<div id="sound-desc" class="ev-setting-desc">')
     // Без описания - без aria-describedby.
     const bare = ru(<SettingRow controlId="bare" label="Звук" control={<Switch checked={false} onChange={noop} />} />)
     expect(bare).not.toContain('aria-describedby')

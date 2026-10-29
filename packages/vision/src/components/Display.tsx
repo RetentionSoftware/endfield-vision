@@ -72,7 +72,7 @@ export function Card({ title, description, actions, footer, flush = false, icon,
           {icon ? <span className="ev-card-icon">{icon}</span> : null}
           <div className="ev-card-titles">
             {title ? <h2 className="ev-card-title">{title}</h2> : null}
-            {description ? <p className="ev-card-desc">{description}</p> : null}
+            {description ? <div className="ev-card-desc">{description}</div> : null}
           </div>
           {actions ? <div className="ev-card-actions">{actions}</div> : null}
         </header>

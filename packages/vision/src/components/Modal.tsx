@@ -155,9 +155,9 @@ export function Modal({
                   </h2>
                 ) : null}
                 {subtitle ? (
-                  <p className="ev-modal-subtitle" id={descId}>
+                  <div className="ev-modal-subtitle" id={descId}>
                     {subtitle}
-                  </p>
+                  </div>
                 ) : null}
               </div>
               {closable ? (
@@ -261,7 +261,7 @@ export function Drawer({
                 {title}
               </h2>
             ) : null}
-            {subtitle ? <p className="ev-modal-subtitle">{subtitle}</p> : null}
+            {subtitle ? <div className="ev-modal-subtitle">{subtitle}</div> : null}
           </div>
           {closable ? (
             <button type="button" className="ev-modal-close" aria-label={t.common.close} data-dialog-close="" disabled={busy} onClick={onClose}>
@@ -325,8 +325,14 @@ export interface ModalOptions<R = unknown> {
   className?: string
   /** Enter нажимает главную кнопку подвала (см. ModalProps.submitOnEnter). */
   submitOnEnter?: boolean
+  /** Иконка слева от содержимого окна: тон решения (удаление, предупреждение). */
+  icon?: ReactNode
+  /** Тон иконки. По умолчанию info. */
+  iconTone?: ModalIconTone
   onClose?: (result: R | undefined) => void
 }
+
+export type ModalIconTone = 'info' | 'success' | 'warning' | 'danger' | 'accent'
 
 export interface ModalHandle<R = unknown> {
   id: string
@@ -344,6 +350,10 @@ export interface ConfirmOptions {
   /** danger - для необратимых действий: фокус при открытии - на «Отмена», случайный Enter ничего не выполнит. */
   okVariant?: 'primary' | 'danger'
   okIcon?: ReactNode
+  /** Иконка слева от сообщения: что именно подтверждают (удаление ключа, снятие с публикации). */
+  icon?: ReactNode
+  /** Тон иконки. По умолчанию danger при okVariant="danger", иначе info. */
+  tone?: ModalIconTone
   size?: ModalSize
   /** Выполнить действие внутри окна: false - не закрывать. Ошибка остаётся в окне. */
   onOk?: () => unknown
@@ -493,6 +503,8 @@ export function ModalsProvider({ children }: { children: ReactNode }) {
         subtitle: o.subtitle,
         size: o.size ?? 'sm',
         body: o.message ? <div className="ev-modal-message">{o.message}</div> : undefined,
+        icon: o.icon,
+        iconTone: o.tone ?? (danger ? 'danger' : 'info'),
         footer: {
           buttons: [
             { label: o.cancelLabel ?? tRef.current.common.cancel, variant: 'ghost', result: false, autoFocus: danger },
@@ -735,7 +747,18 @@ function ModalEntry({
       footer={footer}
       footerLeft={opts.footer?.left}
     >
-      {typeof opts.body === 'function' ? opts.body(ctx) : opts.body}
+      {opts.icon ? (
+        <div className="ev-modal-iconbody">
+          <span className="ev-modal-icon" data-tone={opts.iconTone ?? 'info'} aria-hidden="true">
+            {opts.icon}
+          </span>
+          <div className="ev-modal-iconbody-main">{typeof opts.body === 'function' ? opts.body(ctx) : opts.body}</div>
+        </div>
+      ) : typeof opts.body === 'function' ? (
+        opts.body(ctx)
+      ) : (
+        opts.body
+      )}
     </Modal>
   )
 }

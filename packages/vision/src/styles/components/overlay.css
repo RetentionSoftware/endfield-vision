@@ -287,6 +287,32 @@
     line-height: 1.55;
   }
 
+  /* Иконка решения слева от содержимого: тонированный квадрат, текст - справа. */
+  .ev-modal-iconbody {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev-space-4);
+  }
+
+  .ev-modal-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-tone-soft);
+    color: var(--ev-tone);
+  }
+
+  .ev-modal-iconbody-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    /* Первая строка текста - вровень с серединой иконки. */
+    padding-top: var(--ev-space-2);
+  }
+
   .ev-modal-foot {
     display: flex;
     align-items: center;

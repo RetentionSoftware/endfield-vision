@@ -977,13 +977,36 @@
     text-align: center;
   }
 
-  /* В окне просмотра плеер вписан в сцену. */
+  /*
+   * В окне просмотра плеер занимает сцену (container-type: size), а кадр
+   * вписывается в неё по своим пропорциям (--ev-video-ar из метаданных, до них -
+   * 16:9): вертикальное видео - по высоте, без обрезки, элементы управления -
+   * у нижнего края кадра. Фон и тень - у кадра, не у пустого места вокруг.
+   */
   .ev-lightbox-video {
-    --ev-video-max-h: 100%;
+    container-type: size;
     width: min(100%, 1100px);
-    max-height: 100%;
-    box-shadow: var(--ev-shadow-modal);
+    height: 100%;
+    overflow: visible;
+    background: transparent;
     animation: ev-pop-in var(--ev-dur) var(--ev-ease-out);
+  }
+
+  .ev-lightbox-video .ev-video-el {
+    width: min(100cqw, 100cqh * var(--ev-video-ar, 1.7778));
+    height: auto;
+    max-height: none;
+    aspect-ratio: var(--ev-video-ar, 1.7778);
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-media-scrim);
+    box-shadow: var(--ev-shadow-modal);
+  }
+
+  .ev-lightbox-video .ev-video-error {
+    --ev-video-max-h: 100%;
+    width: min(100cqw, 100cqh * 1.7778);
+    border-radius: var(--ev-radius-md);
+    background: var(--ev-media-scrim);
   }
 
   /* ================================================================ */

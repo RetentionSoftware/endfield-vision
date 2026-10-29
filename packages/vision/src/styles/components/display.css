@@ -125,8 +125,10 @@
     color: var(--ev-text-muted);
   }
 
+  /* Действия не сжимаются уже своих кнопок: переносится описание слева. */
   .ev-card-actions {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--ev-space-2);

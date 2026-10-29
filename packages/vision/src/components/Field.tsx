@@ -179,7 +179,7 @@ export function FormSection({ title, description, columns, minColumn, children, 
       {title || description ? (
         <header className="ev-form-section-head">
           {title ? <h3 className="ev-form-section-title">{title}</h3> : null}
-          {description ? <p className="ev-form-section-desc">{description}</p> : null}
+          {description ? <div className="ev-form-section-desc">{description}</div> : null}
         </header>
       ) : null}
       <div

@@ -510,6 +510,35 @@
     color: var(--ev-text-muted);
   }
 
+  /*
+   * Флажок или тумблер с блоком под описанием: блок вровень с колонкой текста.
+   * --ev-check-text-offset - ширина контрола и промежуток до текста.
+   */
+  .ev-check-block {
+    --ev-check-text-offset: calc(18px + var(--ev-space-3));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-check-block[data-kind='switch'] {
+    --ev-check-text-offset: calc(36px + var(--ev-space-3));
+  }
+
+  .ev-check-block[data-kind='switch'][data-size='sm'] {
+    --ev-check-text-offset: calc(30px + var(--ev-space-3));
+  }
+
+  .ev-check-extra {
+    align-self: stretch;
+    min-width: 0;
+    padding-left: var(--ev-check-text-offset);
+    color: var(--ev-text-secondary);
+    font-size: var(--ev-fs-sm);
+  }
+
   .ev-switch-track {
     position: relative;
     flex: 0 0 auto;

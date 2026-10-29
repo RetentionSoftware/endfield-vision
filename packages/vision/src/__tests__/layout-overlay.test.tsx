@@ -4,12 +4,13 @@ import { fileURLToPath } from 'node:url'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { AppShell, AppShellFill, Topbar, Sidebar } from '../components/AppShell'
-import { SegmentedControl } from '../components/Choice'
+import { Checkbox, SegmentedControl, Switch } from '../components/Choice'
 import { FilterBar, Pagination } from '../components/DataTable'
 import { Field, FormRow, FormSection } from '../components/Field'
 import { Input } from '../components/Input'
 import { submitModalOnEnter } from '../components/Modal'
 import { SectionTitle } from '../components/Page'
+import { PermissionMatrix } from '../components/PermissionMatrix'
 import { SettingRow } from '../components/SettingsList'
 import { Slider } from '../components/Slider'
 import { Tabs } from '../components/Tabs'
@@ -328,5 +329,69 @@ describe('Колёсико над лентой', () => {
     expect(wheelDelta(wheel(10, { deltaX: 40 }), track(0))).toBe(0)
     expect(wheelDelta(wheel(100, { shiftKey: true }), track(0))).toBe(0)
     expect(wheelDelta(wheel(100, { ctrlKey: true }), track(0))).toBe(0)
+  })
+})
+
+describe('Блочный контент в описаниях и подсказках', () => {
+  it('SettingRow: description и hint - div, блочный контент допустим', () => {
+    const out = renderRu(
+      <SettingRow
+        label="Рейсы"
+        description={<div>Описание блоком</div>}
+        hint={<div>Подробности блоком</div>}
+        control={<Input />}
+      />,
+    )
+    expect(out).toContain('class="ev-setting-desc"><div>Описание блоком</div></div>')
+    expect(out).toContain('<div class="ev-setting-hint"><div>Подробности блоком</div></div>')
+    expect(out).not.toMatch(/<p[ >]/)
+  })
+})
+
+describe('Checkbox и Switch: блок под описанием', () => {
+  it('блок - вне label, вровень с текстом; без него разметка прежняя', () => {
+    const out = renderRu(
+      <Switch checked={false} onChange={noop} label="Мобильное приложение" description="Вход по коду" size="sm" className="x">
+        <div>Подробное пояснение</div>
+      </Switch>,
+    )
+    expect(out).toMatch(/^<div class="ev-check-block x" data-kind="switch" data-size="sm"><label class="ev-switch" /)
+    expect(out).toContain('</label><div class="ev-check-extra"><div>Подробное пояснение</div></div></div>')
+    const plain = renderRu(<Checkbox checked onChange={noop} label="Согласие" className="x" />)
+    expect(plain).toMatch(/^<label class="ev-check x"/)
+    expect(plain).not.toContain('ev-check-block')
+  })
+})
+
+describe('PermissionMatrix: ширины и compact', () => {
+  const rows = [{ id: 'keys', label: 'API-ключи' }]
+  const columns = [{ id: 'admin', label: 'Администратор филиала' }]
+  it('columnWidth и rowHeaderWidth - переменные, compact - иконка в ячейке, название скрыто визуально', () => {
+    const out = renderRu(
+      <PermissionMatrix
+        aria-label="Права"
+        rows={rows}
+        columns={columns}
+        value={{ keys: { admin: 'full' } }}
+        onChange={noop}
+        density="compact"
+        columnWidth={88}
+        rowHeaderWidth="10rem"
+      />,
+    )
+    expect(out).toContain('data-density="compact" style="--ev-perm-col-w:88px;--ev-perm-rowhead-w:10rem"')
+    expect(out).toContain('<span class="ev-perm-coltext">Администратор филиала</span>')
+    expect(out).toMatch(/class="ev-perm-cell"[^>]*>[\s\S]*?<span class="ev-visually-hidden">Полный доступ<\/span>/)
+    const normal = renderRu(<PermissionMatrix aria-label="Права" rows={rows} columns={columns} value={{}} onChange={noop} />)
+    expect(normal).not.toContain('data-density')
+    expect(normal).toContain('class="ev-perm-cell-label"')
+  })
+})
+
+describe('Видео в Lightbox', () => {
+  it('кадр вписывается в сцену по пропорциям: container query, не max-height', () => {
+    const css = readCss('components/communication.css')
+    expect(css).toMatch(/\.ev-lightbox-video \{[^}]*container-type: size;[^}]*height: 100%;/)
+    expect(css).toMatch(/\.ev-lightbox-video \.ev-video-el \{\s*width: min\(100cqw, 100cqh \* var\(--ev-video-ar, 1\.7778\)\);/)
   })
 })

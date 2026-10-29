@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { useId, useRef, type InputHTMLAttributes, type KeyboardEvent, type ReactElement, type ReactNode, type Ref } from 'react'
 import { cx } from '../lib/cx'
 import { useIsoLayoutEffect } from '../lib/hooks'
 import { revealInTrack, ScrollArrows, useScrollOverflow } from '../lib/scroll-overflow'
@@ -14,7 +14,21 @@ import { Tooltip } from './Tooltip'
  * скринридер.
  */
 
-type NativeCheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'checked' | 'size'>
+type NativeCheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'checked' | 'size' | 'children'>
+
+/**
+ * Блок под описанием (подробное пояснение, ExpandableText): вне <label>, чтобы
+ * кнопки внутри не переключали флажок, с отступом до колонки текста.
+ */
+function withExtra(control: ReactElement, extra: ReactNode, kind: 'check' | 'switch', size: 'sm' | 'md', className?: string) {
+  if (extra === undefined || extra === null || extra === false) return control
+  return (
+    <div className={cx('ev-check-block', className)} data-kind={kind} data-size={size}>
+      {control}
+      <div className="ev-check-extra">{extra}</div>
+    </div>
+  )
+}
 
 export interface CheckboxProps extends NativeCheckboxProps {
   checked: boolean
@@ -23,11 +37,26 @@ export interface CheckboxProps extends NativeCheckboxProps {
   indeterminate?: boolean
   label?: ReactNode
   description?: ReactNode
+  /** Блочное содержимое под описанием, вровень с текстом: длинное пояснение, ExpandableText. */
+  children?: ReactNode
   invalid?: boolean
   ref?: Ref<HTMLInputElement>
 }
 
-export function Checkbox({ checked, onChange, indeterminate = false, label, description, className, invalid, id, disabled, ref, ...rest }: CheckboxProps) {
+export function Checkbox({
+  checked,
+  onChange,
+  indeterminate = false,
+  label,
+  description,
+  children,
+  className,
+  invalid,
+  id,
+  disabled,
+  ref,
+  ...rest
+}: CheckboxProps) {
   const auto = useId()
   const f = useFieldProps({ id, invalid, disabled, 'aria-describedby': rest['aria-describedby'] })
   const inputId = f.id ?? `cb${auto}`
@@ -36,8 +65,9 @@ export function Checkbox({ checked, onChange, indeterminate = false, label, desc
     if (inner.current) inner.current.indeterminate = indeterminate
   }, [indeterminate])
   const descId = description ? `${inputId}-desc` : undefined
-  return (
-    <label className={cx('ev-check', className)} htmlFor={inputId} data-disabled={f.disabled || undefined}>
+  const extra = children !== undefined && children !== null && children !== false
+  return withExtra(
+    <label className={cx('ev-check', !extra && className)} htmlFor={inputId} data-disabled={f.disabled || undefined}>
       <input
         {...rest}
         ref={(n) => {
@@ -67,7 +97,11 @@ export function Checkbox({ checked, onChange, indeterminate = false, label, desc
           ) : null}
         </span>
       ) : null}
-    </label>
+    </label>,
+    children,
+    'check',
+    'md',
+    className,
   )
 }
 
@@ -76,17 +110,20 @@ export interface SwitchProps extends Omit<NativeCheckboxProps, 'role'> {
   onChange: (checked: boolean) => void
   label?: ReactNode
   description?: ReactNode
+  /** Блочное содержимое под описанием, вровень с текстом: длинное пояснение, ExpandableText. */
+  children?: ReactNode
   size?: 'sm' | 'md'
   ref?: Ref<HTMLInputElement>
 }
 
-export function Switch({ checked, onChange, label, description, size = 'md', className, id, disabled, ref, ...rest }: SwitchProps) {
+export function Switch({ checked, onChange, label, description, children, size = 'md', className, id, disabled, ref, ...rest }: SwitchProps) {
   const auto = useId()
   const f = useFieldProps({ id, disabled, 'aria-describedby': rest['aria-describedby'] })
   const inputId = f.id ?? `sw${auto}`
   const descId = description ? `${inputId}-desc` : undefined
-  return (
-    <label className={cx('ev-switch', className)} htmlFor={inputId} data-size={size} data-disabled={f.disabled || undefined}>
+  const extra = children !== undefined && children !== null && children !== false
+  return withExtra(
+    <label className={cx('ev-switch', !extra && className)} htmlFor={inputId} data-size={size} data-disabled={f.disabled || undefined}>
       <input
         {...rest}
         ref={ref}
@@ -113,7 +150,11 @@ export function Switch({ checked, onChange, label, description, size = 'md', cla
           ) : null}
         </span>
       ) : null}
-    </label>
+    </label>,
+    children,
+    'switch',
+    size,
+    className,
   )
 }
 

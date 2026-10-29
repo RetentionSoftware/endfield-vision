@@ -1,12 +1,13 @@
 'use client'
 
 import { Check, ChevronDown, Eye, Lock, Minus, RotateCcw } from 'lucide-react'
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
+import { useRef, useState, type CSSProperties, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { useMessages } from '../lib/i18n'
 import { Button } from './Button'
 import type { Tone } from './Display'
 import { Menu, type MenuEntry } from './Menu'
+import { Tooltip } from './Tooltip'
 
 /*
  * Матрица прав: строки - разделы, столбцы - роли, в ячейке - режим доступа.
@@ -84,6 +85,15 @@ export interface PermissionMatrixProps<M extends string = PermissionMode> {
   rowHeader?: ReactNode
   /** Предел высоты: дальше матрица прокручивается, шапка закреплена. */
   maxHeight?: number | string
+  /**
+   * compact - ячейки только иконкой тона (название режима - в подсказке и для
+   * скринридера), колонки уже: матрица рядом с боковой навигацией.
+   */
+  density?: 'default' | 'compact'
+  /** Ширина колонки роли, px или CSS-длина (по умолчанию 156px, в compact - 96px). Длинное имя - с многоточием и подсказкой. */
+  columnWidth?: number | string
+  /** Ширина первого столбца, px или CSS-длина (по умолчанию 200px, в compact - 168px). */
+  rowHeaderWidth?: number | string
   'aria-label'?: string
   'aria-labelledby'?: string
   className?: string
@@ -122,9 +132,17 @@ export function PermissionMatrix<M extends string = PermissionMode>({
   readOnly = false,
   rowHeader,
   maxHeight,
+  density = 'default',
+  columnWidth,
+  rowHeaderWidth,
   className,
   ...aria
 }: PermissionMatrixProps<M>) {
+  const compact = density === 'compact'
+  const widths: Record<string, string> = {}
+  if (columnWidth !== undefined) widths['--ev-perm-col-w'] = typeof columnWidth === 'number' ? `${columnWidth}px` : columnWidth
+  if (rowHeaderWidth !== undefined)
+    widths['--ev-perm-rowhead-w'] = typeof rowHeaderWidth === 'number' ? `${rowHeaderWidth}px` : rowHeaderWidth
   const t = useMessages()
   const modes = modesProp ?? (defaultModes(t) as unknown as PermissionModeOption<M>[])
   const fallback = modes[0]?.value
@@ -207,7 +225,12 @@ export function PermissionMatrix<M extends string = PermissionMode>({
   const style = maxHeight !== undefined ? ({ maxHeight } as CSSProperties) : undefined
 
   return (
-    <div className={cx('ev-perm', className)} data-readonly={readOnly || undefined}>
+    <div
+      className={cx('ev-perm', className)}
+      data-readonly={readOnly || undefined}
+      data-density={compact ? 'compact' : undefined}
+      style={Object.keys(widths).length ? (widths as CSSProperties) : undefined}
+    >
       <div className="ev-perm-scroll" style={style}>
         <table className="ev-perm-table" role="grid" {...aria}>
           <thead>
@@ -232,7 +255,9 @@ export function PermissionMatrix<M extends string = PermissionMode>({
                         placement="bottom-start"
                         trigger={
                           <button type="button" className="ev-perm-colbtn">
-                            <span>{col.label}</span>
+                            <Tooltip content={col.label} onlyWhenTruncated>
+                              <span className="ev-perm-coltext">{col.label}</span>
+                            </Tooltip>
                             <ChevronDown size={13} aria-hidden="true" />
                           </button>
                         }
@@ -240,7 +265,9 @@ export function PermissionMatrix<M extends string = PermissionMode>({
                     ) : (
                       <span className="ev-perm-collabel">
                         {col.locked ? <Lock size={12} aria-hidden="true" /> : null}
-                        <span>{col.label}</span>
+                        <Tooltip content={col.label} onlyWhenTruncated>
+                          <span className="ev-perm-coltext">{col.label}</span>
+                        </Tooltip>
                       </span>
                     )}
                   </th>
@@ -269,6 +296,9 @@ export function PermissionMatrix<M extends string = PermissionMode>({
                     const opt = optionOf(mode)
                     const editable = !readOnly && !col.locked
                     const isChanged = changed.has(key)
+                    // compact: в ячейке только иконка, название режима - в подсказке.
+                    const withTooltip = (cell: ReactElement) =>
+                      compact && opt ? <Tooltip content={opt.label}>{cell}</Tooltip> : cell
                     return (
                       <td
                         key={col.id}
@@ -277,29 +307,31 @@ export function PermissionMatrix<M extends string = PermissionMode>({
                         data-corners={isChanged ? 'diagonal' : undefined}
                         data-changed={isChanged || undefined}
                       >
-                        <button
-                          type="button"
-                          ref={(n) => {
-                            if (n) cellRefs.current.set(key, n)
-                            else cellRefs.current.delete(key)
-                          }}
-                          className="ev-perm-cell"
-                          data-tone={opt?.tone ?? 'neutral'}
-                          data-mode={mode}
-                          tabIndex={r === activeR && c === activeC ? 0 : -1}
-                          aria-disabled={!editable || undefined}
-                          onFocus={() => setActive({ r, c })}
-                          onClick={editable ? () => cycle(row.id, col.id) : undefined}
-                          onKeyDown={(e) => onCellKey(e, r, c, editable)}
-                        >
-                          {opt?.icon ? (
-                            <span className="ev-perm-cell-icon" aria-hidden="true">
-                              {opt.icon}
-                            </span>
-                          ) : null}
-                          <span className="ev-perm-cell-label">{opt?.label}</span>
-                          {isChanged ? <span className="ev-visually-hidden">, {t.permissions.changed}</span> : null}
-                        </button>
+                        {withTooltip(
+                          <button
+                            type="button"
+                            ref={(n) => {
+                              if (n) cellRefs.current.set(key, n)
+                              else cellRefs.current.delete(key)
+                            }}
+                            className="ev-perm-cell"
+                            data-tone={opt?.tone ?? 'neutral'}
+                            data-mode={mode}
+                            tabIndex={r === activeR && c === activeC ? 0 : -1}
+                            aria-disabled={!editable || undefined}
+                            onFocus={() => setActive({ r, c })}
+                            onClick={editable ? () => cycle(row.id, col.id) : undefined}
+                            onKeyDown={(e) => onCellKey(e, r, c, editable)}
+                          >
+                            {opt?.icon ? (
+                              <span className="ev-perm-cell-icon" aria-hidden="true">
+                                {opt.icon}
+                              </span>
+                            ) : null}
+                            <span className={compact ? 'ev-visually-hidden' : 'ev-perm-cell-label'}>{opt?.label}</span>
+                            {isChanged ? <span className="ev-visually-hidden">, {t.permissions.changed}</span> : null}
+                          </button>
+                        )}
                       </td>
                     )
                   })}

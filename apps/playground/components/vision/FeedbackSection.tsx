@@ -162,8 +162,8 @@ function ModalsCard() {
     <Card
       title="useModals"
       description={t(
-        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, prompt - окно с полем ввода (причина, новое имя), open - своё окно с кнопками. У okVariant="danger" фокус сначала на «Отмена»: случайный Enter ничего не выполнит. Требует ModalsProvider; modals - тот же API вне компонентов.',
-        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, prompt asks for a value (a reason, a new name), open builds a custom dialog with buttons. With okVariant="danger", focus starts on Cancel so a stray Enter does nothing. Requires ModalsProvider; modals is the same API for use outside components.',
+        'Императивные окна: confirm - подтверждение с ожиданием операции, alert - сообщение, prompt - окно с полем ввода (причина, новое имя), open - своё окно с кнопками. У okVariant="danger" фокус сначала на «Отмена»: случайный Enter ничего не выполнит; icon - тонированная иконка рядом с сообщением. Требует ModalsProvider; modals - тот же API вне компонентов.',
+        'Imperative dialogs: confirm asks for confirmation and waits for the operation, alert shows a message, prompt asks for a value (a reason, a new name), open builds a custom dialog with buttons. With okVariant="danger", focus starts on Cancel so a stray Enter does nothing; icon adds a toned icon next to the message. Requires ModalsProvider; modals is the same API for use outside components.',
       )}
     >
       <div className={s.row}>
@@ -179,6 +179,7 @@ function ModalsCard() {
               ),
               okLabel: t('Списать', 'Write off'),
               okVariant: 'danger',
+              icon: <Trash2 size={18} />,
               onOk: () => wait(900),
             })
             if (ok) toast.success(t('Позиция списана', 'Item written off'))

@@ -304,15 +304,18 @@ function PermissionsCard() {
   )
   const columns: PermissionColumn[] = useMemo(() => PERM_ROLES.map((r) => ({ id: r.id, label: tx(r.label), locked: r.locked })), [tx])
   const dirty = JSON.stringify(value) !== JSON.stringify(baseline)
+  const [compact, setCompact] = useState(false)
   return (
     <Card
       flush
       title="PermissionMatrix"
       description={t(
-        'Права ролей: разделы по строкам, роли по столбцам. Нажатие по ячейке перебирает режимы, цифры 1-3 ставят режим сразу, стрелки ходят по сетке. Меню в шапке роли ставит режим на весь столбец, роль с замком не меняется. Изменения против сохранённого состояния (baseline) отмечены уголками, внизу - счётчик и сброс.',
-        'Role permissions: sections in rows, roles in columns. Clicking a cell cycles through modes, keys 1-3 set a mode directly, and arrow keys move around the grid. The menu in a role header sets the whole column; a locked role cannot be changed. Changes against the saved state (baseline) are marked with corners, with a counter and reset at the bottom.',
+        'Права ролей: разделы по строкам, роли по столбцам. Нажатие по ячейке перебирает режимы, цифры 1-3 ставят режим сразу, стрелки ходят по сетке. Меню в шапке роли ставит режим на весь столбец, роль с замком не меняется. Изменения против сохранённого состояния (baseline) отмечены уголками, внизу - счётчик и сброс. density="compact" - ячейки иконкой (название режима - в подсказке), колонки уже; ширины - columnWidth и rowHeaderWidth, длинное имя роли - с многоточием и подсказкой.',
+        'Role permissions: sections in rows, roles in columns. Clicking a cell cycles through modes, keys 1-3 set a mode directly, and arrow keys move around the grid. The menu in a role header sets the whole column; a locked role cannot be changed. Changes against the saved state (baseline) are marked with corners, with a counter and reset at the bottom. density="compact" shows cells as icons (the mode name is in a tooltip) with narrower columns; set widths with columnWidth and rowHeaderWidth, and a long role name gets an ellipsis and a tooltip.',
       )}
       actions={
+        <>
+          <Switch size="sm" checked={compact} onChange={setCompact} label={t('Компактно', 'Compact')} />
         <Button
           size="sm"
           variant="primary"
@@ -325,9 +328,11 @@ function PermissionsCard() {
         >
           {t('Сохранить', 'Save')}
         </Button>
+        </>
       }
     >
       <PermissionMatrix
+        density={compact ? 'compact' : 'default'}
         aria-label={t('Права ролей', 'Role permissions')}
         rows={rows}
         columns={columns}

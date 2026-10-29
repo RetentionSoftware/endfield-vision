@@ -9,6 +9,7 @@ import {
   DateRangePicker,
   DEFAULT_RANGE_PRESETS,
   Divider,
+  ExpandableText,
   Field,
   FileDrop,
   formatIsoDate,
@@ -271,6 +272,19 @@ function ChoiceCard() {
             description={t('Сообщение при смене статуса задачи.', 'A message when the task status changes.')}
           />
           <Switch checked={compact} onChange={setCompact} size="sm" label={t('Компактный тумблер', 'Compact switch')} />
+          <Switch
+            checked={notify}
+            onChange={setNotify}
+            label={t('Вход в мобильное приложение по коду', 'Mobile app sign-in with a code')}
+            description={t('Блок под описанием (children) - вровень с текстом, вне label.', 'A block under the description (children), aligned with the text, outside the label.')}
+          >
+            <ExpandableText lines={2}>
+              {t(
+                'Водитель получает код в SMS и вводит его при входе. Код действует 5 минут, после трёх неверных попыток вход блокируется на 15 минут. Диспетчер видит попытки входа в журнале и может снять блокировку вручную. Если у водителя нет связи, вход возможен по коду из диспетчерской.',
+                'The driver gets a code by SMS and enters it at sign-in. The code is valid for 5 minutes; after three wrong attempts sign-in is blocked for 15 minutes. The dispatcher sees sign-in attempts in the log and can lift the block manually. Without a signal, the driver can sign in with a code from the dispatch office.',
+              )}
+            </ExpandableText>
+          </Switch>
           <Switch checked onChange={() => undefined} label={t('Недоступно', 'Unavailable')} disabled />
           <Subhead>RadioGroup</Subhead>
           <RadioGroup<Priority>

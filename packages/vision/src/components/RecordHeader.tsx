@@ -98,7 +98,7 @@ export function RecordHeader({
               <Heading className="ev-record-title">{title}</Heading>
               {meta ? <div className="ev-record-meta">{meta}</div> : null}
             </div>
-            {subtitle ? <p className="ev-record-subtitle">{subtitle}</p> : null}
+            {subtitle ? <div className="ev-record-subtitle">{subtitle}</div> : null}
             {identifiers && identifiers.length > 0 ? (
               <dl className="ev-record-ids">
                 {identifiers.map((it) => (
