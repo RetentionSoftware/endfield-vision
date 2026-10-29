@@ -21,7 +21,31 @@ const NO_OVERFLOW: ScrollOverflow = { start: false, end: false }
 /** Меньше этого элемент считается видимым: стрелка ведёт к следующему, а не докручивает пару пикселей. */
 const SLACK = 8
 
-/** Есть ли скрытые элементы слева и справа. Пересчёт при прокрутке и смене размеров; на сервере - нет. */
+/**
+ * Сдвиг ленты от вертикального колёсика: 0 - событие остаётся странице
+ * (ленте некуда крутиться, жест горизонтальный или с Shift - его браузер
+ * обработает сам). Строки и страницы колёсика переводятся в пиксели.
+ */
+export function wheelDelta(
+  e: { deltaX: number; deltaY: number; deltaMode: number; shiftKey: boolean; ctrlKey: boolean },
+  track: { scrollLeft: number; scrollWidth: number; clientWidth: number },
+): number {
+  if (e.ctrlKey || e.shiftKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return 0
+  const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? track.clientWidth : 1
+  const delta = e.deltaY * unit
+  const max = track.scrollWidth - track.clientWidth
+  if (max <= 1) return 0
+  // У края - страница крутится дальше, курсор над лентой её не запирает.
+  if (delta < 0 && track.scrollLeft <= 0) return 0
+  if (delta > 0 && track.scrollLeft >= max - 1) return 0
+  return delta
+}
+
+/**
+ * Есть ли скрытые элементы слева и справа. Пересчёт при прокрутке и смене
+ * размеров; на сервере - нет. Колёсико над переполненной лентой крутит её,
+ * а не страницу.
+ */
 export function useScrollOverflow(ref: { current: HTMLElement | null }, count: number): ScrollOverflow {
   const [overflow, setOverflow] = useState<ScrollOverflow>(NO_OVERFLOW)
   useEffect(() => {
@@ -32,13 +56,22 @@ export function useScrollOverflow(ref: { current: HTMLElement | null }, count: n
       const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
       setOverflow((prev) => (prev.start === start && prev.end === end ? prev : { start, end }))
     }
+    const onWheel = (e: WheelEvent) => {
+      const delta = wheelDelta(e, el)
+      if (!delta) return
+      e.preventDefault()
+      el.scrollLeft += delta
+    }
     update()
     el.addEventListener('scroll', update, { passive: true })
+    // Не пассивный: отменяет прокрутку страницы, когда крутится лента.
+    el.addEventListener('wheel', onWheel, { passive: false })
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
     ro?.observe(el)
     for (const child of Array.from(el.children)) ro?.observe(child)
     return () => {
       el.removeEventListener('scroll', update)
+      el.removeEventListener('wheel', onWheel)
       ro?.disconnect()
     }
   }, [ref, count])

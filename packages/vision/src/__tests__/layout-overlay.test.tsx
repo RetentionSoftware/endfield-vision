@@ -16,7 +16,7 @@ import { Tabs } from '../components/Tabs'
 import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
 import { insertEscapeLayer, type EscapeLayer } from '../lib/overlay'
-import { nextItemDelta } from '../lib/scroll-overflow'
+import { nextItemDelta, wheelDelta } from '../lib/scroll-overflow'
 import { renderRu } from './render-ru'
 
 /* Слои Escape, Enter в окне-форме, размеры и раскладка контролов, вкладки, каркас во всю высоту. */
@@ -300,5 +300,33 @@ describe('Лента с прокруткой: SegmentedControl и стрелки
   it('без элементов - на половину ширины', () => {
     expect(nextItemDelta(track, [], 36, 1)).toBe(150)
     expect(nextItemDelta(track, [], 36, -1)).toBe(-150)
+  })
+})
+
+describe('Колёсико над лентой', () => {
+  const wheel = (deltaY: number, patch: Partial<{ deltaX: number; deltaMode: number; shiftKey: boolean; ctrlKey: boolean }> = {}) => ({
+    deltaX: 0,
+    deltaY,
+    deltaMode: 0,
+    shiftKey: false,
+    ctrlKey: false,
+    ...patch,
+  })
+  const track = (scrollLeft: number) => ({ scrollLeft, scrollWidth: 400, clientWidth: 280 })
+
+  it('вертикальное колёсико крутит переполненную ленту', () => {
+    expect(wheelDelta(wheel(100), track(0))).toBe(100)
+    expect(wheelDelta(wheel(-100), track(60))).toBe(-100)
+    // Строки - в пиксели.
+    expect(wheelDelta(wheel(3, { deltaMode: 1 }), track(0))).toBe(48)
+  })
+
+  it('у края, без переполнения, по горизонтальному жесту, с Shift и Ctrl - событие остаётся странице', () => {
+    expect(wheelDelta(wheel(-100), track(0))).toBe(0)
+    expect(wheelDelta(wheel(100), track(120))).toBe(0)
+    expect(wheelDelta(wheel(100), { scrollLeft: 0, scrollWidth: 280, clientWidth: 280 })).toBe(0)
+    expect(wheelDelta(wheel(10, { deltaX: 40 }), track(0))).toBe(0)
+    expect(wheelDelta(wheel(100, { shiftKey: true }), track(0))).toBe(0)
+    expect(wheelDelta(wheel(100, { ctrlKey: true }), track(0))).toBe(0)
   })
 })
