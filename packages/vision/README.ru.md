@@ -15,7 +15,7 @@ npm i endfield-vision
 Без реестра npm: к каждому релизу на GitHub приложена та же сборка архивом.
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.7/endfield-vision-2.2.7.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.8/endfield-vision-2.2.8.tgz
 ```
 
 Нужны `react` и `react-dom` 19.
