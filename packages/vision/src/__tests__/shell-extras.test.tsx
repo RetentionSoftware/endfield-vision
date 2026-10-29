@@ -13,7 +13,7 @@ import {
 import type { MenuEntry } from '../components/Menu'
 import { isBlockingOverlay, ScreenNoticeView, ScreenOverlay, ScreenOverlayView } from '../components/ScreenOverlay'
 import { StatusBar, StatusBarClock, StatusBarItem, StatusBarSeparator } from '../components/StatusBar'
-import { filterWorkspaces, WorkspaceSwitcher, type WorkspaceItem } from '../components/WorkspaceSwitcher'
+import { filterWorkspaces, segmentWorkspaces, WorkspaceSwitcher, type WorkspaceItem } from '../components/WorkspaceSwitcher'
 import { LocaleProvider } from '../lib/i18n'
 import {
   countActiveFilters,
@@ -370,5 +370,27 @@ describe('url-filters', () => {
     expect(mergeFilterSearch('?demo_q=old', new URLSearchParams(), Object.keys(DEFAULTS))).toBe('')
     expect(hasFilterParams(new URLSearchParams('tab=data'), Object.keys(DEFAULTS))).toBe(false)
     expect(hasFilterParams(new URLSearchParams('demo_status='), Object.keys(DEFAULTS))).toBe(true)
+  })
+})
+
+describe('WorkspaceSwitcher: группы', () => {
+  const ORGS: WorkspaceItem[] = [
+    { id: 'm1', name: 'Медцентр Север', group: 'Медцентры' },
+    { id: 'm2', name: 'Медцентр Юг', group: 'Медцентры' },
+    { id: 'p1', name: 'Парк Северный', group: 'Парки' },
+    { id: 'p2', name: 'Парк Южный', group: 'Парки' },
+  ]
+
+  it('подряд идущие пункты одной группы - один сегмент, номера - сквозные', () => {
+    const segs = segmentWorkspaces(ORGS)
+    expect(segs.map((s) => s.group)).toEqual(['Медцентры', 'Парки'])
+    expect(segs[1]!.items.map((x) => x.index)).toEqual([2, 3])
+    expect(segmentWorkspaces([{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }])).toHaveLength(1)
+  })
+
+  it('поиск фильтрует внутри групп, группа без совпадений исчезает вместе с заголовком', () => {
+    const segs = segmentWorkspaces(filterWorkspaces(ORGS, 'парк'))
+    expect(segs.map((s) => s.group)).toEqual(['Парки'])
+    expect(segs[0]!.items.map((x) => x.index)).toEqual([0, 1])
   })
 })

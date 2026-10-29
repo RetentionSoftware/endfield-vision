@@ -350,6 +350,22 @@ function WorkspaceCard() {
     { id: 'lab', name: t('Лаборатория Сигма', 'Sigma Lab'), description: t('Центральный сектор', 'Central sector'), icon: <FlaskConical />, badge: t('тест', 'test') },
     { id: 'relay', name: t('Ретранслятор Южный', 'South Relay'), description: t('Южный сектор', 'South sector'), icon: <Antenna />, disabled: true },
   ]
+  // Те же площадки по группам: подряд идущие пункты одной группы - под одним заголовком.
+  const production = t('Производство', 'Production')
+  const logistics = t('Логистика', 'Logistics')
+  const GROUP_OF: Record<string, string> = {
+    'valley-1': production,
+    'valley-2': production,
+    ridge: production,
+    mine: production,
+    lab: production,
+    port: logistics,
+    outpost: logistics,
+    relay: logistics,
+  }
+  const grouped: WorkspaceItem[] = [...items]
+    .sort((a, b) => (GROUP_OF[a.id] === production ? 0 : 1) - (GROUP_OF[b.id] === production ? 0 : 1))
+    .map((w) => ({ ...w, group: GROUP_OF[w.id] }))
   const onSwitch = (id: string) => {
     setValue(id)
     const name = items.find((w) => w.id === id)?.name ?? id
@@ -372,15 +388,15 @@ function WorkspaceCard() {
     <Card
       title="WorkspaceSwitcher"
       description={t(
-        'Переключатель рабочего пространства: организация, филиал, площадка. Поиск появляется, когда пунктов больше шести; текущее отмечено, недоступные пропускаются стрелками. Под списком - своё действие. В свёрнутом боковом меню - только логотип с подсказкой (режим берётся из AppShell или пропа collapsed).',
-        'Workspace switcher for an organization, branch or site. Search appears when there are more than six items; the current one is marked and disabled ones are skipped by arrow keys. Add your own action under the list. In a collapsed sidebar only the logo with a tooltip is shown (the mode comes from AppShell or the collapsed prop).',
+        'Переключатель рабочего пространства: организация, филиал, площадка. Поиск появляется, когда пунктов больше шести; текущее отмечено, недоступные пропускаются стрелками. Под списком - своё действие. group у пункта делит список на группы с заголовками (как в Select): поиск фильтрует внутри групп, пустая группа скрывается. В свёрнутом боковом меню - только логотип с подсказкой (режим берётся из AppShell или пропа collapsed).',
+        'Workspace switcher for an organization, branch or site. Search appears when there are more than six items; the current one is marked and disabled ones are skipped by arrow keys. Add your own action under the list. group on an item splits the list into groups with headings (as in Select): search filters inside groups and an empty group is hidden. In a collapsed sidebar only the logo with a tooltip is shown (the mode comes from AppShell or the collapsed prop).',
       )}
     >
       <div className="ev-grid" style={{ '--ev-grid-min': '260px', '--ev-gap': 'var(--ev-space-7)' } as CSSProperties}>
         <div className="ev-stack">
           <Subhead>{t('В заголовке бокового меню', 'In the sidebar header')}</Subhead>
           <div style={{ ...nestedStyle, padding: 'var(--ev-space-2)', width: 248 }}>
-            <WorkspaceSwitcher items={items} value={value} onSwitch={onSwitch} footer={footer} heading={t('Площадки', 'Sites')} block />
+            <WorkspaceSwitcher items={grouped} value={value} onSwitch={onSwitch} footer={footer} block />
           </div>
         </div>
         <div className="ev-stack">

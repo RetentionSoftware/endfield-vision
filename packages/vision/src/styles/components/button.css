@@ -77,6 +77,13 @@
     padding: 0;
   }
 
+  /* Две иконки без подписи: ширина по содержимому, не уже квадрата, отступы узкие. */
+  .ev-btn-icons {
+    gap: var(--ev-space-1);
+    min-width: var(--ev-btn-h);
+    padding: 0 var(--ev-space-2);
+  }
+
   .ev-btn-icon {
     display: inline-flex;
     flex: 0 0 auto;

@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, ChevronsUpDown, Search } from 'lucide-react'
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { Fragment, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cx, normalizeSearch } from '../lib/cx'
 import { useEventCallback, useIsoLayoutEffect, useOutsideClick } from '../lib/hooks'
 import { useMessages } from '../lib/i18n'
@@ -33,6 +33,12 @@ export interface WorkspaceItem {
   disabled?: boolean
   /** Доп. слова для поиска (код, старое название). */
   keywords?: string[]
+  /**
+   * Группа («Медцентры», «Парки»): подряд идущие пункты одной группы - под
+   * одним заголовком. Поиск фильтрует внутри групп, группа без совпадений
+   * скрывается вместе с заголовком; стрелки идут по пунктам, минуя заголовки.
+   */
+  group?: string
 }
 
 export interface WorkspaceSwitcherProps {
@@ -66,6 +72,23 @@ export function filterWorkspaces(items: WorkspaceItem[], query: string): Workspa
     )
     return words.every((w) => hay.includes(w))
   })
+}
+
+export interface WorkspaceSegment {
+  /** Заголовок группы; undefined - пункты без группы. */
+  group?: string
+  items: Array<{ item: WorkspaceItem; index: number }>
+}
+
+/** Подряд идущие пункты одной группы - один сегмент; index - номер пункта в плоском списке (для стрелок). */
+export function segmentWorkspaces(items: WorkspaceItem[]): WorkspaceSegment[] {
+  const out: WorkspaceSegment[] = []
+  items.forEach((item, index) => {
+    const last = out[out.length - 1]
+    if (last && last.group === item.group) last.items.push({ item, index })
+    else out.push({ group: item.group, items: [{ item, index }] })
+  })
+  return out
 }
 
 function WorkspaceMark({ item, size }: { item: WorkspaceItem; size: number }) {
@@ -337,34 +360,46 @@ export function WorkspaceSwitcher({
                   {t.common.nothingFound}
                 </div>
               ) : (
-                visible.map((it, i) => {
-                  const isCurrent = it.id === current.id
-                  return (
-                    <div
-                      key={it.id}
-                      id={optionId(i)}
-                      role="option"
-                      aria-selected={isCurrent}
-                      aria-disabled={it.disabled || undefined}
-                      className="ev-select-option ev-workspace-option"
-                      data-active={i === active || undefined}
-                      data-current={isCurrent || undefined}
-                      onPointerMove={() => !it.disabled && i !== active && setActive(i)}
-                      onPointerDown={(e) => e.preventDefault()}
-                      onClick={() => pick(it)}
-                    >
-                      <WorkspaceMark item={it} size={28} />
-                      <span className="ev-select-option-body">
-                        <span className="ev-select-option-label">{it.name}</span>
-                        {it.description ? <span className="ev-select-option-hint">{it.description}</span> : null}
-                      </span>
-                      {it.badge !== undefined && it.badge !== null ? <span className="ev-workspace-badge">{it.badge}</span> : null}
-                      {isCurrent ? (
-                        <span className="ev-workspace-current">
-                          <Check size={14} aria-hidden="true" />
-                          <span>{t.workspace.current}</span>
+                segmentWorkspaces(visible).map((seg, si) => {
+                  const options = seg.items.map(({ item: it, index: i }) => {
+                    const isCurrent = it.id === current.id
+                    return (
+                      <div
+                        key={it.id}
+                        id={optionId(i)}
+                        role="option"
+                        aria-selected={isCurrent}
+                        aria-disabled={it.disabled || undefined}
+                        className="ev-select-option ev-workspace-option"
+                        data-active={i === active || undefined}
+                        data-current={isCurrent || undefined}
+                        onPointerMove={() => !it.disabled && i !== active && setActive(i)}
+                        onPointerDown={(e) => e.preventDefault()}
+                        onClick={() => pick(it)}
+                      >
+                        <WorkspaceMark item={it} size={28} />
+                        <span className="ev-select-option-body">
+                          <span className="ev-select-option-label">{it.name}</span>
+                          {it.description ? <span className="ev-select-option-hint">{it.description}</span> : null}
                         </span>
-                      ) : null}
+                        {it.badge !== undefined && it.badge !== null ? <span className="ev-workspace-badge">{it.badge}</span> : null}
+                        {isCurrent ? (
+                          <span className="ev-workspace-current">
+                            <Check size={14} aria-hidden="true" />
+                            <span>{t.workspace.current}</span>
+                          </span>
+                        ) : null}
+                      </div>
+                    )
+                  })
+                  if (seg.group === undefined) return <Fragment key={`s${si}`}>{options}</Fragment>
+                  const headId = `${listId}-g${si}`
+                  return (
+                    <div key={`g${si}`} role="group" aria-labelledby={headId} className="ev-workspace-group">
+                      <div id={headId} className="ev-select-group" role="presentation">
+                        {seg.group}
+                      </div>
+                      {options}
                     </div>
                   )
                 })

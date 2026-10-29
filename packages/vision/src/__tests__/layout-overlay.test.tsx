@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Button } from '../components/Button'
 import { AppShell, AppShellFill, Topbar, Sidebar } from '../components/AppShell'
 import { Checkbox, SegmentedControl, Switch } from '../components/Choice'
 import { FilterBar, Pagination } from '../components/DataTable'
@@ -393,5 +394,15 @@ describe('Видео в Lightbox', () => {
     const css = readCss('components/communication.css')
     expect(css).toMatch(/\.ev-lightbox-video \{[^}]*container-type: size;[^}]*height: 100%;/)
     expect(css).toMatch(/\.ev-lightbox-video \.ev-video-el \{\s*width: min\(100cqw, 100cqh \* var\(--ev-video-ar, 1\.7778\)\);/)
+  })
+})
+
+describe('Button: две иконки без подписи', () => {
+  it('не квадрат: ev-btn-icons, ширина по содержимому; одна иконка - ev-btn-iconic', () => {
+    const two = renderRu(<Button variant="ghost" icon={<span>A</span>} iconRight={<span>v</span>} aria-label="Профиль" />)
+    expect(two).toContain('class="ev-btn ev-btn-icons"')
+    expect(two).not.toContain('ev-btn-iconic')
+    expect(renderRu(<Button icon={<span>A</span>} aria-label="Меню" />)).toContain('class="ev-btn ev-btn-iconic"')
+    expect(renderRu(<Button icon={<span>A</span>} iconRight={<span>v</span>}>Профиль</Button>)).toContain('class="ev-btn"')
   })
 })

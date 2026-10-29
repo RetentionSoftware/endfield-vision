@@ -317,7 +317,14 @@ export {
   type ContextMenuTargetInfo,
 } from './components/ContextMenu'
 export { StatusBar, StatusBarItem, StatusBarSeparator, StatusBarClock, type StatusBarProps, type StatusBarItemProps, type StatusBarClockProps } from './components/StatusBar'
-export { WorkspaceSwitcher, filterWorkspaces, type WorkspaceItem, type WorkspaceSwitcherProps } from './components/WorkspaceSwitcher'
+export {
+  WorkspaceSwitcher,
+  filterWorkspaces,
+  segmentWorkspaces,
+  type WorkspaceItem,
+  type WorkspaceSegment,
+  type WorkspaceSwitcherProps,
+} from './components/WorkspaceSwitcher'
 export { ScreenOverlay, isBlockingOverlay, type ScreenOverlayProps, type ScreenOverlayVariant } from './components/ScreenOverlay'
 export {
   useUrlFilters,

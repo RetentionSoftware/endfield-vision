@@ -47,10 +47,13 @@ export function Button({
 }: ButtonProps) {
   const t = useMessages()
   const hasLabel = children !== undefined && children !== null && children !== false
+  // Квадрат - только у кнопки с одной иконкой. Две иконки без подписи (аватар и шеврон,
+  // иконка и счётчик) - кнопка по содержимому с узкими отступами.
+  const twoIcons = !hasLabel && Boolean(iconRight) && Boolean(icon || loading)
   return (
     <button
       type={type}
-      className={cx('ev-btn', block && 'ev-btn-block', !hasLabel && 'ev-btn-iconic', className)}
+      className={cx('ev-btn', block && 'ev-btn-block', !hasLabel && (twoIcons ? 'ev-btn-icons' : 'ev-btn-iconic'), className)}
       data-variant={variant}
       data-size={size}
       data-loading={loading || undefined}
