@@ -1,6 +1,6 @@
 {
   "name": "endfield-vision",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "description": "Endfield Vision - design system for React / Next.js: tokens, dark and light themes, accent presets, accessible components without third-party UI dependencies",
   "keywords": [
     "react",

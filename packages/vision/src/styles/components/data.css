@@ -228,11 +228,12 @@
   }
 
   /* --- Шапка, липнущая к странице (stickyHeader): сдвиг считает DataTable --- */
-  .ev-table[data-sticky-page] thead th {
+  /* Только своя шапка: таблицы во вложенных строках (renderExpanded) не сдвигаются. */
+  .ev-table[data-sticky-page] > thead > tr > th {
     transform: translateY(var(--ev-thead-shift, 0px));
   }
 
-  .ev-table[data-stuck] thead th {
+  .ev-table[data-stuck] > thead > tr > th {
     box-shadow: var(--ev-shadow-sm);
   }
 

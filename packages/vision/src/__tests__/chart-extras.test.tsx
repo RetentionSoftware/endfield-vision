@@ -5,6 +5,7 @@ import { Gauge, gaugeBands, gaugeFraction, gaugeTone } from '../components/chart
 import { buildCalendarGrid, Heatmap, heatLevel, HeatmapMatrix, isoWeekday, resolveCalendarRange } from '../components/charts/Heatmap'
 import { RingProgress, ringSegments } from '../components/RingProgress'
 import { renderRu } from './render-ru'
+import { SplitBars, splitSegments } from '../components/charts/SplitBars'
 
 const count = (s: string, sub: string) => s.split(sub).length - 1
 
@@ -358,5 +359,51 @@ describe('Gauge', () => {
     const id = /aria-describedby="([^"]+)"/.exec(out)?.[1]
     expect(id).toBeTruthy()
     expect(out).toContain(`<span id="${id}" class="ev-gauge-caption">`)
+  })
+})
+
+describe('SplitBars', () => {
+  it('splitSegments: доли от суммы положительных, нули и отрицательные не рисуются и не входят в сумму', () => {
+    const segs = splitSegments([30, 0, -5, 10, Number.NaN, 60])
+    expect(segs.map((s) => s.index)).toEqual([0, 3, 5])
+    expect(segs.map((s) => s.share)).toEqual([0.3, 0.1, 0.6])
+    expect(segs.map((s) => Number(s.start.toFixed(2)))).toEqual([0, 0.3, 0.4])
+    expect(splitSegments([0, -1])).toEqual([])
+  })
+
+  type Tier = { id: string; name: string; med: number; parks: number; fee: number }
+  const tiers: Tier[] = [
+    { id: 'a', name: 'Базовый', med: 300, parks: 100, fee: 0 },
+    { id: 'b', name: 'Пустой', med: 0, parks: 0, fee: 0 },
+  ]
+  const series = [
+    { key: 'med', label: 'Медцентрам', value: (t: Tier) => t.med, hint: 'Выплаты медцентрам' },
+    { key: 'parks', label: 'Паркам', value: (t: Tier) => t.parks },
+    { key: 'fee', label: 'Комиссия', value: (t: Tier) => t.fee },
+  ]
+
+  it('строка - полоса role="img" с долями в подписи; пустая строка - текст; легенда с подсказкой', () => {
+    const out = renderRu(
+      <SplitBars
+        aria-label="Куда ушла цена"
+        data={tiers}
+        rowKey={(t) => t.id}
+        label={(t) => t.name}
+        aside={(t) => (t.id === 'a' ? 'Платформе 0' : null)}
+        series={series}
+        showValues
+        rowEmpty={() => 'Подписок нет'}
+      />,
+    )
+    expect(out).toContain('role="group" aria-label="Куда ушла цена" class="ev-split" data-size="md"')
+    // Процент - по правилам языка (с неразрывным пробелом).
+    expect(out).toMatch(/role="img" aria-label="Базовый: Медцентрам 75\s%, Паркам 25\s%" tabindex="0" class="ev-split-track"/u)
+    // Нулевая серия не рисуется.
+    expect(out.match(/class="ev-split-seg"/g)).toHaveLength(2)
+    expect(out).toContain('flex-grow:0.75;background:var(--ev-chart-1)')
+    expect(out).toContain('<span class="ev-split-aside">Платформе 0</span>')
+    expect(out).toContain('<div class="ev-split-empty">Подписок нет</div>')
+    expect(out.match(/class="ev-split-value"/g)).toHaveLength(2)
+    expect(out).toContain('data-hint="" tabindex="0"')
   })
 })

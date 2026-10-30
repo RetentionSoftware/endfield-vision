@@ -1,6 +1,6 @@
 {
   "name": "endfield-vision-monorepo",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "private": true,
   "description": "Endfield Vision - design system for React / Next.js: tokens, themes, components, playground",
   "workspaces": [

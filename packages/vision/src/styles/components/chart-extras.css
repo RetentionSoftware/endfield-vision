@@ -456,4 +456,150 @@
     color: var(--ev-text-muted);
     font-size: var(--ev-fs-2xs);
   }
+
+  /* ================================================================ */
+  /* Полосы долей (SplitBars)                                          */
+  /* ================================================================ */
+
+  .ev-split {
+    --ev-split-h: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-6);
+    min-width: 0;
+  }
+
+  .ev-split[data-size='sm'] {
+    --ev-split-h: 8px;
+    gap: var(--ev-space-5);
+  }
+
+  .ev-split-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ev-space-2);
+    min-width: 0;
+  }
+
+  .ev-split-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--ev-space-1) var(--ev-space-4);
+    min-width: 0;
+    font-size: var(--ev-fs-sm);
+  }
+
+  .ev-split-label {
+    min-width: 0;
+    color: var(--ev-text);
+  }
+
+  .ev-split-aside {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-split-figure {
+    position: relative;
+  }
+
+  /* Сегменты - доли строки (flex-grow), зазор между ними, скруглённые концы полосы. */
+  .ev-split-track {
+    display: flex;
+    gap: 2px;
+    height: var(--ev-split-h);
+    overflow: hidden;
+    border-radius: var(--ev-radius-pill);
+    outline: none;
+  }
+
+  .ev-split-track:focus-visible {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  .ev-split-seg {
+    flex-basis: 0;
+    flex-shrink: 1;
+    /* Мелкая доля не пропадает совсем. */
+    min-width: 2px;
+    transition: opacity var(--ev-dur-fast) var(--ev-ease);
+  }
+
+  .ev-split-seg[data-dim] {
+    opacity: 0.35;
+  }
+
+  /* Подсказка над серединой сегмента; у краёв - прижата к краю полосы. */
+  .ev-split-tooltip {
+    bottom: calc(100% + var(--ev-space-2));
+    left: var(--ev-split-at);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .ev-split-tooltip[data-align='start'] {
+    left: 0;
+    transform: none;
+  }
+
+  .ev-split-tooltip[data-align='end'] {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  .ev-split-empty {
+    display: flex;
+    align-items: center;
+    min-height: var(--ev-split-h);
+    color: var(--ev-text-muted);
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-split-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ev-space-1) var(--ev-space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ev-fs-xs);
+  }
+
+  .ev-split-value {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ev-space-2);
+  }
+
+  .ev-split-value-label {
+    color: var(--ev-text-secondary);
+  }
+
+  .ev-split-value-num {
+    color: var(--ev-text);
+  }
+
+  .ev-split-legend .ev-chart-legend-item[data-hint] {
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    border-radius: var(--ev-radius-xs);
+    outline: none;
+  }
+
+  .ev-split-legend .ev-chart-legend-item[data-hint]:focus-visible {
+    box-shadow: var(--ev-focus-ring);
+  }
+
+  /* Появление: полосы открываются слева направо волной по строкам. */
+  .ev-split[data-ev-motion='idle'] .ev-split-track {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .ev-split[data-ev-motion='run'] .ev-split-track {
+    animation: ev-chart-reveal var(--ev-motion-item) var(--ev-ease-out) var(--ev-motion-delay, 0ms) backwards;
+  }
 }

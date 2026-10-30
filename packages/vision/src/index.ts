@@ -240,6 +240,7 @@ export { RelativeTime, type RelativeTimeProps } from './components/RelativeTime'
 export { formatRelativeTime, type DateInput } from './lib/relative-time'
 
 // --- Визуализация
+export { SplitBars, splitSegments, type SplitBarsProps, type SplitBarsSeries, type SplitSegment } from './components/charts/SplitBars'
 export { DonutChart, annularSectorPath, paddedSectorPath, polarPoint, donutArcs, groupSlices, type DonutChartProps, type DonutArc } from './components/charts/DonutChart'
 export { Heatmap, HeatmapMatrix, heatLevel, HEAT_LEVELS, isoWeekday, buildCalendarGrid, resolveCalendarRange, type HeatmapProps, type HeatmapMatrixProps, type HeatmapDay, type CalendarGrid, type CalendarMonthLabel, type CalendarRange } from './components/charts/Heatmap'
 export { Gauge, gaugeBands, gaugeFraction, gaugeTone, type GaugeProps, type GaugeThreshold, type GaugeBand } from './components/charts/Gauge'

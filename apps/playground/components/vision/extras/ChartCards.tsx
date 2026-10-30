@@ -8,6 +8,7 @@ import {
   Heatmap,
   HeatmapMatrix,
   RingProgress,
+  SplitBars,
   useNumberFormat,
   type GaugeThreshold,
   type HeatmapDay,
@@ -91,6 +92,70 @@ const PRESSURE_THRESHOLDS: GaugeThreshold[] = [
   { value: 8.5, tone: 'danger' },
 ]
 
+/** Тарифы обслуживания: на что разошлась выручка тарифа за месяц, копейки. Последний - без договоров. */
+interface Tier {
+  id: string
+  name: Bi
+  contracts: number
+  repair: number
+  parts: number
+  logistics: number
+  fee: number
+  reserve: number
+}
+
+const TIERS: Tier[] = [
+  { id: 'base', name: bi('Базовый', 'Basic'), contracts: 12, repair: 21_600_000, parts: 9_800_000, logistics: 4_200_000, fee: 2_900_000, reserve: 0 },
+  { id: 'pro', name: bi('Расширенный', 'Extended'), contracts: 7, repair: 18_900_000, parts: 15_400_000, logistics: 6_300_000, fee: 3_100_000, reserve: 2_450_000 },
+  { id: 'full', name: bi('Полный цикл', 'Full cycle'), contracts: 3, repair: 9_600_000, parts: 11_100_000, logistics: 2_700_000, fee: 1_350_000, reserve: 4_500_000 },
+  { id: 'pilot', name: bi('Пилот', 'Pilot'), contracts: 0, repair: 0, parts: 0, logistics: 0, fee: 0, reserve: 0 },
+]
+
+function SplitBarsCard() {
+  const { t, tx, formatRub } = useT()
+  const fmt = useNumberFormat()
+  const total = (d: Tier) => d.repair + d.parts + d.logistics + d.fee + d.reserve
+  return (
+    <Card
+      style={{ gridColumn: '1 / -1' }}
+      title="SplitBars"
+      description={t(
+        'Полосы долей: строка - полоса на всю ширину, сегменты - доли суммы строки. Серии общие для строк (цвет как у BarChart и DonutChart), нули не рисуются. Над полосой - подпись и итог справа, под ней - значения (showValues), внизу - легенда с пояснениями (hint). Наведение или стрелки на фокусе - серия, значение и доля; строка без значений - текст вместо полосы.',
+        'Split bars: each row is a full-width bar, segments are shares of the row total. Series are shared across rows (colors match BarChart and DonutChart) and zeros are not drawn. The row label and a total sit above the bar, the values (showValues) below it, and a legend with explanations (hint) at the bottom. Hover, or the arrow keys on focus, show the series, value and share; a row without values shows text instead of a bar.',
+      )}
+    >
+      <SplitBars<Tier>
+        aria-label={t('Куда ушла выручка по тарифам', 'Where the revenue went, by plan')}
+        data={TIERS}
+        rowKey={(d) => d.id}
+        label={(d) => (
+          <>
+            <b>{tx(d.name)}</b>
+            {d.contracts > 0 ? (
+              <span className="ev-muted">
+                {' · '}
+                {t(`договоров: ${fmt(d.contracts)}`, `contracts: ${fmt(d.contracts)}`)}
+              </span>
+            ) : null}
+          </>
+        )}
+        labelText={(d) => tx(d.name)}
+        aside={(d) => (total(d) > 0 ? t(`Выручка ${formatRub(total(d))}`, `Revenue ${formatRub(total(d))}`) : null)}
+        series={[
+          { key: 'repair', label: t('Ремонт', 'Repairs'), value: (d) => d.repair, hint: t('Работы подрядчиков по нарядам.', 'Contractor work on work orders.') },
+          { key: 'parts', label: t('Запчасти', 'Parts'), value: (d) => d.parts, hint: t('Закупка и списание со склада.', 'Purchases and stock write-offs.') },
+          { key: 'logistics', label: t('Доставка', 'Delivery'), value: (d) => d.logistics },
+          { key: 'fee', label: t('Комиссия', 'Fee'), value: (d) => d.fee, hint: t('Платёжный сервис и банк.', 'Payment service and bank.') },
+          { key: 'reserve', label: t('В резерве', 'In reserve'), value: (d) => d.reserve, hint: t('Ещё не распределено.', 'Not allocated yet.') },
+        ]}
+        format={(v) => formatRub(v)}
+        showValues
+        rowEmpty={() => t('Договоров по тарифу пока нет', 'No contracts on this plan yet')}
+      />
+    </Card>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Карточки                                                            */
 /* ------------------------------------------------------------------ */
@@ -119,6 +184,7 @@ export function ChartCards() {
 
   return (
     <div className="ev-grid" style={{ '--ev-grid-min': '380px', '--ev-gap': 'var(--ev-space-6)' } as CSSProperties}>
+      <SplitBarsCard />
       <Card
         title="DonutChart"
         description={t(

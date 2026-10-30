@@ -182,7 +182,8 @@ function usePageStickyHead(ref: RefObject<HTMLTableElement | null>, enabled: boo
       const top = offset ?? (scroller ? 0 : parseFloat(getComputedStyle(table).getPropertyValue('--ev-table-sticky-top')) || 0)
       const boundary = (scroller ? scroller.getBoundingClientRect().top : 0) + top
       const shift = stickyHeadShift(boundary, table.getBoundingClientRect().top, table.offsetHeight, head.offsetHeight, table.tFoot?.offsetHeight)
-      table.style.setProperty('--ev-thead-shift', `${shift}px`)
+      // Сдвиг - на своём thead, не на table: вложенные таблицы (renderExpanded) его не наследуют.
+      head.style.setProperty('--ev-thead-shift', `${shift}px`)
       if (shift > 0) table.dataset.stuck = ''
       else delete table.dataset.stuck
     }
@@ -199,7 +200,7 @@ function usePageStickyHead(ref: RefObject<HTMLTableElement | null>, enabled: boo
       ro?.disconnect()
       window.removeEventListener('scroll', schedule, { capture: true })
       window.removeEventListener('resize', schedule)
-      table.style.removeProperty('--ev-thead-shift')
+      head.style.removeProperty('--ev-thead-shift')
       delete table.dataset.stuck
     }
   }, [ref, enabled, offset])

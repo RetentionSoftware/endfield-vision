@@ -430,3 +430,12 @@ describe('Шапки: блок действий не шире строки', () 
     expect(css).toMatch(/\.ev-card-actions \{[^}]*max-width: 100%;/)
   })
 })
+
+describe('DataTable stickyHeader: только своя шапка', () => {
+  it('сдвиг - прямым потомкам своей таблицы, вложенные таблицы в раскрытых строках не задеты', () => {
+    const css = readCss('components/data.css')
+    expect(css).toContain('.ev-table[data-sticky-page] > thead > tr > th {')
+    expect(css).not.toMatch(/\.ev-table\[data-sticky-page\] thead th/)
+    expect(css).toContain('.ev-table[data-stuck] > thead > tr > th {')
+  })
+})
