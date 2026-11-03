@@ -595,23 +595,31 @@
    * кольцо фокуса и волна: тонкий контур выходит от кольца наружу и гаснет,
    * затем следующая. Скругление волны растёт вместе с отступом.
    */
+  /*
+   * Появление - не opacity корня: предок с opacity < 1 отрезает backdrop-filter
+   * потомков, и размытие включалось рывком после затемнения. Затемнение и
+   * размытие нарастают вместе на самой подложке, кольцо - отдельно.
+   */
   .ev-spotlight {
     position: fixed;
     inset: 0;
     z-index: var(--ev-z-spotlight);
     pointer-events: none;
-    opacity: 0;
-    transition: opacity var(--ev-dur-slow) var(--ev-ease-out);
-  }
-
-  .ev-spotlight[data-state='open'] {
-    opacity: 1;
   }
 
   .ev-spotlight-backdrop {
     position: absolute;
     inset: 0;
     background: var(--ev-surface-overlay);
+    opacity: 0;
+    backdrop-filter: blur(0);
+    transition:
+      opacity var(--ev-dur-slow) var(--ev-ease-out),
+      backdrop-filter var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-spotlight[data-state='open'] .ev-spotlight-backdrop {
+    opacity: 1;
     backdrop-filter: blur(3px);
   }
 
@@ -619,11 +627,15 @@
     position: absolute;
     border-radius: var(--ev-spotlight-r);
     box-shadow: var(--ev-focus-ring);
+    opacity: 0;
     transform: scale(1.06);
-    transition: transform var(--ev-dur-slow) var(--ev-ease-out);
+    transition:
+      opacity var(--ev-dur-slow) var(--ev-ease-out),
+      transform var(--ev-dur-slow) var(--ev-ease-out);
   }
 
   .ev-spotlight[data-state='open'] .ev-spotlight-ring {
+    opacity: 1;
     transform: scale(1);
   }
 
@@ -651,7 +663,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ev-spotlight,
+    .ev-spotlight-backdrop,
     .ev-spotlight-ring {
       transition: none;
     }

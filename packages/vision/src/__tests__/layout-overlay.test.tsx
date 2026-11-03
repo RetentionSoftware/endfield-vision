@@ -510,3 +510,12 @@ describe('spotlight', () => {
     expect(z('spotlight')).toBeLessThan(z('toast'))
   })
 })
+
+describe('spotlight: затемнение и размытие вместе', () => {
+  it('у корня слоя нет opacity (иначе backdrop-filter потомков включается рывком); подложка нарастает opacity и blur вместе', () => {
+    const css = readCss('components/overlay.css')
+    const rootRule = css.match(/\.ev-spotlight \{[^}]*\}/)![0]
+    expect(rootRule).not.toContain('opacity')
+    expect(css).toMatch(/\.ev-spotlight\[data-state='open'\] \.ev-spotlight-backdrop \{\s*opacity: 1;\s*backdrop-filter: blur\(3px\);/)
+  })
+})
