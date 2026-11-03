@@ -15,7 +15,7 @@ npm i endfield-vision
 Without the npm registry: every GitHub release has the same build attached as an archive.
 
 ```bash
-npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.13/endfield-vision-2.2.13.tgz
+npm i https://github.com/RetentionSoftware/endfield-vision/releases/download/v2.2.14/endfield-vision-2.2.14.tgz
 ```
 
 Requires `react` and `react-dom` 19.
