@@ -1034,6 +1034,15 @@
     width: 100%;
   }
 
+  .ev-copyvalue {
+    /* Отступ текста от левого края плашки: ghost сдвигает плашку на него влево. */
+    --ev-copyvalue-start: var(--ev-space-5);
+  }
+
+  .ev-copyvalue[data-size='sm'] {
+    --ev-copyvalue-start: var(--ev-space-4);
+  }
+
   .ev-copyvalue-btn {
     display: inline-flex;
     align-items: center;
@@ -1042,7 +1051,7 @@
     min-width: 0;
     max-width: 100%;
     height: var(--ev-control-h);
-    padding: 0 var(--ev-space-4) 0 var(--ev-space-5);
+    padding: 0 var(--ev-space-4) 0 var(--ev-copyvalue-start);
     border-radius: var(--ev-radius);
     background: var(--ev-tint-2);
     color: var(--ev-text);
@@ -1059,7 +1068,7 @@
 
   .ev-copyvalue[data-size='sm'] .ev-copyvalue-btn {
     height: var(--ev-control-h-sm);
-    padding: 0 var(--ev-space-3) 0 var(--ev-space-4);
+    padding: 0 var(--ev-space-3) 0 var(--ev-copyvalue-start);
     border-radius: var(--ev-radius-sm);
     font-size: var(--ev-fs-xs);
   }
@@ -1074,6 +1083,26 @@
 
   .ev-copyvalue-btn:focus-visible {
     box-shadow: var(--ev-focus-ring);
+  }
+
+  /*
+   * ghost: в покое без фона - как обычное значение в списке; фон - при
+   * наведении, нажатии и фокусе. Отступы те же (текст не прыгает), плашка
+   * сдвинута влево на свой отступ - текст вровень с соседними значениями.
+   */
+  .ev-copyvalue[data-variant='ghost'] .ev-copyvalue-btn {
+    margin-inline-start: calc(var(--ev-copyvalue-start) * -1);
+    max-width: calc(100% + var(--ev-copyvalue-start));
+    background: transparent;
+  }
+
+  .ev-copyvalue[data-variant='ghost'] .ev-copyvalue-btn:hover,
+  .ev-copyvalue[data-variant='ghost'] .ev-copyvalue-btn:focus-visible {
+    background: var(--ev-tint-3);
+  }
+
+  .ev-copyvalue[data-variant='ghost'] .ev-copyvalue-btn:active {
+    background: var(--ev-tint-4);
   }
 
   .ev-copyvalue-text {

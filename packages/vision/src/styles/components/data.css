@@ -149,6 +149,20 @@
     background: var(--ev-selected-bg-subtle);
   }
 
+  /*
+   * Полосы (striped). :where() снижает вес правила: наведение, тон, выбор,
+   * фокус и раскрытая строка всегда поверх полосы. Наведение в полосатой
+   * таблице - плотнее обычного, иначе на полосе его не видно. Только свои
+   * строки (>): вложенные таблицы в раскрытых строках не задеты.
+   */
+  :where(.ev-table[data-striped]) > tbody > tr[data-stripe] > td {
+    background: var(--ev-row-stripe);
+  }
+
+  .ev-table[data-striped] > tbody > tr:not([data-tone], [data-selected], [data-clickable]):hover > td {
+    background: var(--ev-hover);
+  }
+
   .ev-table tbody tr[data-muted] td {
     color: var(--ev-text-muted);
   }

@@ -31,6 +31,8 @@
     --ev-tint-4: rgba(255, 255, 255, 0.1);
     --ev-hover: var(--ev-tint-2);
     --ev-active: var(--ev-tint-3);
+    /* Полоса чётной строки таблицы (DataTable striped). */
+    --ev-row-stripe: var(--ev-tint-1);
 
     /* --- Рамки --- */
     --ev-border-soft: rgba(255, 255, 255, 0.05);

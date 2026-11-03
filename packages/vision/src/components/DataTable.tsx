@@ -110,6 +110,12 @@ export interface DataTableProps<T> {
    */
   stickyHeader?: boolean | number
   dense?: boolean
+  /**
+   * Полосы: чётные строки данных на мягком фоне (--ev-row-stripe). Считаются
+   * строки данных, не <tr>: раскрытые детали чётность не сбивают. Наведение,
+   * тон, выбор и фокус - поверх полосы; карточки на узком экране без полос.
+   */
+  striped?: boolean
   /** Подвал: пагинация, итоги. */
   footer?: ReactNode
   /** Карточки на узком экране (по умолчанию) или горизонтальная прокрутка. */
@@ -237,6 +243,7 @@ export function DataTable<T>({
   maxHeight,
   stickyHeader = false,
   dense = false,
+  striped = false,
   footer,
   mobile = 'cards',
   className,
@@ -286,7 +293,7 @@ export function DataTable<T>({
   const totalOf = (c: Column<T>): ReactNode => (typeof c.footerCell === 'function' ? c.footerCell(list) : c.footerCell)
 
   /** Атрибуты строки: свои от приложения, поверх - служебные (клик, выбор, тон). */
-  const rowProps = (row: T, k: string) => {
+  const rowProps = (row: T, k: string, index?: number) => {
     // Без onRowClick клик по раскрываемой строке раскрывает её.
     const activate = onRowClick ? () => onRowClick(row) : canExpand(row) ? () => toggleExpanded(k) : undefined
     return {
@@ -296,6 +303,8 @@ export function DataTable<T>({
       'data-muted': rowMuted?.(row) || undefined,
       'data-selected': selSet.has(k) || undefined,
       'data-expanded': (withExpand && expSet.has(k)) || undefined,
+      // Чётность для полос (только в таблице, не в карточках).
+      'data-stripe': (striped && index !== undefined && index % 2 === 1) || undefined,
       ...(activate
         ? {
             tabIndex: 0,
@@ -422,6 +431,7 @@ export function DataTable<T>({
           ref={tableRef}
           className="ev-table"
           data-dense={dense || undefined}
+          data-striped={striped || undefined}
           data-sticky-page={pageSticky || undefined}
           aria-label={aria['aria-label']}
           aria-busy={loading || fetching || undefined}
@@ -501,7 +511,7 @@ export function DataTable<T>({
               const open = renderExpanded && expSet.has(k) && canExpand(row)
               return (
                 <Fragment key={k}>
-                  <tr {...rowProps(row, k)}>
+                  <tr {...rowProps(row, k, i)}>
                     {withExpand ? (
                       <td className="ev-table-expand" data-row-stop="">
                         {expandButton(row, k, i)}

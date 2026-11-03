@@ -105,6 +105,12 @@ export interface CopyValueProps {
   /** На всю ширину контейнера; длинное значение обрезается многоточием. */
   block?: boolean
   size?: 'sm' | 'md'
+  /**
+   * filled (по умолчанию) - плашка с фоном; ghost - без фона в покое, как
+   * обычный текст в списке (KeyValueList), фон - при наведении и фокусе.
+   * Иконка копирования видна всегда; текст стоит вровень с соседними значениями.
+   */
+  variant?: 'filled' | 'ghost'
   className?: string
 }
 
@@ -123,6 +129,7 @@ export function CopyValue({
   toast: withToast = true,
   block = false,
   size = 'md',
+  variant = 'filled',
   className,
 }: CopyValueProps) {
   const t = useMessages()
@@ -130,7 +137,12 @@ export function CopyValue({
   const hrefLabel = hrefLabelProp ?? t.copy.open
   const { done, run } = useCopy(value, withToast)
   return (
-    <span className={cx('ev-copyvalue', className)} data-block={block || undefined} data-size={size}>
+    <span
+      className={cx('ev-copyvalue', className)}
+      data-block={block || undefined}
+      data-size={size}
+      data-variant={variant === 'ghost' ? 'ghost' : undefined}
+    >
       <Tooltip content={done ? t.copy.copied : label}>
         <button
           type="button"

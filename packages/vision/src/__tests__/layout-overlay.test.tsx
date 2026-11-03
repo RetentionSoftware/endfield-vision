@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../components/Button'
 import { AppShell, AppShellFill, Topbar, Sidebar } from '../components/AppShell'
 import { Checkbox, SegmentedControl, Switch } from '../components/Choice'
-import { FilterBar, Pagination } from '../components/DataTable'
+import { DataTable, FilterBar, Pagination } from '../components/DataTable'
 import { Field, FormRow, FormSection } from '../components/Field'
 import { Input } from '../components/Input'
 import { submitModalOnEnter } from '../components/Modal'
@@ -15,6 +15,7 @@ import { PermissionMatrix } from '../components/PermissionMatrix'
 import { SettingRow } from '../components/SettingsList'
 import { Slider } from '../components/Slider'
 import { Tabs } from '../components/Tabs'
+import { CopyValue } from '../components/Utility'
 import { isKeyboardFocus } from '../components/Tooltip'
 import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
@@ -437,5 +438,49 @@ describe('DataTable stickyHeader: только своя шапка', () => {
     expect(css).toContain('.ev-table[data-sticky-page] > thead > tr > th {')
     expect(css).not.toMatch(/\.ev-table\[data-sticky-page\] thead th/)
     expect(css).toContain('.ev-table[data-stuck] > thead > tr > th {')
+  })
+})
+
+describe('DataTable striped', () => {
+  type Row = { id: string; name: string }
+  const rows: Row[] = [
+    { id: 'a', name: 'А' },
+    { id: 'b', name: 'Б' },
+    { id: 'c', name: 'В' },
+  ]
+  const columns = [{ key: 'name', header: 'Имя', cell: (r: Row) => r.name }]
+  it('чётность по строкам данных: раскрытые детали не сбивают; без striped атрибутов нет', () => {
+    const out = renderRu(
+      <DataTable
+        aria-label="Перевозчики"
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        striped
+        renderExpanded={(r) => r.name}
+        defaultExpanded={['a']}
+      />,
+    )
+    expect(out).toContain('data-striped="true"')
+    // Вторая строка данных (б) - полоса, хотя перед ней ещё строка деталей.
+    expect(out.match(/data-stripe="true"/g)).toHaveLength(1)
+    expect(out).toMatch(/<tr class="ev-table-detail-row"[\s\S]*?<tr[^>]*data-stripe="true"/)
+    const plain = renderRu(<DataTable aria-label="П" columns={columns} rows={rows} rowKey={(r) => r.id} />)
+    expect(plain).not.toContain('data-stripe')
+    expect(plain).not.toContain('data-striped')
+  })
+
+  it('полоса ниже наведения, тона, выбора и фокуса; только свои строки', () => {
+    const css = readCss('components/data.css')
+    expect(css).toContain(':where(.ev-table[data-striped]) > tbody > tr[data-stripe] > td {')
+  })
+})
+
+describe('CopyValue variant="ghost"', () => {
+  it('data-variant; по умолчанию - filled без атрибута', () => {
+    expect(renderRu(<CopyValue value="7704217370" variant="ghost" />)).toContain('class="ev-copyvalue" data-size="md" data-variant="ghost"')
+    expect(renderRu(<CopyValue value="7704217370" />)).not.toContain('data-variant')
+    const css = readCss('components/display.css')
+    expect(css).toMatch(/\.ev-copyvalue\[data-variant='ghost'\] \.ev-copyvalue-btn \{\s*margin-inline-start: calc\(var\(--ev-copyvalue-start\) \* -1\);/)
   })
 })

@@ -173,6 +173,7 @@ function TableCard() {
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   const [dense, setDense] = useState(false)
+  const [striped, setStriped] = useState(true)
   const [clearable, setClearable] = useState(true)
 
   const stock = useMemo(() => stockItems(tr), [tr])
@@ -229,6 +230,7 @@ function TableCard() {
                 <Switch size="sm" checked={loading} onChange={setLoading} label={t('Загрузка', 'Loading')} />
                 <Switch size="sm" checked={failed} onChange={setFailed} label={t('Ошибка', 'Error')} />
                 <Switch size="sm" checked={dense} onChange={setDense} label={t('Плотно', 'Dense')} />
+                <Switch size="sm" checked={striped} onChange={setStriped} label={t('Полосы', 'Striped')} />
                 <Switch size="sm" checked={clearable} onChange={setClearable} label={t('Снимать сортировку', 'Clearable sort')} />
               </>
             }
@@ -293,6 +295,7 @@ function TableCard() {
         sort={sort}
         onSortChange={setSort}
         sortClearable={clearable}
+        striped={striped}
         selected={selected}
         onSelectedChange={setSelected}
         rowMuted={(r) => r.status === 'out'}
@@ -407,8 +410,8 @@ function CopyCard() {
     <Card
       title={t('CopyButton и CopyValue', 'CopyButton and CopyValue')}
       description={t(
-        'Копирование кодов, ссылок и идентификаторов: галочка после копирования и тост «Скопировано». CopyValue - плашка-значение целиком кликабельна.',
-        'Copy codes, links and IDs: a checkmark after copying and a "Copied" toast. CopyValue is a value chip that is clickable as a whole.',
+        'Копирование кодов, ссылок и идентификаторов: галочка после копирования и тост «Скопировано». CopyValue - плашка-значение целиком кликабельна; variant="ghost" - без фона в покое, для списков значений.',
+        'Copy codes, links and IDs: a checkmark after copying and a "Copied" toast. CopyValue is a value chip that is clickable as a whole; variant="ghost" has no background at rest, for lists of values.',
       )}
     >
       <div className="ev-stack">
@@ -420,6 +423,7 @@ function CopyCard() {
         <div className={s.row}>
           <CopyValue value="VAL-01" label={t('Скопировать код объекта', 'Copy facility code')} />
           <CopyValue value="ops@endfield.local" label={t('Скопировать почту', 'Copy email')} mono={false} />
+          <CopyValue value="VAL-02" variant="ghost" label={t('Скопировать код объекта', 'Copy facility code')} />
           <CopyValue
             value="https://endfield.local/facilities/val-01"
             label={t('Скопировать ссылку', 'Copy link')}
@@ -499,15 +503,24 @@ export function DataSection() {
         <Card
           title="KeyValueList"
           description={t(
-            'Карточка сущности: подпись слева, значение справа, подсказка под значением. Пустое значение - приглушённый дефис.',
-            'Entity details: label on the left, value on the right, hint below the value. An empty value renders as a muted hyphen.',
+            'Карточка сущности: подпись слева, значение справа, подсказка под значением. Пустое значение - приглушённый дефис. Копируемые значения - CopyValue variant="ghost": без фона в покое, вровень с обычными, фон при наведении.',
+            'Entity details: label on the left, value on the right, hint below the value. An empty value renders as a muted hyphen. Copyable values use CopyValue variant="ghost": no background at rest, aligned with plain values, a background on hover.',
           )}
         >
           <KeyValueList
             items={[
               { key: 'n', label: t('Позиция', 'Item'), value: t('Фильтр гидравлический', 'Hydraulic filter') },
-              { key: 'sku', label: t('Артикул', 'SKU'), value: 'SKU-40200', mono: true },
+              {
+                key: 'sku',
+                label: t('Артикул', 'SKU'),
+                value: <CopyValue variant="ghost" size="sm" value="SKU-40200" label={t('Скопировать артикул', 'Copy SKU')} />,
+              },
               { key: 'w', label: t('Склад', 'Warehouse'), value: t('Долина-1', 'Valley-1'), hint: t('Стеллаж B-14, ярус 3', 'Rack B-14, tier 3') },
+              {
+                key: 'mail',
+                label: t('Почта склада', 'Warehouse email'),
+                value: <CopyValue variant="ghost" size="sm" mono={false} value="valley-1@endfield.local" label={t('Скопировать почту', 'Copy email')} />,
+              },
               { key: 'p', label: t('Цена', 'Price'), value: formatRub(1_250_050) },
               { key: 's', label: t('Поставщик', 'Supplier'), value: null },
             ]}
