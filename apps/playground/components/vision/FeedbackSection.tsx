@@ -17,6 +17,7 @@ import {
   Select,
   Skeleton,
   SkeletonText,
+  spotlight,
   Spinner,
   StatusPill,
   Switch,
@@ -27,7 +28,7 @@ import {
   type ModalSize,
 } from 'endfield-vision'
 import { ClipboardList, Download, NotebookPen, PackageSearch, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useT } from '@/lib/i18n'
 import { Subhead } from './parts'
 import s from './vision.module.css'
@@ -521,6 +522,46 @@ function StatesCard() {
   )
 }
 
+/** Подсветка поля: «Получить из реестра» без ИНН - тост и spotlight на поле ИНН с фокусом. */
+function SpotlightCard() {
+  const { t } = useT()
+  const [inn, setInn] = useState('')
+  const [name, setName] = useState('')
+  const innRef = useRef<HTMLDivElement | null>(null)
+  const fetchFromRegistry = () => {
+    if (!inn.trim()) {
+      toast.warning(t('Сначала укажите ИНН', 'Enter the tax ID first'))
+      if (innRef.current) spotlight(innRef.current, { focus: true })
+      return
+    }
+    setName(t('ООО «Хребет-Сервис»', 'Ridge Service LLC'))
+    toast.success(t('Данные получены из реестра', 'Data received from the registry'))
+  }
+  return (
+    <Card
+      title="spotlight()"
+      description={t(
+        'Подсветка элемента поверх интерфейса: всё остальное - под затемнением с размытием, вокруг элемента - кольцо фокуса и расходящаяся волна. Элемент живой, можно сразу печатать. Закрывается любым нажатием, Escape (первый - только подсветку, не окно под ней), вводом в элементе или через 4 секунды. Вызывается на DOM-элементе, работает и в окне, и вне провайдеров.',
+        'Highlights an element above the interface: everything else goes under a blurred dim, the element gets a focus ring and an expanding wave. The element stays live, so the user can type right away. Any pointer press, Escape (the first one closes only the highlight, not the dialog under it), input inside the element or a 4-second timeout dismisses it. It is called on a DOM element and works inside dialogs and outside providers.',
+      )}
+    >
+      <div className="ev-stack">
+        <div className={s.row} style={{ alignItems: 'flex-end' }}>
+          <div ref={innRef}>
+            <Field label={t('ИНН', 'Tax ID')}>
+              <Input value={inn} onChange={(e) => setInn(e.target.value)} width="md" inputMode="numeric" placeholder="7704217370" />
+            </Field>
+          </div>
+          <Button onClick={fetchFromRegistry}>{t('Получить из реестра', 'Fetch from the registry')}</Button>
+        </div>
+        <Field label={t('Название', 'Name')}>
+          <Input value={name} onChange={(e) => setName(e.target.value)} width="lg" />
+        </Field>
+      </div>
+    </Card>
+  )
+}
+
 export function FeedbackSection() {
   return (
     <div className={s.section}>
@@ -530,6 +571,7 @@ export function FeedbackSection() {
         <ModalsCard />
       </div>
       <WindowsCard />
+      <SpotlightCard />
       <div className={s.grid}>
         <StatesCard />
       </div>

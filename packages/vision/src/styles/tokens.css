@@ -221,6 +221,8 @@
     --ev-z-drawer: 200;
     --ev-z-modal: 300;
     --ev-z-dropdown: 1100;
+    /* Подсветка элемента (spotlight): над окнами и списками, под тостами. */
+    --ev-z-spotlight: 1300;
     --ev-z-toast: 1400;
     --ev-z-tooltip: 1500;
     --ev-z-overlay: 2000;

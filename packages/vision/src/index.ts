@@ -15,6 +15,7 @@ export {
   useMounted,
   useOutsideClick,
 } from './lib/hooks'
+export { spotlight, spotlightPath, type SpotlightOptions, type SpotlightRect } from './lib/spotlight'
 export { Portal, useEscapeLayer, useFloating, useFocusTrap, useScrollLock, type Placement } from './lib/overlay'
 export {
   ACCENTS,

@@ -584,4 +584,84 @@
     background: var(--ev-hover);
     color: var(--ev-text);
   }
+
+  /* ================================================================ */
+  /* Подсветка элемента (spotlight)                                    */
+  /* ================================================================ */
+
+  /*
+   * Слой пропускает указатель: подсвеченный элемент живой. Затемнение - как
+   * подложка окна, вырез - clip-path (считает spotlight()), вокруг выреза -
+   * кольцо фокуса и волна: тонкий контур выходит от кольца наружу и гаснет,
+   * затем следующая. Скругление волны растёт вместе с отступом.
+   */
+  .ev-spotlight {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ev-z-spotlight);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-spotlight[data-state='open'] {
+    opacity: 1;
+  }
+
+  .ev-spotlight-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--ev-surface-overlay);
+    backdrop-filter: blur(3px);
+  }
+
+  .ev-spotlight-ring {
+    position: absolute;
+    border-radius: var(--ev-spotlight-r);
+    box-shadow: var(--ev-focus-ring);
+    transform: scale(1.06);
+    transition: transform var(--ev-dur-slow) var(--ev-ease-out);
+  }
+
+  .ev-spotlight[data-state='open'] .ev-spotlight-ring {
+    transform: scale(1);
+  }
+
+  .ev-spotlight-ring::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--ev-accent-edge);
+    border-radius: calc(var(--ev-spotlight-r) + 4px);
+    opacity: 0;
+    animation: ev-spotlight-wave 1.6s var(--ev-ease-out) infinite;
+  }
+
+  @keyframes ev-spotlight-wave {
+    from {
+      inset: -4px;
+      border-radius: calc(var(--ev-spotlight-r) + 4px);
+      opacity: 1;
+    }
+    to {
+      inset: -20px;
+      border-radius: calc(var(--ev-spotlight-r) + 20px);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ev-spotlight,
+    .ev-spotlight-ring {
+      transition: none;
+    }
+
+    .ev-spotlight-ring {
+      transform: none;
+    }
+
+    .ev-spotlight-ring::after {
+      animation: none;
+    }
+  }
 }

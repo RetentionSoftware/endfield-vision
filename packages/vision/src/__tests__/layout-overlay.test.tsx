@@ -21,6 +21,7 @@ import { ThumbnailGrid } from '../components/Thumbnail'
 import { TreeView } from '../components/TreeView'
 import { insertEscapeLayer, type EscapeLayer } from '../lib/overlay'
 import { nextItemDelta, wheelDelta } from '../lib/scroll-overflow'
+import { spotlight, spotlightPath } from '../lib/spotlight'
 import { renderRu } from './render-ru'
 
 /* Слои Escape, Enter в окне-форме, размеры и раскладка контролов, вкладки, каркас во всю высоту. */
@@ -482,5 +483,30 @@ describe('CopyValue variant="ghost"', () => {
     expect(renderRu(<CopyValue value="7704217370" />)).not.toContain('data-variant')
     const css = readCss('components/display.css')
     expect(css).toMatch(/\.ev-copyvalue\[data-variant='ghost'\] \.ev-copyvalue-btn \{\s*margin-inline-start: calc\(var\(--ev-copyvalue-start\) \* -1\);/)
+  })
+})
+
+describe('spotlight', () => {
+  it('путь затемнения: окно и скруглённый вырез, evenodd; радиус не больше половины стороны', () => {
+    const d = spotlightPath(800, 600, { left: 100, top: 50, width: 200, height: 40 }, 8)
+    expect(d.startsWith('M0 0H800V600H0Z')).toBe(true)
+    expect(d).toContain('M108 50H292A8 8 0 0 1 300 58')
+    expect(d.endsWith('Z')).toBe(true)
+    // Высота 10 - радиус ужимается до 5.
+    expect(spotlightPath(100, 100, { left: 0, top: 0, width: 40, height: 10 }, 8)).toContain('A5 5 0 0 1')
+  })
+
+  it('на сервере ничего не делает и возвращает функцию закрытия', () => {
+    const dismiss = spotlight({} as HTMLElement)
+    expect(typeof dismiss).toBe('function')
+    expect(() => dismiss()).not.toThrow()
+  })
+
+  it('слой - между выпадающими списками и тостами', () => {
+    const tokens = readCss('tokens.css')
+    const z = (name: string) => Number(tokens.match(new RegExp(`--ev-z-${name}: ([0-9]+);`))![1])
+    expect(z('spotlight')).toBeGreaterThan(z('dropdown'))
+    expect(z('spotlight')).toBeGreaterThan(z('modal'))
+    expect(z('spotlight')).toBeLessThan(z('toast'))
   })
 })
